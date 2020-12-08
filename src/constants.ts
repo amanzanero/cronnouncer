@@ -3,3 +3,4 @@ require("dotenv").config();
 
 export const IS_PROD = process.env.NODE_ENV === "production";
 export const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+export const DEBUG = !IS_PROD && false; // make this true if you want debug mode on
