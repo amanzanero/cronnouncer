@@ -1,0 +1,22 @@
+{
+  "name": "cronnouncer",
+  "version": "1.0.0",
+  "description": "Discord bot for scheduled announcements",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amanzanero/cronnouncer.git"
+  },
+  "author": "Estrella Bois",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/amanzanero/cronnouncer/issues"
+  },
+  "homepage": "https://github.com/amanzanero/cronnouncer#readme",
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
+}
