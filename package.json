@@ -27,6 +27,10 @@
     "extensions": [
       "ts"
     ],
+    "files": [
+      "test/**/*",
+      "!test/test_utils"
+    ],
     "require": [
       "ts-node/register"
     ]
