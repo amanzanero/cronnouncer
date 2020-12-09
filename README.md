@@ -1,5 +1,7 @@
 # cronnouncer
 
+[![amanzanero](https://circleci.com/gh/amanzanero/cronnouncer.svg?style=shield&circle-token=6a151431cce03f815aab981b640852910bc58991	)](https://circleci.com/gh/amanzanero/cronnouncer)
+
 The Discord bot to schedule announcements on your server!
 
 ## To get this running on your machine:
