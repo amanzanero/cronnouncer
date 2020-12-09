@@ -18,4 +18,4 @@ Node.js 14
 
 ## Before you PR:
 
-Run `npm run prcheck`. If all looks good, go ahead and PR to main.
+Run `npm run pushcheck`. If all looks good, go ahead and PR to main.

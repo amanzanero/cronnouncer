@@ -1,7 +1,45 @@
 version: 2.1
 orbs:
   node: circleci/node@3.0.0
+
+jobs:
+  build:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - node/install-packages
+      - run: npm run build:dryrun
+
+  lint:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - node/install-packages
+      - run: npm run lint
+
+  coverage:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - node/install-packages
+      - run: npm run coverage
+
 workflows:
-  node-tests:
+  build-lint-and-test:
     jobs:
-      - node/test
+      - build
+      - lint
+      - coverage
+      - deployhold:
+            type: approval
+            requires:
+              - build
+              - lint
+              - coverage
+            filters:
+              branches:
+                only:
+                  - main
