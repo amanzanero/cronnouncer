@@ -31,13 +31,15 @@ workflows:
   build-lint-and-test:
     jobs:
       - build
-      - lint
-      - coverage
+      - lint:
+            requires:
+              - build
+      - coverage:
+            requires:
+              - lint
       - deployhold:
             type: approval
             requires:
-              - build
-              - lint
               - coverage
             filters:
               branches:
