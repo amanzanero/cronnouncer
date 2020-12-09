@@ -20,9 +20,10 @@ Node.js 14
 1. `git clone https://github.com/amanzanero/cronnouncer.git`
 2. `cd cronnouncer`
 3. `npm i`
-4. ask [@amanzanero](https://github.com/amanzanero) for .env/secret tokens
-5. add .env to root folder
-6. `npm run dev` to start bot locally
+4. create a [discord app](https://discord.com/developers/applications)
+5. create a bot and get secret token
+6. add .env to root folder and paste `DISCORD_TOKEN=<put your token here>`
+7. `npm run dev` to start bot locally
 
 ## Before you PR:
 
