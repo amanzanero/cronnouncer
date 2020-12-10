@@ -1,23 +1,30 @@
-import * as Discord from "discord.js";
-
-import { DEBUG, DISCORD_TOKEN } from "./constants";
-import { logger } from "./services";
+import { DEBUG, DISCORD_TOKEN, IS_PROD } from "./constants";
+import { discordService, logger } from "./services";
 import handleMessages from "./handlers/message";
-
-const discordBot = new Discord.Client();
 
 function main() {
   logger.info("starting cronnouncer...");
 
+  const { client: discordClient } = discordService;
+  if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
+
   if (DEBUG) {
-    discordBot.on("debug", (debugStatement) => logger.info(`[DEBUG] ${debugStatement}`));
+    discordClient.on("debug", (debugStatement) => logger.info(`[DEBUG] ${debugStatement}`));
   }
-  discordBot.on("ready", () => logger.info(`cronnouncer ready`));
-  discordBot.on("disconnect", () => logger.info(`cronnouncer ended`));
+  discordClient.on("ready", () => {
+    discordService.ready = true;
+    logger.info(`cronnouncer ready`);
+  });
 
-  discordBot.on("message", handleMessages);
+  discordClient.on("message", handleMessages);
 
-  discordBot.login(DISCORD_TOKEN).catch((e) => logger.error(e.stack));
+  discordClient.login(DISCORD_TOKEN).catch((e) => logger.error(e.stack));
+
+  process.on("SIGTERM", () => {
+    logger.info("shutting down cronnouncer...");
+    discordClient.destroy();
+    logger.info("cronnoucer shutdown");
+  });
 }
 
 main();
