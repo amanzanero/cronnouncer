@@ -1,9 +1,9 @@
 import test from "ava";
 import sinon from "sinon";
 
-import { handlePing, makeLogInfo } from "../../../src/handlers/message/message";
-import { logger } from "../../../src/services";
-import { genTestMessage } from "../../test_utils/mock";
+import { handlePing, makeLogInfo } from "../../../../src/handlers/message/message";
+import { logger } from "../../../../src/services";
+import { genTestMessage } from "../../../test_utils/mock";
 
 test.beforeEach((t) => {
   Object.assign(t.context, {

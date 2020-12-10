@@ -8,7 +8,9 @@
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc --build tsconfig.prod.json",
     "build:dryrun": "tsc -p tsconfig.prod.json --noEmit",
-    "test": "NODE_ENV=test ava --verbose",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "NODE_ENV=test ava --verbose --config ava.config.unit.js",
+    "test:e2e": "NODE_ENV=test ava --verbose --timeout=10s --config ava.config.e2e.js",
     "coverage": "nyc npm run test",
     "lint": "eslint 'src/*/**/*.{js,ts,tsx}'",
     "pushcheck": "npm run lint && npm run build:dryrun && npm run coverage"
@@ -23,18 +25,6 @@
     "url": "https://github.com/amanzanero/cronnouncer/issues"
   },
   "homepage": "https://github.com/amanzanero/cronnouncer#readme",
-  "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "files": [
-      "test/**/*",
-      "!test/test_utils"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
-  },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

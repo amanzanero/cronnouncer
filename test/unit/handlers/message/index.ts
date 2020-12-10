@@ -1,9 +1,9 @@
 import test from "ava";
 import sinon from "sinon";
 
-import handleMessages from "../../../src/handlers/message";
-import * as messageHandlers from "../../../src/handlers/message/message";
-import { genTestMessage } from "../../test_utils/mock";
+import handleMessages from "../../../../src/handlers/message";
+import * as messageHandlers from "../../../../src/handlers/message/message";
+import { genTestMessage } from "../../../test_utils/mock";
 
 test.afterEach(() => {
   sinon.restore();
