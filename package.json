@@ -4,7 +4,7 @@
   "description": "Discord bot for scheduled announcements",
   "main": "build/index.js",
   "scripts": {
-    "start": "NODE_ENV=production node build/index.js",
+    "start": "NODE_ENV=production node --enable-source-maps build/index.js",
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc --build tsconfig.prod.json",
     "build:dryrun": "tsc -p tsconfig.prod.json --noEmit",
