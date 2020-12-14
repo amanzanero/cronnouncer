@@ -1,26 +1,26 @@
 import Discord from "discord.js";
 
-import { DEBUG, DISCORD_TOKEN, IS_PROD } from "./constants";
+import { DISCORD_TOKEN, IS_PROD } from "./constants";
 import { logger } from "./services";
-import handleMessages from "./handlers/message";
+import { useMessageHandler, generateCommands } from "./commands";
 
 export async function main(): Promise<string> {
-  const discordClient = new Discord.Client();
+  /* istanbul ignore next */
+  if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
-  if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
+  const commands = generateCommands();
+  const discordClient = new Discord.Client();
+  const messageHandler = useMessageHandler(discordClient, commands);
 
-  if (DEBUG) {
-    discordClient.on("debug", (debugStatement) => logger.info(`[DEBUG] ${debugStatement}`));
-  }
-  discordClient.on("ready", () => logger.info("cronnoucer live"));
+  discordClient.on("ready", () => logger.info("cronnouncer live"));
+  discordClient.on("message", messageHandler);
 
-  discordClient.on("message", handleMessages);
-
+  // graceful exit
   process.on("SIGTERM", () => {
     logger.info("shutting down cronnouncer...");
     discordClient.destroy();
-    logger.info("cronnoucer shutdown");
+    logger.info("cronnouncer shutdown");
     process.exit(0);
   });
 
