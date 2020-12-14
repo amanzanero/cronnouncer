@@ -1,6 +1,6 @@
-import { CommandMap } from "./Command";
+import { CommandMap } from "../definitions";
 
-import ping from "./ping.cmd";
+import ping from "../ping";
 
 export function generateCommands(): CommandMap {
   return {

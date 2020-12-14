@@ -18,9 +18,8 @@ test.afterEach(() => {
   process.removeAllListeners("SIGTERM");
 });
 
-test.serial("Discord client starts ok", async (t) => {
+test.serial("discord client starts ok", async (t) => {
   await t.notThrowsAsync(main);
-  await timeout(1000, () => undefined);
   process.kill(process.pid, "SIGTERM");
   await timeout(1000, () => undefined);
 });
@@ -28,7 +27,6 @@ test.serial("Discord client starts ok", async (t) => {
 test.serial(`should call 'process.exit(0))' when receiving a  SIGTERM`, async (t) => {
   const { exitStub } = t.context as any;
   await t.notThrowsAsync(main);
-  await timeout(1000, () => undefined);
   process.kill(process.pid, "SIGTERM");
   await timeout(1000, () => {
     t.true(exitStub.calledWith(0));
