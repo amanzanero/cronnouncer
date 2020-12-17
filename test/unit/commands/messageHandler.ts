@@ -4,7 +4,7 @@ import sinon from "sinon";
 import {
   generateCommands,
   UNKNOWN_COMMAND_RESPONSE,
-  useMessageHandler,
+  generateMessageHandler,
 } from "../../../src/commands";
 import { genTestMessage } from "../../test_utils/mock";
 import * as parser from "../../../src/lib/parser";
@@ -18,7 +18,7 @@ test.before((t) => {
     sinon.stub(keyValue[1], "execute");
   });
   const errorLogSpy = sinon.spy(logger, "error");
-  const messageHandler = useMessageHandler({} as any, commands);
+  const messageHandler = generateMessageHandler({} as any, commands);
   Object.assign(t.context, { commands, messageHandler, errorLogSpy });
 });
 

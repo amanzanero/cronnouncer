@@ -1,6 +1,3 @@
-/*
-This file contains commands for messages
- */
 import { Client, Message } from "discord.js";
 import { logger } from "../services";
 

@@ -4,7 +4,7 @@ import { isCommand, parseCommand } from "../../lib/parser";
 import { logger } from "../../services";
 import { UNKNOWN_COMMAND_RESPONSE } from "../index";
 
-export function useMessageHandler(client: Client, commands: CommandMap) {
+export function generateMessageHandler(client: Client, commands: CommandMap) {
   return async (message: Message) => {
     if (message.author.bot) return; // we dont fuk w bots
 

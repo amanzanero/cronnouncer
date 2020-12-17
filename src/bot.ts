@@ -2,7 +2,7 @@ import Discord from "discord.js";
 
 import { DISCORD_TOKEN, IS_PROD } from "./constants";
 import { logger } from "./services";
-import { useMessageHandler, generateCommands } from "./commands";
+import { generateMessageHandler, generateCommands } from "./commands";
 
 export async function main(): Promise<string> {
   /* istanbul ignore next */
@@ -11,7 +11,7 @@ export async function main(): Promise<string> {
 
   const commands = generateCommands();
   const discordClient = new Discord.Client();
-  const messageHandler = useMessageHandler(discordClient, commands);
+  const messageHandler = generateMessageHandler(discordClient, commands);
 
   discordClient.on("ready", () => logger.info("cronnouncer live"));
   discordClient.on("message", messageHandler);
