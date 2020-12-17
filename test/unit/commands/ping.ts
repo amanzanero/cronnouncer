@@ -11,6 +11,10 @@ test.beforeEach((t) => {
   });
 });
 
+test.afterEach(() => {
+  sinon.reset();
+});
+
 test("sends pong", async (t) => {
   const { message } = t.context as any;
   sinon.spy(message.channel, "send");
@@ -24,5 +28,6 @@ test("throws err and logs", async (t) => {
   sinon.stub(message.channel, "send").throws(e);
   sinon.spy(logger, "error");
   await t.notThrowsAsync(ping.execute({} as any, message));
-  t.deepEqual((logger as any).error.getCall(0).args, [e.stack]);
+  const expectedArgs = (logger as any).error.getCall(0).args;
+  t.deepEqual(expectedArgs, [e.stack]);
 });
