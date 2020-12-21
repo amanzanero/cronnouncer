@@ -5,7 +5,7 @@ interface ScheduledTimeProps {
   value: Moment | undefined;
 }
 
-const DATE_FORMAT = "MM-DD-YYYY hh:mm a";
+export const DATE_FORMAT = "MM-DD-YYYY hh:mm a";
 
 export class ScheduledTime {
   public readonly props;

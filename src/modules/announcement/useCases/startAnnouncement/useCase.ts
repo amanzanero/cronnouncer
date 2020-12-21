@@ -6,14 +6,16 @@ import { IAnnouncementRepo } from "../../repos/announcementRepo";
 import { InputDTO } from "./inputDTO";
 import { GuildId } from "../../domain/guildId";
 import { SenderId } from "../../domain/senderId";
-import { Result, Response } from "../../../../lib";
+import { Result, Response, UseCaseExecute } from "../../../../lib";
 import { Announcement } from "../../domain/announcement";
 import { Message } from "../../domain/message";
 import { ScheduledTime } from "../../domain/scheduledTime";
 import { OutputDTO } from "./outputDTO";
 
-export function createStartAnnouncementUseCase(announcementRepo: IAnnouncementRepo) {
-  async function execute(dto: InputDTO) {
+export function createStartAnnouncementUseCase(
+  announcementRepo: IAnnouncementRepo,
+): UseCaseExecute<InputDTO, OutputDTO> {
+  return async function execute(dto: InputDTO) {
     const { guildId, senderId } = dto;
 
     // check data transfer object is valid first
@@ -27,7 +29,7 @@ export function createStartAnnouncementUseCase(announcementRepo: IAnnouncementRe
     const message = Message.create();
 
     // ensure no announcement is already being made
-    const announcementInProgress = announcementRepo.findWorkInProgressByGuildId(
+    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildId(
       guildIDOrError.getValue(),
     );
     if (announcementInProgress) {
@@ -35,7 +37,7 @@ export function createStartAnnouncementUseCase(announcementRepo: IAnnouncementRe
     }
 
     // good to create on from here
-    const newAnnouncement = Announcement.create({
+    const newAnnouncementOrError = Announcement.create({
       message: message.getValue(),
       scheduledTime: scheduledTime.getValue(),
       guildId: guildIDOrError.getValue(),
@@ -43,14 +45,12 @@ export function createStartAnnouncementUseCase(announcementRepo: IAnnouncementRe
       published: false,
     });
 
-    await announcementRepo.save(newAnnouncement);
+    await announcementRepo.save(newAnnouncementOrError.getValue());
 
     return Response.success<OutputDTO>({
-      guildId: newAnnouncement.guildId.value,
-      senderId: newAnnouncement.senderId.value,
+      guildId: newAnnouncementOrError.getValue().guildId.value,
+      senderId: newAnnouncementOrError.getValue().senderId.value,
       published: false,
     });
-  }
-
-  return { execute };
+  };
 }

@@ -27,3 +27,5 @@ export class Response<T> {
     return new Response<U>({ failed: true, message });
   }
 }
+
+export type UseCaseExecute<T, U> = (inputDTO: T) => Promise<Response<U>>;
