@@ -3,19 +3,18 @@
  */
 
 import { IAnnouncementRepo } from "../../repos/announcementRepo";
-import { InputDTO } from "./inputDTO";
+import { InputData, OutputData } from "./dataTransfer";
 import { GuildId } from "../../domain/guildId";
 import { SenderId } from "../../domain/senderId";
 import { Result, Response, UseCaseExecute } from "../../../../lib";
 import { Announcement } from "../../domain/announcement";
 import { Message } from "../../domain/message";
 import { ScheduledTime } from "../../domain/scheduledTime";
-import { OutputDTO } from "./outputDTO";
 
 export function createStartAnnouncementUseCase(
   announcementRepo: IAnnouncementRepo,
-): UseCaseExecute<InputDTO, OutputDTO> {
-  return async function execute(dto: InputDTO) {
+): UseCaseExecute<InputData, OutputData> {
+  return async function execute(dto: InputData) {
     const { guildId, senderId } = dto;
 
     // check data transfer object is valid first
@@ -23,7 +22,7 @@ export function createStartAnnouncementUseCase(
     const senderIDOrError = SenderId.create(senderId);
     const combinedErrors = Result.combine([guildIDOrError, senderIDOrError]);
     if (combinedErrors.isFailure) {
-      return Response.fail<OutputDTO>(combinedErrors.errorValue());
+      return Response.fail<OutputData>(combinedErrors.errorValue());
     }
     const scheduledTime = ScheduledTime.create();
     const message = Message.create();
@@ -33,7 +32,7 @@ export function createStartAnnouncementUseCase(
       guildIDOrError.getValue(),
     );
     if (announcementInProgress) {
-      return Response.fail<OutputDTO>("There is an unfinished announcement for this guild.");
+      return Response.fail<OutputData>("There is an unfinished announcement for this guild.");
     }
 
     // good to create on from here
@@ -47,7 +46,7 @@ export function createStartAnnouncementUseCase(
 
     await announcementRepo.save(newAnnouncementOrError.getValue());
 
-    return Response.success<OutputDTO>({
+    return Response.success<OutputData>({
       guildId: newAnnouncementOrError.getValue().guildId.value,
       senderId: newAnnouncementOrError.getValue().senderId.value,
       published: false,

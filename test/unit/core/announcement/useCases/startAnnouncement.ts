@@ -1,17 +1,19 @@
 import test from "ava";
-import { createStartAnnouncementUseCase } from "../../../../../src/modules/announcement/useCases/startAnnouncement/useCase";
+import {
+  createStartAnnouncementUseCase,
+  OutputData,
+  InputData,
+} from "../../../../../src/core/announcement/useCases/startAnnouncement";
 import {
   AnnouncementRepo,
   IAnnouncementRepo,
-} from "../../../../../src/modules/announcement/repos/announcementRepo";
+} from "../../../../../src/core/announcement/repos/announcementRepo";
 import { Response, UseCaseExecute } from "../../../../../src/lib";
-import { OutputDTO } from "../../../../../src/modules/announcement/useCases/startAnnouncement/outputDTO";
-import { InputDTO } from "../../../../../src/modules/announcement/useCases/startAnnouncement/inputDTO";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
 
 interface TestContext {
   repo: IAnnouncementRepo;
-  useCase: UseCaseExecute<InputDTO, OutputDTO>;
+  useCase: UseCaseExecute<InputData, OutputData>;
 }
 
 test.before((t) => {
@@ -28,7 +30,7 @@ test("should fail with undefined DTO field", async (t) => {
     guildId: undefined,
   } as any);
 
-  t.deepEqual(Response.fail<OutputDTO>("guildId is null or undefined"), response);
+  t.deepEqual(Response.fail<OutputData>("guildId is null or undefined"), response);
 });
 
 test("should fail when an announcement is in progress for a guild", async (t) => {
@@ -45,7 +47,7 @@ test("should fail when an announcement is in progress for a guild", async (t) =>
   } as any);
 
   t.deepEqual(
-    Response.fail<OutputDTO>("There is an unfinished announcement for this guild."),
+    Response.fail<OutputData>("There is an unfinished announcement for this guild."),
     response,
   );
 });
@@ -59,7 +61,7 @@ test("should successfully create", async (t) => {
   } as any);
 
   t.deepEqual(
-    Response.success<OutputDTO>({ senderId: "2", guildId: "2", published: false }),
+    Response.success<OutputData>({ senderId: "2", guildId: "2", published: false }),
     response,
   );
 });

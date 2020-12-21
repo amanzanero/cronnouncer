@@ -1,14 +1,11 @@
 import moment, { Moment } from "moment";
 import { v4 } from "uuid";
-import { Announcement } from "../../../../src/modules/announcement/domain/announcement";
-import { Message } from "../../../../src/modules/announcement/domain/message";
-import {
-  DATE_FORMAT,
-  ScheduledTime,
-} from "../../../../src/modules/announcement/domain/scheduledTime";
-import { GuildId } from "../../../../src/modules/announcement/domain/guildId";
+import { Announcement } from "../../../../src/core/announcement/domain/announcement";
+import { Message } from "../../../../src/core/announcement/domain/message";
+import { DATE_FORMAT, ScheduledTime } from "../../../../src/core/announcement/domain/scheduledTime";
+import { GuildId } from "../../../../src/core/announcement/domain/guildId";
 import { UniqueEntityID } from "../../../../src/lib";
-import { SenderId } from "../../../../src/modules/announcement/domain/senderId";
+import { SenderId } from "../../../../src/core/announcement/domain/senderId";
 
 interface OptionalMockAnnouncementProps {
   id?: string;
