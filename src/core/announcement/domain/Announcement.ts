@@ -2,17 +2,17 @@
 Contains definition for an announcement (aggregate root)
  */
 
-import { ScheduledTime } from "./scheduledTime";
-import { GuildId } from "./guildId";
-import { Message } from "./message";
-import { SenderId } from "./senderId";
+import { ScheduledTime } from "./ScheduledTime";
+import { GuildID } from "./GuildID";
+import { Message } from "./Message";
+import { SenderID } from "./SenderID";
 import { Guard, Result, UniqueEntityID } from "../../../lib";
 
 interface AnnouncementProps {
-  message: Message;
-  scheduledTime: ScheduledTime;
-  guildId: GuildId;
-  senderId: SenderId;
+  message?: Message;
+  scheduledTime?: ScheduledTime;
+  guildId: GuildID;
+  senderId: SenderID;
   published: boolean;
 }
 
@@ -51,8 +51,6 @@ export class Announcement {
 
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
-      { argument: props.message, argumentName: "message" },
-      { argument: props.scheduledTime, argumentName: "scheduledTime" },
       { argument: props.published, argumentName: "published" },
       { argument: props.guildId, argumentName: "guildId" },
       { argument: props.senderId, argumentName: "senderId" },

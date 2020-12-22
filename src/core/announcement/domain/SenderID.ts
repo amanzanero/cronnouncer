@@ -4,7 +4,7 @@ interface SenderIdProps {
   value: string;
 }
 
-export class SenderId {
+export class SenderID {
   public readonly props;
 
   get value(): string {
@@ -15,12 +15,12 @@ export class SenderId {
     this.props = props;
   }
 
-  public static create(senderId: string): Result<SenderId> {
+  public static create(senderId: string): Result<SenderID> {
     const guardResult = Guard.againstNullOrUndefined(senderId, "senderId");
     if (!guardResult.succeeded) {
-      return Result.fail<SenderId>(guardResult.message);
+      return Result.fail<SenderID>(guardResult.message);
     } else {
-      return Result.ok<SenderId>(new SenderId({ value: senderId }));
+      return Result.ok<SenderID>(new SenderID({ value: senderId }));
     }
   }
 }

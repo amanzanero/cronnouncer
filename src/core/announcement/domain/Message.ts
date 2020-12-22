@@ -1,7 +1,7 @@
 import { Guard, Result } from "../../../lib";
 
 interface MessageProps {
-  value?: string;
+  value: string;
 }
 
 const MAX_LENGTH = 500;
@@ -10,12 +10,8 @@ const MIN_LENGTH = 1;
 export class Message {
   public readonly props;
 
-  get value(): string | undefined {
+  get value(): string {
     return this.props.value;
-  }
-
-  isEmpty(): boolean {
-    return !this.props.value;
   }
 
   private static isAppropriateLength(message: string) {
@@ -26,9 +22,9 @@ export class Message {
     this.props = props;
   }
 
-  public static create(message?: string): Result<Message> {
+  public static create(message: string): Result<Message> {
     const guardResult = Guard.againstNullOrUndefined(message, "message");
-    if (!guardResult.succeeded) return Result.ok<Message>(new Message({ value: undefined }));
+    if (!guardResult.succeeded) return Result.fail<Message>(guardResult.message);
 
     if (!Message.isAppropriateLength(message as string))
       return Result.fail<Message>(
