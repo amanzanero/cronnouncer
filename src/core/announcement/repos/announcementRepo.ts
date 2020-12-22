@@ -2,8 +2,7 @@
  * his file contains a repository composer for announcements
  */
 
-import { GuildID } from "../domain/GuildID";
-import { Announcement } from "../domain/Announcement";
+import { Announcement, GuildID } from "../domain";
 
 export interface IAnnouncementRepo {
   findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined>;

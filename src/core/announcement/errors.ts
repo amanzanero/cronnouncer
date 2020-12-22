@@ -26,3 +26,15 @@ export class AnnouncementInProgressError extends AnnouncementError {
     super(`There is already an announcement in progress for server: ${guildID}`);
   }
 }
+
+export class AnnouncementIncompleteError extends AnnouncementError {
+  constructor() {
+    super("An announcement must have a message, scheduledTime, and channel set before publishing");
+  }
+}
+
+export class AnnouncementNotInProgressError extends AnnouncementError {
+  constructor(guildID: string) {
+    super(`There is no announcement in progress for server: ${guildID}`);
+  }
+}

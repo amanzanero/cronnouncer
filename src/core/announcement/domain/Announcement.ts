@@ -58,7 +58,7 @@ export class Announcement {
     );
 
     if (!hasNecessaryProps) {
-      return Result.fail<Announcement>();
+      return Result.fail<Announcement>("missing one ore more necessary props");
     }
 
     Object.assign(this.props, { published: true });

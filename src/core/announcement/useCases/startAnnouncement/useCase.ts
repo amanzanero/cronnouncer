@@ -4,9 +4,8 @@
 
 import { IAnnouncementRepo } from "../../repos/announcementRepo";
 import { InputData, OutputData } from "./dataTransfer";
-import { GuildID } from "../../domain/GuildID";
+import { Announcement, GuildID } from "../../domain";
 import { Response, UseCaseExecute } from "../../../../lib";
-import { Announcement } from "../../domain/Announcement";
 import { AnnouncementError, AnnouncementInProgressError, ValidationError } from "../../errors";
 
 export function createStartAnnouncementUseCase(
