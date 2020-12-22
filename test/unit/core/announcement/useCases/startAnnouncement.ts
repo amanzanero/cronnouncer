@@ -11,13 +11,14 @@ import {
 import { Response, UseCaseExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
 import {
+  AnnouncementError,
   AnnouncementInProgressError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
 
 interface TestContext {
   repo: IAnnouncementRepo;
-  useCase: UseCaseExecute<InputData, OutputData | Error>;
+  useCase: UseCaseExecute<InputData, OutputData | AnnouncementError>;
 }
 
 test.before((t) => {
@@ -30,11 +31,10 @@ test("should fail with undefined DTO field", async (t) => {
   const { useCase } = t.context as TestContext;
 
   const response = await useCase({
-    senderId: 1,
-    guildId: undefined,
+    guildID: undefined,
   } as any);
 
-  const expectedErr = new ValidationError("guildId is null or undefined");
+  const expectedErr = new ValidationError("guildID is null or undefined");
   t.deepEqual(response.value, expectedErr);
 });
 
@@ -42,16 +42,15 @@ test("should fail when an announcement is in progress for a guild", async (t) =>
   const { useCase, repo } = t.context as TestContext;
 
   const existingAnnouncement = createMockAnnouncement({
-    guildId: "1",
+    guildID: "1",
   });
   await repo.save(existingAnnouncement);
 
   const response = await useCase({
-    guildId: "1",
-    senderId: existingAnnouncement.senderId.value,
+    guildID: "1",
   } as any);
 
-  const expected = new AnnouncementInProgressError(existingAnnouncement.guildId.value);
+  const expected = new AnnouncementInProgressError(existingAnnouncement.guildID.value);
   t.deepEqual(response.value, expected);
 });
 
@@ -59,12 +58,11 @@ test("should successfully create", async (t) => {
   const { useCase } = t.context as TestContext;
 
   const response = await useCase({
-    guildId: "2",
-    senderId: "2",
+    guildID: "2",
   } as any);
 
   t.deepEqual(
-    Response.success<OutputData>({ senderId: "2", guildId: "2", published: false }),
+    Response.success<OutputData>({ guildID: "2", published: false }),
     response,
   );
 });

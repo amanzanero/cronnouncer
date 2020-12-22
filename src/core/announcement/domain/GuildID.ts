@@ -15,12 +15,12 @@ export class GuildID {
     this.props = props;
   }
 
-  public static create(guildId: string): Result<GuildID> {
-    const guardResult = Guard.againstNullOrUndefined(guildId, "guildId");
+  public static create(guildID: string): Result<GuildID> {
+    const guardResult = Guard.againstNullOrUndefined(guildID, "guildID");
     if (!guardResult.succeeded) {
       return Result.fail<GuildID>(guardResult.message);
     } else {
-      return Result.ok<GuildID>(new GuildID({ value: guildId }));
+      return Result.ok<GuildID>(new GuildID({ value: guildID }));
     }
   }
 }

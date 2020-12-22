@@ -5,7 +5,6 @@ Contains definition for an announcement (aggregate root)
 import { ScheduledTime } from "./ScheduledTime";
 import { GuildID } from "./GuildID";
 import { Message } from "./Message";
-import { SenderID } from "./SenderID";
 import { Guard, Result, UniqueEntityID } from "../../../lib";
 import { Channel } from "./Channel";
 
@@ -13,8 +12,7 @@ interface AnnouncementProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
   channel?: Channel;
-  guildId: GuildID;
-  senderId: SenderID;
+  guildID: GuildID;
   published: boolean;
 }
 
@@ -43,12 +41,8 @@ export class Announcement {
     return this.props.channel;
   }
 
-  get guildId() {
-    return this.props.guildId;
-  }
-
-  get senderId() {
-    return this.props.senderId;
+  get guildID() {
+    return this.props.guildID;
   }
 
   get published() {
@@ -64,9 +58,7 @@ export class Announcement {
     );
 
     if (!hasNecessaryProps) {
-      return Result.fail<Announcement>(
-        "Must have message, channel, and scheduleTime in order to publish an announcement",
-      );
+      return Result.fail<Announcement>();
     }
 
     Object.assign(this.props, { published: true });
@@ -76,8 +68,7 @@ export class Announcement {
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
       { argument: props.published, argumentName: "published" },
-      { argument: props.guildId, argumentName: "guildId" },
-      { argument: props.senderId, argumentName: "senderId" },
+      { argument: props.guildID, argumentName: "guildID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
 
