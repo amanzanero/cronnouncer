@@ -4,41 +4,42 @@
 
 import { IAnnouncementRepo } from "../../repos/announcementRepo";
 import { InputData, OutputData } from "./dataTransfer";
-import { GuildId } from "../../domain/guildId";
-import { SenderId } from "../../domain/senderId";
+import { GuildID } from "../../domain/GuildID";
+import { SenderID } from "../../domain/SenderID";
 import { Result, Response, UseCaseExecute } from "../../../../lib";
-import { Announcement } from "../../domain/announcement";
-import { Message } from "../../domain/message";
-import { ScheduledTime } from "../../domain/scheduledTime";
+import { Announcement } from "../../domain/Announcement";
+import { AnnouncementInProgressError, UnexpectedError, ValidationError } from "../../errors";
 
 export function createStartAnnouncementUseCase(
   announcementRepo: IAnnouncementRepo,
-): UseCaseExecute<InputData, OutputData> {
+): UseCaseExecute<InputData, OutputData | Error> {
   return async function execute(dto: InputData) {
     const { guildId, senderId } = dto;
 
     // check data transfer object is valid first
-    const guildIDOrError = GuildId.create(guildId);
-    const senderIDOrError = SenderId.create(senderId);
+    const guildIDOrError = GuildID.create(guildId);
+    const senderIDOrError = SenderID.create(senderId);
     const combinedErrors = Result.combine([guildIDOrError, senderIDOrError]);
     if (combinedErrors.isFailure) {
-      return Response.fail<OutputData>(combinedErrors.errorValue());
+      return Response.fail<ValidationError>(new ValidationError(combinedErrors.errorValue()));
     }
-    const scheduledTime = ScheduledTime.create();
-    const message = Message.create();
 
     // ensure no announcement is already being made
-    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildId(
-      guildIDOrError.getValue(),
-    );
+    let announcementInProgress: Announcement | undefined;
+    try {
+      announcementInProgress = await announcementRepo.findWorkInProgressByGuildId(
+        guildIDOrError.getValue(),
+      );
+    } catch (e) {
+      return Response.fail<UnexpectedError>(e);
+    }
+
     if (announcementInProgress) {
-      return Response.fail<OutputData>("There is an unfinished announcement for this guild.");
+      return Response.fail<AnnouncementInProgressError>(new AnnouncementInProgressError(guildId));
     }
 
     // good to create on from here
     const newAnnouncementOrError = Announcement.create({
-      message: message.getValue(),
-      scheduledTime: scheduledTime.getValue(),
       guildId: guildIDOrError.getValue(),
       senderId: senderIDOrError.getValue(),
       published: false,

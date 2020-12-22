@@ -1,11 +1,11 @@
 import moment, { Moment } from "moment";
 import { v4 } from "uuid";
-import { Announcement } from "../../../../src/core/announcement/domain/announcement";
-import { Message } from "../../../../src/core/announcement/domain/message";
-import { DATE_FORMAT, ScheduledTime } from "../../../../src/core/announcement/domain/scheduledTime";
-import { GuildId } from "../../../../src/core/announcement/domain/guildId";
+import { Announcement } from "../../../../src/core/announcement/domain/Announcement";
+import { Message } from "../../../../src/core/announcement/domain/Message";
+import { DATE_FORMAT, ScheduledTime } from "../../../../src/core/announcement/domain/ScheduledTime";
+import { GuildID } from "../../../../src/core/announcement/domain/GuildID";
 import { UniqueEntityID } from "../../../../src/lib";
-import { SenderId } from "../../../../src/core/announcement/domain/senderId";
+import { SenderID } from "../../../../src/core/announcement/domain/SenderID";
 
 interface OptionalMockAnnouncementProps {
   id?: string;
@@ -17,14 +17,14 @@ interface OptionalMockAnnouncementProps {
 }
 
 export function createMockAnnouncement(props: OptionalMockAnnouncementProps): Announcement {
-  const guildId = GuildId.create(props.guildId || v4()).getValue();
+  const guildId = GuildID.create(props.guildId || v4()).getValue();
   const scheduledTime = ScheduledTime.create(
     props.scheduledTime
       ? props.scheduledTime.format(DATE_FORMAT)
       : moment().add(1, "day").format(DATE_FORMAT),
   ).getValue();
   const message = Message.create(props.message || "A new announcement!").getValue();
-  const senderId = SenderId.create(props.senderId || v4()).getValue();
+  const senderId = SenderID.create(props.senderId || v4()).getValue();
 
   return Announcement.create(
     {

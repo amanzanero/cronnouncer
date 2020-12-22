@@ -3,28 +3,28 @@
  */
 
 interface ResponseProps<T> {
-  dto?: T;
+  value?: T;
   message?: string;
   failed: boolean;
 }
 
 export class Response<T> {
-  public readonly dto: T | undefined;
+  public readonly value: T | undefined;
   public readonly message: string | undefined;
   public readonly failed: boolean;
 
   constructor(props: ResponseProps<T>) {
-    this.dto = props.dto;
+    this.value = props.value;
     this.message = props.message;
     this.failed = props.failed;
   }
 
-  public static success<U>(dto: U) {
-    return new Response<U>({ failed: false, dto });
+  public static success<U>(value?: U) {
+    return new Response<U>({ failed: false, value });
   }
 
-  public static fail<U>(message?: string) {
-    return new Response<U>({ failed: true, message });
+  public static fail<U>(value?: U) {
+    return new Response<U>({ failed: true, value });
   }
 }
 

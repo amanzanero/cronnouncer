@@ -10,10 +10,14 @@ import {
 } from "../../../../../src/core/announcement/repos/announcementRepo";
 import { Response, UseCaseExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
+import {
+  AnnouncementInProgressError,
+  ValidationError,
+} from "../../../../../src/core/announcement/errors";
 
 interface TestContext {
   repo: IAnnouncementRepo;
-  useCase: UseCaseExecute<InputData, OutputData>;
+  useCase: UseCaseExecute<InputData, OutputData | Error>;
 }
 
 test.before((t) => {
@@ -30,7 +34,8 @@ test("should fail with undefined DTO field", async (t) => {
     guildId: undefined,
   } as any);
 
-  t.deepEqual(Response.fail<OutputData>("guildId is null or undefined"), response);
+  const expectedErr = new ValidationError("guildId is null or undefined");
+  t.deepEqual(response.value, expectedErr);
 });
 
 test("should fail when an announcement is in progress for a guild", async (t) => {
@@ -46,10 +51,8 @@ test("should fail when an announcement is in progress for a guild", async (t) =>
     senderId: existingAnnouncement.senderId.value,
   } as any);
 
-  t.deepEqual(
-    Response.fail<OutputData>("There is an unfinished announcement for this guild."),
-    response,
-  );
+  const expected = new AnnouncementInProgressError(existingAnnouncement.guildId.value);
+  t.deepEqual(response.value, expected);
 });
 
 test("should successfully create", async (t) => {

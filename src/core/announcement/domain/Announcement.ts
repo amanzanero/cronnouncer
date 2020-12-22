@@ -7,10 +7,12 @@ import { GuildID } from "./GuildID";
 import { Message } from "./Message";
 import { SenderID } from "./SenderID";
 import { Guard, Result, UniqueEntityID } from "../../../lib";
+import { Channel } from "./Channel";
 
 interface AnnouncementProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
+  channel?: Channel;
   guildId: GuildID;
   senderId: SenderID;
   published: boolean;
@@ -37,6 +39,10 @@ export class Announcement {
     return this.props.scheduledTime;
   }
 
+  get channel() {
+    return this.props.channel;
+  }
+
   get guildId() {
     return this.props.guildId;
   }
@@ -47,6 +53,24 @@ export class Announcement {
 
   get published() {
     return this.props.published;
+  }
+
+  publish() {
+    const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
+      (acc, curr) => {
+        return acc && !!curr;
+      },
+      true,
+    );
+
+    if (!hasNecessaryProps) {
+      return Result.fail<Announcement>(
+        "Must have message, channel, and scheduleTime in order to publish an announcement",
+      );
+    }
+
+    Object.assign(this.props, { published: true });
+    return Result.ok<any>(this);
   }
 
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
