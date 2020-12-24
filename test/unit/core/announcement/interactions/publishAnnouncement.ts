@@ -1,15 +1,15 @@
 import test from "ava";
 import moment from "moment";
 import {
-  createPublishAnnouncementUseCase,
+  makePublishAnnouncement,
   OutputData,
   InputData,
   AnnouncementToOutput,
-} from "../../../../../src/core/announcement/useCases/publishAnnouncement";
+} from "../../../../../src/core/announcement/interactions/publishAnnouncement";
 import {
   AnnouncementRepo,
   IAnnouncementRepo,
-} from "../../../../../src/core/announcement/repos/announcementRepo";
+} from "../../../../../src/core/announcement/repos/AnnouncementRepo";
 import { Response, UseCaseExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
 import {
@@ -26,7 +26,7 @@ interface TestContext {
 
 test.before((t) => {
   const repo = new AnnouncementRepo(); // using actual repo since it's in memory
-  const useCase = createPublishAnnouncementUseCase(repo);
+  const useCase = makePublishAnnouncement(repo);
   Object.assign(t.context, { repo, useCase });
 });
 

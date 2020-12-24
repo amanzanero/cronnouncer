@@ -41,7 +41,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
       .shift();
 
     if (existing) {
-      this.datastore[announcement.guildID.value] = announcementList.reduce((acc, curr) => {
+      this.datastore[1] = announcementList.reduce((acc, curr) => {
         if (curr.id.value === announcement.id.value) {
           acc.push(announcement);
         } else {

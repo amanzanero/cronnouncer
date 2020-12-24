@@ -1,3 +1,3 @@
-import { AnnouncementRepo } from "./announcementRepo";
+import { AnnouncementRepo } from "./AnnouncementRepo";
 
 export const announcementRepo = new AnnouncementRepo();

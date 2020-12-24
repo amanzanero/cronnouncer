@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { IAnnouncementRepo } from "../../repos/announcementRepo";
+import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
 import { AnnouncementToOutput, InputData, OutputData } from "./dataTransfer";
 import { GuildID } from "../../domain";
 import { Response, UseCaseExecute } from "../../../../lib";
@@ -13,7 +13,7 @@ import {
   ValidationError,
 } from "../../errors";
 
-export function createPublishAnnouncementUseCase(
+export function makePublishAnnouncement(
   announcementRepo: IAnnouncementRepo,
 ): UseCaseExecute<InputData, OutputData | AnnouncementError> {
   return async function execute(input: InputData) {
