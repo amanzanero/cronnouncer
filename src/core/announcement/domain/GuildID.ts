@@ -23,4 +23,8 @@ export class GuildID {
       return Result.ok<GuildID>(new GuildID({ value: guildID }));
     }
   }
+
+  copy() {
+    return GuildID.create(this.props.value).getValue();
+  }
 }

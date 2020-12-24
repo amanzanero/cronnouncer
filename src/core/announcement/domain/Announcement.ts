@@ -16,6 +16,12 @@ interface AnnouncementProps {
   published: boolean;
 }
 
+interface AnnouncementCopyProps {
+  message?: Message;
+  scheduledTime?: ScheduledTime;
+  channel?: Channel;
+}
+
 export class Announcement {
   protected readonly props: AnnouncementProps;
   public readonly _id: UniqueEntityID;
@@ -49,6 +55,32 @@ export class Announcement {
     return this.props.published;
   }
 
+  public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
+    const guardedProps = [
+      { argument: props.published, argumentName: "published" },
+      { argument: props.guildID, argumentName: "guildID" },
+    ];
+    const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
+
+    if (!validProps.succeeded) {
+      return Result.fail<Announcement>(validProps.message);
+    }
+    return Result.ok<Announcement>(new Announcement(props, id));
+  }
+
+  copy(props: AnnouncementCopyProps) {
+    return Announcement.create(
+      {
+        message: props.message || this.message,
+        scheduledTime: props.scheduledTime || this.scheduledTime,
+        channel: props.channel || this.channel,
+        guildID: this.guildID,
+        published: this.published,
+      },
+      this.id,
+    ).getValue();
+  }
+
   publish() {
     const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
       (acc, curr) => {
@@ -63,18 +95,5 @@ export class Announcement {
 
     Object.assign(this.props, { published: true });
     return Result.ok<any>(this);
-  }
-
-  public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
-    const guardedProps = [
-      { argument: props.published, argumentName: "published" },
-      { argument: props.guildID, argumentName: "guildID" },
-    ];
-    const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
-
-    if (!validProps.succeeded) {
-      return Result.fail<Announcement>(validProps.message);
-    }
-    return Result.ok<Announcement>(new Announcement(props, id));
   }
 }

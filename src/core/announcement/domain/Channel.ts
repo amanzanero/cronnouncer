@@ -23,4 +23,8 @@ export class Channel {
       return Result.ok<Channel>(new Channel({ value: channel }));
     }
   }
+
+  copy() {
+    return Channel.create(this.props.value).getValue();
+  }
 }

@@ -32,4 +32,8 @@ export class ScheduledTime {
 
     return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime }));
   }
+
+  copy() {
+    return ScheduledTime.create(this.props.value.format(DATE_FORMAT)).getValue();
+  }
 }

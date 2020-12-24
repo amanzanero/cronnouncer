@@ -33,4 +33,8 @@ export class Message {
 
     return Result.ok<Message>(new Message({ value: message }));
   }
+
+  copy() {
+    return Message.create(this.props.value).getValue();
+  }
 }

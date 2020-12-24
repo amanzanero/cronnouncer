@@ -1,5 +1,6 @@
 export interface InputData {
   guildID: string;
+  scheduledTime: string;
 }
 
 export interface OutputData {

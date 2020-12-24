@@ -8,7 +8,7 @@ import {
   AnnouncementRepo,
   IAnnouncementRepo,
 } from "../../../../../src/core/announcement/repos/AnnouncementRepo";
-import { Response, UseCaseExecute } from "../../../../../src/lib";
+import { Response, InteractionExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
 import {
   AnnouncementError,
@@ -18,19 +18,19 @@ import {
 
 interface TestContext {
   repo: IAnnouncementRepo;
-  useCase: UseCaseExecute<InputData, OutputData | AnnouncementError>;
+  interactionExecutor: InteractionExecute<InputData, OutputData | AnnouncementError>;
 }
 
 test.before((t) => {
   const repo = new AnnouncementRepo(); // using actual repo since it's in memory
-  const useCase = makeStartAnnouncement(repo);
-  Object.assign(t.context, { repo, useCase });
+  const interactionExecutor = makeStartAnnouncement(repo);
+  Object.assign(t.context, { repo, interactionExecutor });
 });
 
 test("should fail with undefined DTO field", async (t) => {
-  const { useCase } = t.context as TestContext;
+  const { interactionExecutor } = t.context as TestContext;
 
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID: undefined,
   } as any);
 
@@ -39,14 +39,14 @@ test("should fail with undefined DTO field", async (t) => {
 });
 
 test("should fail when an announcement is in progress for a guild", async (t) => {
-  const { useCase, repo } = t.context as TestContext;
+  const { interactionExecutor, repo } = t.context as TestContext;
 
   const existingAnnouncement = createMockAnnouncement({
     guildID: "1",
   });
   await repo.save(existingAnnouncement);
 
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID: "1",
   } as any);
 
@@ -55,9 +55,9 @@ test("should fail when an announcement is in progress for a guild", async (t) =>
 });
 
 test("should successfully create", async (t) => {
-  const { useCase } = t.context as TestContext;
+  const { interactionExecutor } = t.context as TestContext;
 
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID: "2",
   } as any);
 

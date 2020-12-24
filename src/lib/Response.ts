@@ -28,4 +28,4 @@ export class Response<T> {
   }
 }
 
-export type UseCaseExecute<T, U> = (inputDTO: T) => Promise<Response<U>>;
+export type InteractionExecute<T, U> = (inputDTO: T) => Promise<Response<U>>;

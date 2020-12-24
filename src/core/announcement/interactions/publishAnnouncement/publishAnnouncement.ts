@@ -3,19 +3,20 @@
  */
 
 import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
-import { AnnouncementToOutput, InputData, OutputData } from "./dataTransfer";
+import { InputData } from "./dataTransfer";
 import { GuildID } from "../../domain";
-import { Response, UseCaseExecute } from "../../../../lib";
+import { Response, InteractionExecute } from "../../../../lib";
 import {
   AnnouncementError,
   AnnouncementIncompleteError,
   AnnouncementNotInProgressError,
   ValidationError,
 } from "../../errors";
+import { AnnouncementOutput, AnnouncementToOutput } from "../common";
 
 export function makePublishAnnouncement(
   announcementRepo: IAnnouncementRepo,
-): UseCaseExecute<InputData, OutputData | AnnouncementError> {
+): InteractionExecute<InputData, AnnouncementOutput | AnnouncementError> {
   return async function execute(input: InputData) {
     const { guildID } = input;
 
@@ -39,6 +40,6 @@ export function makePublishAnnouncement(
       return Response.fail<AnnouncementIncompleteError>(new AnnouncementIncompleteError());
     }
 
-    return Response.success<OutputData>(AnnouncementToOutput(inProgressAnnouncement));
+    return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
   };
 }

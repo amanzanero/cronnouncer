@@ -5,12 +5,12 @@
 import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
 import { InputData, OutputData } from "./dataTransfer";
 import { Announcement, GuildID } from "../../domain";
-import { Response, UseCaseExecute } from "../../../../lib";
+import { Response, InteractionExecute } from "../../../../lib";
 import { AnnouncementError, AnnouncementInProgressError, ValidationError } from "../../errors";
 
 export function makeStartAnnouncement(
   announcementRepo: IAnnouncementRepo,
-): UseCaseExecute<InputData, OutputData | AnnouncementError> {
+): InteractionExecute<InputData, OutputData | AnnouncementError> {
   return async function execute(dto: InputData) {
     const { guildID } = dto;
 

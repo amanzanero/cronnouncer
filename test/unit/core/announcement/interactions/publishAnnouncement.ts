@@ -2,15 +2,13 @@ import test from "ava";
 import moment from "moment";
 import {
   makePublishAnnouncement,
-  OutputData,
   InputData,
-  AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/publishAnnouncement";
 import {
   AnnouncementRepo,
   IAnnouncementRepo,
 } from "../../../../../src/core/announcement/repos/AnnouncementRepo";
-import { Response, UseCaseExecute } from "../../../../../src/lib";
+import { Response, InteractionExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
 import {
   AnnouncementError,
@@ -18,22 +16,26 @@ import {
   AnnouncementNotInProgressError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
+import {
+  AnnouncementOutput,
+  AnnouncementToOutput,
+} from "../../../../../src/core/announcement/interactions/common";
 
 interface TestContext {
   repo: IAnnouncementRepo;
-  useCase: UseCaseExecute<InputData, OutputData | AnnouncementError>;
+  interactionExecutor: InteractionExecute<InputData, AnnouncementOutput | AnnouncementError>;
 }
 
 test.before((t) => {
   const repo = new AnnouncementRepo(); // using actual repo since it's in memory
-  const useCase = makePublishAnnouncement(repo);
-  Object.assign(t.context, { repo, useCase });
+  const interactionExecutor = makePublishAnnouncement(repo);
+  Object.assign(t.context, { repo, interactionExecutor });
 });
 
 test("should fail with undefined input", async (t) => {
-  const { useCase } = t.context as TestContext;
+  const { interactionExecutor } = t.context as TestContext;
 
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID: undefined,
   } as any);
 
@@ -42,10 +44,10 @@ test("should fail with undefined input", async (t) => {
 });
 
 test("should fail if there is no announcement in progress", async (t) => {
-  const { useCase } = t.context as TestContext;
+  const { interactionExecutor } = t.context as TestContext;
 
   const guildID = "1";
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID,
   });
 
@@ -54,12 +56,12 @@ test("should fail if there is no announcement in progress", async (t) => {
 });
 
 test("should fail if announcement in progress is not complete", async (t) => {
-  const { useCase, repo } = t.context as TestContext;
+  const { interactionExecutor, repo } = t.context as TestContext;
   const guildID = "1";
 
   const announcement = createMockAnnouncement({ guildID });
   await repo.save(announcement);
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID,
   });
 
@@ -68,7 +70,7 @@ test("should fail if announcement in progress is not complete", async (t) => {
 });
 
 test("should pass if announcement in progress is completed", async (t) => {
-  const { useCase, repo } = t.context as TestContext;
+  const { interactionExecutor, repo } = t.context as TestContext;
   const guildID = "2";
 
   const announcement = createMockAnnouncement({
@@ -78,10 +80,10 @@ test("should pass if announcement in progress is completed", async (t) => {
     scheduledTime: moment().add(1, "day"),
   });
   await repo.save(announcement);
-  const response = await useCase({
+  const response = await interactionExecutor({
     guildID,
   });
 
-  const expected = Response.success<OutputData>(AnnouncementToOutput(announcement));
+  const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
   t.deepEqual(response, expected);
 });
