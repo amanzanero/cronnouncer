@@ -13,8 +13,8 @@ export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
     guildID: a.guildID.value,
     published: a.published,
   };
-  if (a.channel) Object.assign(output, { channel: a.channel });
-  if (a.message) Object.assign(output, { message: a.message });
+  if (a.channel) Object.assign(output, { channel: a.channel.value });
+  if (a.message) Object.assign(output, { message: a.message.value });
   if (a.scheduledTime) {
     Object.assign(output, { scheduledTime: a.scheduledTime.value.format(DATE_FORMAT) });
   }

@@ -68,12 +68,12 @@ export class Announcement {
     return Result.ok<Announcement>(new Announcement(props, id));
   }
 
-  copy(props: AnnouncementCopyProps) {
+  copy(props?: AnnouncementCopyProps) {
     return Announcement.create(
       {
-        message: props.message || this.message,
-        scheduledTime: props.scheduledTime || this.scheduledTime,
-        channel: props.channel || this.channel,
+        message: props?.message || this.message,
+        scheduledTime: props?.scheduledTime || this.scheduledTime,
+        channel: props?.channel || this.channel,
         guildID: this.guildID,
         published: this.published,
       },
