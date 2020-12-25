@@ -6,7 +6,7 @@ import {
   IAnnouncementRepo,
 } from "../../../../../src/core/announcement/repos/AnnouncementRepo";
 import { Response, InteractionExecute } from "../../../../../src/lib";
-import { createMockAnnouncement } from "../../mocks/mockAnnouncement";
+import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
   AnnouncementError,
   AnnouncementNotInProgressError,

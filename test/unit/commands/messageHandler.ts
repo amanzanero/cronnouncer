@@ -6,7 +6,7 @@ import {
   UNKNOWN_COMMAND_RESPONSE,
   generateMessageHandler,
 } from "../../../src/commands";
-import { genTestMessage } from "../../test_utils/mock";
+import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import * as parser from "../../../src/lib/parser";
 import { logger } from "../../../src/services";
 

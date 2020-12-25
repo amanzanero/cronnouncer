@@ -1,9 +1,3 @@
-export class UnexpectedError extends Error {
-  constructor(message?: string) {
-    super(message);
-  }
-}
-
 /**
  * Expected errors
  */
@@ -36,5 +30,11 @@ export class AnnouncementIncompleteError extends AnnouncementError {
 export class AnnouncementNotInProgressError extends AnnouncementError {
   constructor(guildID: string) {
     super(`There is no announcement in progress for server: ${guildID}`);
+  }
+}
+
+export class ChannelDoesNotExistError extends AnnouncementError {
+  constructor(channel: string, guildID: string) {
+    super(`Channel: ${channel} does not exist in server: ${guildID}`);
   }
 }

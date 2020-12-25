@@ -3,7 +3,7 @@ import sinon from "sinon";
 
 import ping from "../../../src/commands/ping";
 import { logger } from "../../../src/services";
-import { genTestMessage } from "../../test_utils/mock";
+import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 
 test.beforeEach((t) => {
   Object.assign(t.context, {
