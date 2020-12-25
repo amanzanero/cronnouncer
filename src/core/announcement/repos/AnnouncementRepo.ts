@@ -2,11 +2,10 @@
  * his file contains a repository composer for announcements
  */
 
-import { GuildId } from "../domain/guildId";
-import { Announcement } from "../domain/announcement";
+import { Announcement, GuildID } from "../domain";
 
 export interface IAnnouncementRepo {
-  findWorkInProgressByGuildId(guildID: GuildId): Promise<Announcement | undefined>;
+  findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined>;
 
   save(announcement: Announcement): Promise<void>;
 }
@@ -25,7 +24,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
     this.datastore = {};
   }
 
-  public async findWorkInProgressByGuildId(guildID: GuildId): Promise<Announcement | undefined> {
+  public async findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined> {
     const records = this.datastore[guildID.value];
     if (!records) return;
 
@@ -34,7 +33,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
   }
 
   public async save(announcement: Announcement) {
-    const records = this.datastore[announcement.guildId.value];
+    const records = this.datastore[announcement.guildID.value];
     const announcementList = records ? records : [];
 
     const existing = announcementList
@@ -42,7 +41,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
       .shift();
 
     if (existing) {
-      this.datastore[announcement.guildId.value] = announcementList.reduce((acc, curr) => {
+      this.datastore[1] = announcementList.reduce((acc, curr) => {
         if (curr.id.value === announcement.id.value) {
           acc.push(announcement);
         } else {
@@ -52,7 +51,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
       }, [] as Announcement[]);
     } else {
       announcementList.push(announcement);
-      this.datastore[announcement.guildId.value] = announcementList;
+      this.datastore[announcement.guildID.value] = announcementList;
     }
   }
 }

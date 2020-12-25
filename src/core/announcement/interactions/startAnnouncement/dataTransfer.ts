@@ -1,10 +1,8 @@
 export interface InputData {
-  guildId: string;
-  senderId: string;
+  guildID: string;
 }
 
 export interface OutputData {
-  guildId: string;
-  senderId: string;
+  guildID: string;
   published: false;
 }

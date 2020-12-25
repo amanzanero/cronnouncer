@@ -2,7 +2,7 @@ import { Guard, Result } from "../../../lib";
 import moment, { Moment } from "moment";
 
 interface ScheduledTimeProps {
-  value: Moment | undefined;
+  value: Moment;
 }
 
 export const DATE_FORMAT = "MM-DD-YYYY hh:mm a";
@@ -10,12 +10,8 @@ export const DATE_FORMAT = "MM-DD-YYYY hh:mm a";
 export class ScheduledTime {
   public readonly props;
 
-  get value(): Moment | undefined {
+  get value(): Moment {
     return this.props.value;
-  }
-
-  isEmpty(): boolean {
-    return !!this.props.value;
   }
 
   private constructor(props: ScheduledTimeProps) {
@@ -26,15 +22,18 @@ export class ScheduledTime {
    * Accepts a valid date in format: "MM-DD-YYYY hh:mm a", or nothing
    * @param time
    */
-  public static create(time?: string): Result<ScheduledTime> {
+  public static create(time: string): Result<ScheduledTime> {
     const guardResult = Guard.againstNullOrUndefined(time, "time");
-    if (!guardResult.succeeded)
-      return Result.ok<ScheduledTime>(new ScheduledTime({ value: undefined }));
+    if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
 
     const mTime = moment(time, DATE_FORMAT, true);
     if (!mTime.isValid())
       return Result.fail<ScheduledTime>(`The date '${time}' was not in the correct format`);
 
     return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime }));
+  }
+
+  copy() {
+    return ScheduledTime.create(this.props.value.format(DATE_FORMAT)).getValue();
   }
 }
