@@ -27,7 +27,7 @@ export function makeHelpCMD(): Command {
   return {
     execute: async function execute(_: Client, message: Message) {
       try {
-        await message.channel.send(helpMessage);
+        await message.channel.send(`\`\`\`${helpMessage}\`\`\``);
       } catch (e) {
         logger.error(e.stack);
       }
