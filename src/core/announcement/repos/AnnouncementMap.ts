@@ -1,4 +1,5 @@
-import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain";
+import moment from "moment";
+import { Announcement, Channel, DATE_FORMAT, GuildID, Message, ScheduledTime } from "../domain";
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../services";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
@@ -40,7 +41,8 @@ export class AnnouncementMap {
 
     let scheduledTimeOrError;
     if (!!raw.scheduled_time) {
-      scheduledTimeOrError = ScheduledTime.create(raw.scheduled_time);
+      const date = moment(raw.scheduled_time);
+      scheduledTimeOrError = ScheduledTime.create(date.format(DATE_FORMAT));
       createResults.push(scheduledTimeOrError);
     }
 

@@ -60,7 +60,7 @@ test("should set time if announcement in progress", async (t) => {
 
   const mScheduledTime = moment();
   const scheduledTime = mScheduledTime.format(DATE_FORMAT);
-
+  console.log({ scheduledTime });
   const announcement = createMockAnnouncement({
     guildID,
     scheduledTime: mScheduledTime,
