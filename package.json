@@ -13,7 +13,9 @@
     "test:e2e": "NODE_ENV=test ava --verbose --timeout=10s --config ava.config.e2e.js",
     "coverage": "nyc npm run test",
     "lint": "eslint 'src/*/**/*.{js,ts,tsx}'",
-    "pushcheck": "npm run lint && npm run build:dryrun && npm run coverage"
+    "pushcheck": "npm run lint && npm run build:dryrun && npm run coverage",
+    "migration:generate": "ts-node ./node_modules/.bin/typeorm migration:generate -f src/infra/typeorm/ormconfig.ts -n",
+    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run -f src/infra/typeorm/ormconfig.ts"
   },
   "repository": {
     "type": "git",
@@ -51,6 +53,9 @@
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "node-schedule": "^1.3.2",
+    "pg": "^8.5.1",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.29",
     "uuid": "^8.3.2",
     "winston": "^3.3.3"
   }

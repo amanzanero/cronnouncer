@@ -1,9 +1,13 @@
 import { CommandMap } from "../definitions";
+import { makePing } from "../ping";
+import { makeSchedule } from "../schedule";
+import { DbStores } from "../../infra/typeorm";
+import { makeAnnouncementRepo } from "../../core/announcement/repos";
 
-import ping from "../ping";
-
-export function generateCommands(): CommandMap {
+export function generateCommands(dbStores: DbStores): CommandMap {
+  const announcementRepo = makeAnnouncementRepo(dbStores.announcementStore);
   return {
-    ping,
+    ping: makePing(),
+    schedule: makeSchedule({ announcementRepo }),
   };
 }

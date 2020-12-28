@@ -3,10 +3,6 @@ import {
   makeSetChannel,
   InputData,
 } from "../../../../../src/core/announcement/interactions/setChannel";
-import {
-  AnnouncementRepo,
-  IAnnouncementRepo,
-} from "../../../../../src/core/announcement/repos/AnnouncementRepo";
 import { Response, InteractionExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
@@ -20,15 +16,16 @@ import {
   AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/common";
 import { MockDiscordService } from "../../../../test_utils/mocks/discordService";
+import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 
 interface TestContext {
-  repo: IAnnouncementRepo;
+  repo: MockAnnouncementRepo;
   mockDiscordService: MockDiscordService;
   interaction: InteractionExecute<InputData, AnnouncementOutput | AnnouncementError>;
 }
 
 test.before((t) => {
-  const repo = new AnnouncementRepo(); // using actual repo since it's in memory
+  const repo = new MockAnnouncementRepo();
   const mockDiscordService = new MockDiscordService();
   const interaction = makeSetChannel(repo, mockDiscordService);
   Object.assign(mockDiscordService.channels, {

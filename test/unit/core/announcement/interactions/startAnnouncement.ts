@@ -4,10 +4,6 @@ import {
   OutputData,
   InputData,
 } from "../../../../../src/core/announcement/interactions/startAnnouncement";
-import {
-  AnnouncementRepo,
-  IAnnouncementRepo,
-} from "../../../../../src/core/announcement/repos/AnnouncementRepo";
 import { Response, InteractionExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
@@ -15,14 +11,15 @@ import {
   AnnouncementInProgressError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
+import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 
 interface TestContext {
-  repo: IAnnouncementRepo;
+  repo: MockAnnouncementRepo;
   interactionExecutor: InteractionExecute<InputData, OutputData | AnnouncementError>;
 }
 
 test.before((t) => {
-  const repo = new AnnouncementRepo(); // using actual repo since it's in memory
+  const repo = new MockAnnouncementRepo(); // using actual repo since it's in memory
   const interactionExecutor = makeStartAnnouncement(repo);
   Object.assign(t.context, { repo, interactionExecutor });
 });

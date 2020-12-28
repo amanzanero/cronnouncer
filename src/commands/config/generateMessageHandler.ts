@@ -1,6 +1,6 @@
 import { Client, Message } from "discord.js";
 import { CommandMap } from "../definitions";
-import { isCommand, parseCommand } from "../../lib/parser";
+import { isCommand, parseCommand } from "../../lib";
 import { logger } from "../../services";
 import { UNKNOWN_COMMAND_RESPONSE } from "../index";
 

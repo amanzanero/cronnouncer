@@ -106,3 +106,4 @@ dist
 # cronnouncer
 .idea
 build
+pgdata

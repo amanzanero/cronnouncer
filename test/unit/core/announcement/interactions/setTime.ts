@@ -1,10 +1,6 @@
 import test from "ava";
 import moment from "moment";
 import { makeSetTime, InputData } from "../../../../../src/core/announcement/interactions/setTime";
-import {
-  AnnouncementRepo,
-  IAnnouncementRepo,
-} from "../../../../../src/core/announcement/repos/AnnouncementRepo";
 import { Response, InteractionExecute } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
@@ -17,14 +13,15 @@ import {
   AnnouncementOutput,
   AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/common";
+import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 
 interface TestContext {
-  repo: IAnnouncementRepo;
+  repo: MockAnnouncementRepo;
   interaction: InteractionExecute<InputData, AnnouncementOutput | AnnouncementError>;
 }
 
 test.before((t) => {
-  const repo = new AnnouncementRepo(); // using actual repo since it's in memory
+  const repo = new MockAnnouncementRepo();
   const interaction = makeSetTime(repo);
   Object.assign(t.context, { repo, interaction });
 });
