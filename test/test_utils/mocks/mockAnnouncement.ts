@@ -3,7 +3,6 @@ import { v4 } from "uuid";
 import {
   Announcement,
   Channel,
-  DATE_FORMAT,
   GuildID,
   Message,
   ScheduledTime,
@@ -22,7 +21,7 @@ interface OptionalMockAnnouncementProps {
 export function createMockAnnouncement(props: OptionalMockAnnouncementProps): Announcement {
   const guildID = GuildID.create(props.guildID || v4()).getValue();
   const scheduledTime = props.scheduledTime
-    ? ScheduledTime.create(props.scheduledTime.format(DATE_FORMAT)).getValue()
+    ? ScheduledTime.create(props.scheduledTime.toDate()).getValue()
     : undefined;
 
   const message = props.message ? Message.create(props.message).getValue() : undefined;

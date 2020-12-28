@@ -13,7 +13,7 @@ interface StartAnnouncementCMDProps {
   announcementRepo: IAnnouncementRepo;
 }
 
-const help = {
+export const help = {
   name: "start-announcement",
   category: "Scheduling",
   description: "Begins the scheduling process for an announcement",
@@ -22,7 +22,7 @@ const help = {
 
 const conf = {
   enabled: true,
-  guildOnly: false,
+  guildOnly: true,
 };
 
 export function makeStartAnnouncementCMD(props: StartAnnouncementCMDProps): Command {

@@ -13,7 +13,7 @@ interface SetTimeCMDProps {
   announcementRepo: IAnnouncementRepo;
 }
 
-const help = {
+export const help = {
   name: "set-time",
   category: "Scheduling",
   description: "Sets the time for the in progress announcement",
@@ -22,7 +22,7 @@ const help = {
 
 const conf = {
   enabled: true,
-  guildOnly: false,
+  guildOnly: true,
 };
 
 export function makeSetTimeCMD(props: SetTimeCMDProps): Command {

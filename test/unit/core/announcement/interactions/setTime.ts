@@ -8,7 +8,6 @@ import {
   AnnouncementNotInProgressError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
-import { DATE_FORMAT } from "../../../../../src/core/announcement/domain";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
@@ -29,15 +28,12 @@ test.before((t) => {
 test("should fail with bad input", async (t) => {
   const { interaction } = t.context as TestContext;
 
-  const scheduledTime = moment().toISOString();
   const response = await interaction({
     guildID: "1",
-    scheduledTime,
-  });
+    scheduledTime: new Date(),
+  } as any);
 
-  const expectedErr = new ValidationError(
-    `The date '${scheduledTime}' was not in the correct format`,
-  );
+  const expectedErr = new ValidationError("Scheduled time must be at least a minute away.");
   t.deepEqual(response.value, expectedErr);
 });
 
@@ -47,7 +43,7 @@ test("should fail if there is no announcement in progress", async (t) => {
   const guildID = "1";
   const response = await interaction({
     guildID,
-    scheduledTime: moment().format(DATE_FORMAT),
+    scheduledTime: moment().add(1, "day").toDate(),
   });
 
   const expectedErr = new AnnouncementNotInProgressError(guildID);
@@ -58,17 +54,17 @@ test("should set time if announcement in progress", async (t) => {
   const { interaction, repo } = t.context as TestContext;
   const guildID = "2";
 
-  const mScheduledTime = moment();
-  const scheduledTime = mScheduledTime.format(DATE_FORMAT);
-  console.log({ scheduledTime });
+  const mScheduledTime = moment().add(2, "minutes");
+
   const announcement = createMockAnnouncement({
     guildID,
     scheduledTime: mScheduledTime,
   });
+
   await repo.save(announcement);
   const response = await interaction({
     guildID,
-    scheduledTime,
+    scheduledTime: mScheduledTime.toDate(),
   });
 
   const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
