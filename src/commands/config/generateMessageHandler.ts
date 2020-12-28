@@ -4,6 +4,10 @@ import { isCommand, parseCommand } from "../../lib";
 import { logger } from "../../services";
 import { UNKNOWN_COMMAND_RESPONSE } from "../index";
 
+function commandRunLog(username: string, authorID: string, cmd: string, time: number) {
+  return `[CMD] ${username} (${authorID}) ran command ${cmd} - ${time}ms`;
+}
+
 export function generateMessageHandler(client: Client, commands: CommandMap) {
   return async (message: Message) => {
     if (message.author.bot) return; // we dont fuk w bots
@@ -22,10 +26,6 @@ export function generateMessageHandler(client: Client, commands: CommandMap) {
       return;
     }
 
-    logger.info(
-      `[CMD] ${message.author.username} (${message.author.id}) ran command ${cmd.help.name}`,
-    );
-
     const invalidGuildCommand = cmd.conf.guildOnly && !message.guild;
     if (invalidGuildCommand) {
       await message.channel.send(
@@ -34,10 +34,15 @@ export function generateMessageHandler(client: Client, commands: CommandMap) {
       return;
     }
 
+    const timeStart = Date.now();
     try {
       await cmd.execute(client, message, args);
     } catch (e) {
       logger.error(e.stack);
     }
+
+    logger.info(
+      commandRunLog(message.author.tag, message.author.id, cmd.help.name, Date.now() - timeStart),
+    );
   };
 }
