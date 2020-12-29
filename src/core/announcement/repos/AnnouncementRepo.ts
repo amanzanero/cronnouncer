@@ -3,6 +3,9 @@
  */
 
 import { Announcement, GuildID } from "../domain";
+import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
+import { Repository } from "typeorm";
+import { AnnouncementMap } from "./AnnouncementMap";
 
 export interface IAnnouncementRepo {
   findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined>;
@@ -10,48 +13,23 @@ export interface IAnnouncementRepo {
   save(announcement: Announcement): Promise<void>;
 }
 
-/**
- * Using in-memory for now
- */
-interface Datastore {
-  [id: string]: Announcement[] | undefined;
-}
-
 export class AnnouncementRepo implements IAnnouncementRepo {
-  private readonly datastore: Datastore;
+  private typeormAnnouncementRepo: Repository<AnnouncementModel>;
 
-  constructor() {
-    this.datastore = {};
+  constructor(typeormRepo: Repository<AnnouncementModel>) {
+    this.typeormAnnouncementRepo = typeormRepo;
   }
 
-  public async findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined> {
-    const records = this.datastore[guildID.value];
-    if (!records) return;
-
-    const filtered = records.filter((curr) => !curr.published);
-    return filtered.shift();
+  async findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined> {
+    const announcement = await this.typeormAnnouncementRepo.findOne({
+      guild_id: guildID.value,
+      published: false,
+    });
+    return announcement && AnnouncementMap.toDomain(announcement);
   }
 
-  public async save(announcement: Announcement) {
-    const records = this.datastore[announcement.guildID.value];
-    const announcementList = records ? records : [];
-
-    const existing = announcementList
-      .filter((ann) => ann.id.value === announcement.id.value)
-      .shift();
-
-    if (existing) {
-      this.datastore[1] = announcementList.reduce((acc, curr) => {
-        if (curr.id.value === announcement.id.value) {
-          acc.push(announcement);
-        } else {
-          acc.push(curr);
-        }
-        return acc;
-      }, [] as Announcement[]);
-    } else {
-      announcementList.push(announcement);
-      this.datastore[announcement.guildID.value] = announcementList;
-    }
+  async save(announcement: Announcement): Promise<void> {
+    const persist = AnnouncementMap.toPersistence(announcement);
+    return await this.typeormAnnouncementRepo.save(persist);
   }
 }

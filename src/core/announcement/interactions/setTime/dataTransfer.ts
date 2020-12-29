@@ -1,4 +1,4 @@
 export interface InputData {
   guildID: string;
-  scheduledTime: string;
+  scheduledTime: Date;
 }

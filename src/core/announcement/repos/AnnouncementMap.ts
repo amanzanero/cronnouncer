@@ -1,38 +1,48 @@
-import { Announcement, GuildID, Message, ScheduledTime } from "../domain";
+import moment from "moment";
+import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain";
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../services";
+import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
 
 export class AnnouncementMap {
   public static toPersistence(announcement: Announcement): any {
-    return {
-      announcement_id: announcement.id.toString(),
-      scheduled_time: announcement.scheduledTime
-        ? announcement.scheduledTime.value.toISOString()
-        : "",
-      message: announcement.message ? announcement.message.value : "",
+    const persist = new AnnouncementModel();
+    Object.assign(persist, {
+      announcement_id: announcement.id.value,
+      scheduled_time: announcement.scheduledTime?.value.toISOString(),
+      message: announcement.message?.value,
+      channel: announcement.channel?.value,
       guild_id: announcement.guildID.value,
       published: announcement.published,
-    };
+    });
+    return persist;
   }
 
   /**
    * Maps persistence data to an announcement entity.
    * @param raw
    */
-  public static toDomain(raw: any): Announcement | undefined {
+  public static toDomain(raw: AnnouncementModel): Announcement | undefined {
     const guildIDOrError = GuildID.create(raw.guild_id);
 
     const createResults: Result<any>[] = [guildIDOrError];
 
-    let messageOrError: Result<Message> | undefined;
-    if (!!raw.message && raw.message.length > 0) {
+    let channelOrError;
+    if (!!raw.channel) {
+      channelOrError = Channel.create(raw.channel);
+      createResults.push(channelOrError);
+    }
+
+    let messageOrError;
+    if (!!raw.message) {
       messageOrError = Message.create(raw.message);
       createResults.push(messageOrError);
     }
 
-    let scheduledTimeOrError: Result<ScheduledTime> | undefined;
-    if (!!raw.scheduled_time && raw.scheduled_time.length > 0) {
-      scheduledTimeOrError = ScheduledTime.create(raw.scheduled_time);
+    let scheduledTimeOrError;
+    if (!!raw.scheduled_time) {
+      const date = moment(raw.scheduled_time);
+      scheduledTimeOrError = ScheduledTime.create(date.toDate());
       createResults.push(scheduledTimeOrError);
     }
 
@@ -48,11 +58,11 @@ export class AnnouncementMap {
         guildID: guildIDOrError.getValue(),
         message: messageOrError?.getValue(),
         scheduledTime: scheduledTimeOrError?.getValue(),
+        channel: channelOrError?.getValue(),
         published: raw.published,
       },
       new UniqueEntityID(raw.announcement_id),
     );
-
     announcementOrError.isFailure ? console.log(announcementOrError.error) : "";
 
     return announcementOrError.isSuccess ? announcementOrError.getValue() : undefined;

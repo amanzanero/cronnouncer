@@ -1,16 +1,16 @@
+import moment from "moment";
 import { Guard, Result } from "../../../lib";
-import moment, { Moment } from "moment";
 
 interface ScheduledTimeProps {
-  value: Moment;
+  value: Date;
 }
 
-export const DATE_FORMAT = "MM-DD-YYYY hh:mm a";
+export const DATE_FORMAT = "M/D/YYYY h:mm a";
 
 export class ScheduledTime {
   public readonly props;
 
-  get value(): Moment {
+  get value(): Date {
     return this.props.value;
   }
 
@@ -19,21 +19,23 @@ export class ScheduledTime {
   }
 
   /**
-   * Accepts a valid date in format: "MM-DD-YYYY hh:mm a", or nothing
+   * Accepts a date object
    * @param time
    */
-  public static create(time: string): Result<ScheduledTime> {
+  public static create(time: Date): Result<ScheduledTime> {
     const guardResult = Guard.againstNullOrUndefined(time, "time");
     if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
 
-    const mTime = moment(time, DATE_FORMAT, true);
-    if (!mTime.isValid())
-      return Result.fail<ScheduledTime>(`The date '${time}' was not in the correct format`);
+    const mTime = moment(time);
+    const minuteFromNow = moment().add(1, "minute");
 
-    return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime }));
+    if (!mTime.isAfter(minuteFromNow))
+      return Result.fail<ScheduledTime>("Scheduled time must be at least a minute away.");
+
+    return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime.toDate() }));
   }
 
   copy() {
-    return ScheduledTime.create(this.props.value.format(DATE_FORMAT)).getValue();
+    return ScheduledTime.create(this.props.value).getValue();
   }
 }
