@@ -13,6 +13,7 @@ import {
   AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/common";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
+import { DATE_FORMAT } from "../../../../../src/core/announcement/domain";
 
 interface TestContext {
   repo: MockAnnouncementRepo;
@@ -43,7 +44,7 @@ test("should fail if there is no announcement in progress", async (t) => {
   const guildID = "1";
   const response = await interaction({
     guildID,
-    scheduledTime: moment().add(1, "day").toDate(),
+    scheduledTime: moment().add(1, "day").format(DATE_FORMAT),
   });
 
   const expectedErr = new AnnouncementNotInProgressError(guildID);
@@ -64,7 +65,7 @@ test("should set time if announcement in progress", async (t) => {
   await repo.save(announcement);
   const response = await interaction({
     guildID,
-    scheduledTime: mScheduledTime.toDate(),
+    scheduledTime: mScheduledTime.format(DATE_FORMAT),
   });
 
   const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));

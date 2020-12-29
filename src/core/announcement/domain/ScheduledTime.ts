@@ -7,6 +7,10 @@ interface ScheduledTimeProps {
 
 export const DATE_FORMAT = "M/D/YYYY h:mm a";
 
+export function invalidDateMessage(time: string) {
+  return `Time: ${time} was not formatted correctly.`;
+}
+
 export class ScheduledTime {
   public readonly props;
 
@@ -22,11 +26,14 @@ export class ScheduledTime {
    * Accepts a date object
    * @param time
    */
-  public static create(time: Date): Result<ScheduledTime> {
+  public static create(time: string): Result<ScheduledTime> {
     const guardResult = Guard.againstNullOrUndefined(time, "time");
     if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
 
-    const mTime = moment(time);
+    const mTime = moment(time, DATE_FORMAT, true);
+
+    if (!mTime.isValid()) return Result.fail<ScheduledTime>(invalidDateMessage(time));
+
     const minuteFromNow = moment().add(1, "minute");
 
     if (!mTime.isAfter(minuteFromNow))
@@ -36,6 +43,6 @@ export class ScheduledTime {
   }
 
   copy() {
-    return ScheduledTime.create(this.props.value).getValue();
+    return new ScheduledTime({ value: moment(this.props.value).toDate() });
   }
 }
