@@ -1,5 +1,5 @@
 import { Announcement, GuildID } from "../../../src/core/announcement/domain";
-import { IAnnouncementRepo } from "../../../src/core/announcement/repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../../../src/core/announcement/repos";
 
 /**
  * Using in-memory for testing
@@ -15,7 +15,7 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
     this.datastore = {};
   }
 
-  public async findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined> {
+  public async findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined> {
     const records = this.datastore[guildID.value];
     if (!records) return;
 
@@ -32,7 +32,7 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
       .shift();
 
     if (existing) {
-      this.datastore[1] = announcementList.reduce((acc, curr) => {
+      this.datastore[announcement.guildID.value] = announcementList.reduce((acc, curr) => {
         if (curr.id.value === announcement.id.value) {
           acc.push(announcement);
         } else {
@@ -44,5 +44,14 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
       announcementList.push(announcement);
       this.datastore[announcement.guildID.value] = announcementList;
     }
+  }
+
+  async delete(announcement: Announcement): Promise<void> {
+    const records = this.datastore[announcement.guildID.value];
+    const announcementList = records ? records : [];
+
+    this.datastore[announcement.guildID.value] = announcementList.filter(
+      (stored) => stored.id.value !== announcement.id.value,
+    );
   }
 }

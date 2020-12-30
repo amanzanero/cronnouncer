@@ -10,7 +10,7 @@ export async function main(): Promise<string> {
   if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
-  const stores = await initDB();
+  const { stores, storesDisconnect } = await initDB();
 
   const discordClient = new Discord.Client();
   const commands = generateCommands({ stores, discordClient });
@@ -20,9 +20,14 @@ export async function main(): Promise<string> {
   discordClient.on("message", messageHandler);
 
   // graceful exit
-  process.on("SIGTERM", () => {
+  process.on("SIGTERM", async () => {
     logger.info("shutting down cronnouncer...");
-    discordClient.destroy();
+    try {
+      discordClient.destroy();
+      await storesDisconnect();
+    } catch (e) {
+      logger.error(e.stack);
+    }
     logger.info("cronnouncer shutdown");
     process.exit(0);
   });
