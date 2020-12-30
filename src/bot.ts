@@ -10,10 +10,10 @@ export async function main(): Promise<string> {
   if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
-  const store = await initDB();
+  const stores = await initDB();
 
   const discordClient = new Discord.Client();
-  const commands = generateCommands(store);
+  const commands = generateCommands({ stores, discordClient });
   const messageHandler = generateMessageHandler(discordClient, commands);
 
   discordClient.on("ready", () => logger.info("cronnouncer live"));

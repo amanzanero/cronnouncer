@@ -2,7 +2,7 @@
  * This file contains the interaction for setting the announcement channel
  */
 
-import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../../repos";
 import { InputData } from "./dataTransfer";
 import { Channel, GuildID } from "../../domain";
 import { Response, Result, InteractionExecute } from "../../../../lib";
@@ -19,7 +19,7 @@ export function makeSetChannel(
   announcementRepo: IAnnouncementRepo,
   discordService: IDiscordService,
 ): InteractionExecute<InputData, AnnouncementOutput | AnnouncementError> {
-  return async function execute(input: InputData) {
+  return async function setChannel(input: InputData) {
     const { guildID, channel } = input;
 
     const guildIDOrError = GuildID.create(guildID);
@@ -52,10 +52,7 @@ export function makeSetChannel(
 
     if (!channelExists) {
       return Response.fail<ChannelDoesNotExistError>(
-        new ChannelDoesNotExistError(
-          channelOrError.getValue().value,
-          guildIDOrError.getValue().value,
-        ),
+        new ChannelDoesNotExistError(channelOrError.getValue().value),
       );
     }
 

@@ -80,7 +80,7 @@ test("should return ChannelDoesNotExistError", async (t) => {
   });
 
   const expectedErr = Response.fail<ChannelDoesNotExistError>(
-    new ChannelDoesNotExistError(channel, guildID),
+    new ChannelDoesNotExistError(channel),
   );
   t.deepEqual(response, expectedErr);
 });

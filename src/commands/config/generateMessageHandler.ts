@@ -1,6 +1,6 @@
 import { Client, Message } from "discord.js";
 import { CommandMap } from "../definitions";
-import { isCommand, parseCommand } from "../../lib";
+import { isCommand, parseCommand } from "./parser";
 import { logger } from "../../services";
 import { UNKNOWN_COMMAND_RESPONSE } from "../index";
 
@@ -9,7 +9,7 @@ function commandRunLog(username: string, authorID: string, cmd: string, time: nu
 }
 
 export function generateMessageHandler(client: Client, commands: CommandMap) {
-  return async (message: Message) => {
+  return async function handleMessage(message: Message) {
     if (message.author.bot) return; // we dont fuk w bots
     if (!isCommand(message.content)) return;
 

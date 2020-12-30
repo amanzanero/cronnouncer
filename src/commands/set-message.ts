@@ -2,24 +2,23 @@ import { Client, Message } from "discord.js";
 import { logger } from "../services";
 import { Command } from "./definitions";
 import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeSetTime } from "../core/announcement/interactions/setTime";
+import { makeSetMessage } from "../core/announcement/interactions/setMessage";
 import {
   AnnouncementError,
   AnnouncementNotInProgressError,
   ValidationError,
 } from "../core/announcement/errors";
 import { Args } from "./config/Args";
-import { AnnouncementOutput } from "../core/announcement/interactions/common";
 
 interface SetTimeCMDProps {
   announcementRepo: IAnnouncementRepo;
 }
 
 export const help = {
-  name: "set-time",
+  name: "set-message",
   category: "Scheduling",
-  description: "Sets the time for the in progress announcement",
-  usage: "set-time {MM/DD/YYYY hh:mm am/pm}",
+  description: "Sets the message for the in-progress announcement",
+  usage: "set-time {announcement content}",
 };
 
 const conf = {
@@ -27,16 +26,16 @@ const conf = {
   guildOnly: true,
 };
 
-export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
+export function makeSetMessageCMD(props: SetTimeCMDProps): Command {
   // interaction init
-  const setTime = makeSetTime(props.announcementRepo);
+  const setMessage = makeSetMessage(props.announcementRepo);
 
   return {
-    execute: async function executeSetTime(client: Client, message: Message, args: Args) {
+    execute: async function executeSetMessage(client: Client, message: Message, args: Args) {
       try {
-        const response = await setTime({
+        const response = await setMessage({
           guildID: message.guild?.id,
-          scheduledTime: args.raw,
+          message: args.raw,
         } as any);
 
         if (response.failed) {
@@ -55,13 +54,10 @@ export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
           return;
         }
 
-        await message.channel.send(
-          `Time: ${
-            (response.value as AnnouncementOutput).scheduledTime
-          } was set for the announcement.`,
-        );
+        await message.channel.send(`Message set for announcement.`);
       } catch (e) {
         logger.error(e.stack);
+        await message.channel.send("`Sorry, something unexpected happened.`");
       }
     },
     help,

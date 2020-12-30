@@ -1,7 +1,7 @@
 import { Client, Message } from "discord.js";
 import { logger } from "../services";
 import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../core/announcement/repos";
 import { makeStartAnnouncement } from "../core/announcement/interactions/startAnnouncement";
 import {
   AnnouncementError,

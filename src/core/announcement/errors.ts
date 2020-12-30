@@ -38,8 +38,8 @@ export class AnnouncementNotInProgressError extends AnnouncementError {
 }
 
 export class ChannelDoesNotExistError extends AnnouncementError {
-  constructor(channel: string, guildID: string) {
-    super(`Channel: ${channel} does not exist in server: ${guildID}`);
+  constructor(channel: string) {
+    super(`Channel \`#${channel}\` does not exist in this server.`);
     Object.setPrototypeOf(this, ChannelDoesNotExistError.prototype); // makes typescript happy
   }
 }

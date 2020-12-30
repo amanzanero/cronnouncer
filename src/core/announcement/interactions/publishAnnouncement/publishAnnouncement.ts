@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../../repos";
 import { InputData } from "./dataTransfer";
 import { GuildID } from "../../domain";
 import { Response, InteractionExecute } from "../../../../lib";
@@ -17,7 +17,7 @@ import { AnnouncementOutput, AnnouncementToOutput } from "../common";
 export function makePublishAnnouncement(
   announcementRepo: IAnnouncementRepo,
 ): InteractionExecute<InputData, AnnouncementOutput | AnnouncementError> {
-  return async function execute(input: InputData) {
+  return async function publishAnnouncement(input: InputData) {
     const { guildID } = input;
 
     const gIDOrError = GuildID.create(guildID);

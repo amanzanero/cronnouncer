@@ -7,12 +7,12 @@ import {
   generateMessageHandler,
 } from "../../../src/commands";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
-import * as parser from "../../../src/lib/parser";
+import * as parser from "../../../src/commands/config/parser";
 import { logger } from "../../../src/services";
 import { PREFIX } from "../../../src/constants";
 
 test.before((t) => {
-  const commands = generateCommands({ announcementStore: {} } as any);
+  const commands = generateCommands({ stores: {}, discordClient: {} } as any);
   // stub our executions
   Object.entries(commands).forEach((keyValue) => {
     if (!keyValue[1]) return;

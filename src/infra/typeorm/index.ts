@@ -10,12 +10,12 @@ export interface DbStores {
 }
 
 export async function initDB(): Promise<DbStores> {
-  logger.info("initializing database...");
+  logger.info("connecting to database...");
   const [prodConfig, devConfig] = ormconfig;
   const connection = await createConnection((IS_PROD ? prodConfig : devConfig) as any);
   const announcementStore = await connection.getRepository(Announcement);
 
-  logger.info("database initialized");
+  logger.info("connected to database successfully");
   return { announcementStore };
 }
 

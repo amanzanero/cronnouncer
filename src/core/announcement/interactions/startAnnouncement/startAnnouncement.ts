@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../../repos";
 import { InputData, OutputData } from "./dataTransfer";
 import { Announcement, GuildID } from "../../domain";
 import { Response, InteractionExecute } from "../../../../lib";
@@ -11,7 +11,7 @@ import { AnnouncementError, AnnouncementInProgressError, ValidationError } from 
 export function makeStartAnnouncement(
   announcementRepo: IAnnouncementRepo,
 ): InteractionExecute<InputData, OutputData | AnnouncementError> {
-  return async function execute(dto: InputData) {
+  return async function startAnnouncement(dto: InputData) {
     const { guildID } = dto;
 
     // check data transfer object is valid first

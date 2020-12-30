@@ -2,7 +2,7 @@
  * This file contains the interaction for setting the announcement message
  */
 
-import { IAnnouncementRepo } from "../../repos/AnnouncementRepo";
+import { IAnnouncementRepo } from "../../repos";
 import { InputData } from "./dataTransfer";
 import { GuildID, Message } from "../../domain";
 import { Response, Result, InteractionExecute } from "../../../../lib";
@@ -12,7 +12,7 @@ import { AnnouncementOutput, AnnouncementToOutput } from "../common";
 export function makeSetMessage(
   announcementRepo: IAnnouncementRepo,
 ): InteractionExecute<InputData, AnnouncementOutput | AnnouncementError> {
-  return async function execute(input: InputData) {
+  return async function setMessage(input: InputData) {
     const { guildID, message } = input;
 
     const guildIDOrError = GuildID.create(guildID);

@@ -2,10 +2,12 @@ import { Client, Message } from "discord.js";
 import { logger } from "../services";
 import { Command } from "./definitions";
 import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeSetTime } from "../core/announcement/interactions/setTime";
+import { IDiscordService } from "../core/announcement/services/discord";
+import { makeSetChannel } from "../core/announcement/interactions/setChannel";
 import {
   AnnouncementError,
   AnnouncementNotInProgressError,
+  ChannelDoesNotExistError,
   ValidationError,
 } from "../core/announcement/errors";
 import { Args } from "./config/Args";
@@ -13,13 +15,14 @@ import { AnnouncementOutput } from "../core/announcement/interactions/common";
 
 interface SetTimeCMDProps {
   announcementRepo: IAnnouncementRepo;
+  discordService: IDiscordService;
 }
 
 export const help = {
-  name: "set-time",
+  name: "set-channel",
   category: "Scheduling",
-  description: "Sets the time for the in progress announcement",
-  usage: "set-time {MM/DD/YYYY hh:mm am/pm}",
+  description: "Sets the channel for the in-progress announcement",
+  usage: "set-channel {discord channel name}",
 };
 
 const conf = {
@@ -27,16 +30,17 @@ const conf = {
   guildOnly: true,
 };
 
-export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
+export function makeSetChannelCMD(props: SetTimeCMDProps): Command {
   // interaction init
-  const setTime = makeSetTime(props.announcementRepo);
+  const setChannel = makeSetChannel(props.announcementRepo, props.discordService);
 
   return {
-    execute: async function executeSetTime(client: Client, message: Message, args: Args) {
+    execute: async function executeSetChannel(client: Client, message: Message, args: Args) {
+      const [channel] = args.argArray;
       try {
-        const response = await setTime({
+        const response = await setChannel({
           guildID: message.guild?.id,
-          scheduledTime: args.raw,
+          channel: channel && channel.substring(2, channel.length - 1),
         } as any);
 
         if (response.failed) {
@@ -49,6 +53,9 @@ export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
             case AnnouncementNotInProgressError:
               await message.channel.send("`There is no announcement in progress for this server.`");
               break;
+            case ChannelDoesNotExistError:
+              await message.channel.send(responseError.message);
+              break;
             default:
               return;
           }
@@ -56,12 +63,13 @@ export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
         }
 
         await message.channel.send(
-          `Time: ${
-            (response.value as AnnouncementOutput).scheduledTime
-          } was set for the announcement.`,
+          `Chanel: <#${
+            (response.value as AnnouncementOutput).channel
+          }> was set for the announcement.`,
         );
       } catch (e) {
         logger.error(e.stack);
+        await message.channel.send("`Sorry, something unexpected happened.`");
       }
     },
     help,
