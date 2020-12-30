@@ -1,15 +1,27 @@
 import { CommandMap } from "../definitions";
 import { makeStartAnnouncementCMD } from "../start-announcement";
 import { DbStores } from "../../infra/typeorm";
-import { makeAnnouncementRepo } from "../../core/announcement/repos";
+import { AnnouncementRepo } from "../../core/announcement/repos";
 import { makeSetTimeCMD } from "../set-time";
 import { makeHelpCMD } from "../help";
+import { makeSetMessageCMD } from "../set-message";
+import { makeSetChannelCMD } from "../set-channel";
+import { DiscordService } from "../../core/announcement/services/discord";
+import { Client } from "discord.js";
 
-export function generateCommands(dbStores: DbStores): CommandMap {
-  const announcementRepo = makeAnnouncementRepo(dbStores.announcementStore);
+interface CMDProps {
+  stores: DbStores;
+  discordClient: Client;
+}
+
+export function generateCommands(cmdProps: CMDProps): CommandMap {
+  const announcementRepo = new AnnouncementRepo(cmdProps.stores.announcementStore);
+  const discordService = new DiscordService(cmdProps.discordClient);
   return {
     help: makeHelpCMD(),
     "start-announcement": makeStartAnnouncementCMD({ announcementRepo }),
+    "set-channel": makeSetChannelCMD({ announcementRepo, discordService }),
+    "set-message": makeSetMessageCMD({ announcementRepo }),
     "set-time": makeSetTimeCMD({ announcementRepo }),
   };
 }
