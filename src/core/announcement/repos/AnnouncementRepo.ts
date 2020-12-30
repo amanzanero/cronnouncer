@@ -11,6 +11,8 @@ export interface IAnnouncementRepo {
   findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined>;
 
   save(announcement: Announcement): Promise<void>;
+
+  delete(announcement: Announcement): Promise<void>;
 }
 
 export class AnnouncementRepo implements IAnnouncementRepo {
@@ -31,5 +33,11 @@ export class AnnouncementRepo implements IAnnouncementRepo {
   async save(announcement: Announcement): Promise<void> {
     const persist = AnnouncementMap.toPersistence(announcement);
     return await this.typeormAnnouncementRepo.save(persist);
+  }
+
+  async delete(announcement: Announcement): Promise<void> {
+    const persist = AnnouncementMap.toPersistence(announcement);
+    await this.typeormAnnouncementRepo.remove([persist]);
+    return;
   }
 }
