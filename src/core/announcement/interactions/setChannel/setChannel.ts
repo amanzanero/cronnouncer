@@ -30,7 +30,7 @@ export function makeSetChannel(
       return Response.fail<ValidationError>(new ValidationError(combinedResult.errorValue()));
     }
 
-    const promiseAnnouncementInProgress = announcementRepo.findWorkInProgressByGuildId(
+    const promiseAnnouncementInProgress = announcementRepo.findWorkInProgressByGuildID(
       guildIDOrError.getValue(),
     );
 

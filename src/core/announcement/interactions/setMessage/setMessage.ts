@@ -24,7 +24,7 @@ export function makeSetMessage(
     }
 
     // get existing announcement
-    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildId(
+    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildID(
       guildIDOrError.getValue(),
     );
 

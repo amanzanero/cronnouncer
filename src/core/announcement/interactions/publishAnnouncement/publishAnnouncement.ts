@@ -26,7 +26,7 @@ export function makePublishAnnouncement(
     }
 
     // get in progress announcement
-    const inProgressAnnouncement = await announcementRepo.findWorkInProgressByGuildId(
+    const inProgressAnnouncement = await announcementRepo.findWorkInProgressByGuildID(
       gIDOrError.getValue(),
     );
     if (!inProgressAnnouncement) {

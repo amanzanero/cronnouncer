@@ -21,7 +21,7 @@ export function makeStartAnnouncement(
     }
 
     // ensure no announcement is already being made
-    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildId(
+    const announcementInProgress = await announcementRepo.findWorkInProgressByGuildID(
       guildIDOrError.getValue(),
     );
 
