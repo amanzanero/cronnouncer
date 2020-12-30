@@ -14,8 +14,8 @@
     "coverage": "nyc npm run test",
     "lint": "eslint 'src/*/**/*.{js,ts,tsx}'",
     "pushcheck": "npm run lint && npm run build:dryrun && npm run coverage",
-    "migration:generate": "ts-node ./node_modules/.bin/typeorm migration:generate -f src/infra/typeorm/ormconfig.ts -n",
-    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run -f src/infra/typeorm/ormconfig.ts"
+    "migration:generate": "ts-node ./node_modules/.bin/typeorm migration:generate -f src/infra/typeorm/ormconfig.ts -c dev -n",
+    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run -f src/infra/typeorm/ormconfig.ts -c dev"
   },
   "repository": {
     "type": "git",
