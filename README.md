@@ -23,8 +23,16 @@ The Discord bot to schedule announcements on your server!
 5. create a bot and get secret token
 6. add .env to root folder and paste `DISCORD_TOKEN=<put your token here>`, then copy over other values from
    .env.example
-7. `npm run dev` to start bot locally using ts-node
-8. `npm run build` and `npm start` for production
+
+#### Development
+
+1. `docker-compose up` to spin up postgresql container
+2. `npm run dev` to start bot locally using ts-node
+
+#### Production / hosting
+
+1. `npm run build`
+2. `npm start`
 
 ## Contributing:
 
