@@ -15,11 +15,27 @@ jobs:
       - run: npm run test:unit
 
   end2end:
-    executor:
-      name: node/default
+    docker:
+      - image: circleci/node:14
+        environment:
+          PG_HOST: localhost
+          PG_USER: postgres
+          PG_PASSWORD: postgres123
+          PG_DB: postgres
+          PG_PORT: 5432
+      - image: postgres
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123
     steps:
       - checkout
-      - node/install-packages
+      - restore_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+          paths:
+            - "node_modules"
       - run: npm run coverage
 
 workflows:
@@ -27,13 +43,13 @@ workflows:
     jobs:
       - build-lint-and-unit
       - end2end:
-            requires:
-              - build-lint-and-unit
+          requires:
+            - build-lint-and-unit
       - deployhold:
-            type: approval
-            requires:
-              - end2end
-            filters:
-              branches:
-                only:
-                  - main
+          type: approval
+          requires:
+            - end2end
+          filters:
+            branches:
+              only:
+                - main
