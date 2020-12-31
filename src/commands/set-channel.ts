@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, Message } from "discord.js";
 import { Command } from "./definitions";
 import { IAnnouncementRepo } from "../core/announcement/repos";
 import { IDiscordService } from "../core/announcement/services/discord";
@@ -34,15 +34,17 @@ export function makeSetChannelCMD(props: SetTimeCMDProps): Command {
     const [rawChannel] = args.argArray;
     const channel = parseDiscordChannelID(rawChannel);
 
+    const guild = message.guild as Guild; // ok to do since this is guild only
     return await setChannel({
-      guildID: message.guild?.id,
+      guildID: guild.id,
       channel,
     } as any);
   }
 
   async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
+    const announcementOutput = response.value as AnnouncementOutput;
     await message.channel.send(
-      `Chanel: ${discordChannelString(response.value?.channel)} was set for the announcement.`,
+      `Channel: ${discordChannelString(announcementOutput.channel)} was set for the announcement.`,
     );
   }
 
