@@ -1,13 +1,10 @@
-import { Client, Message } from "discord.js";
-import { logger } from "../services";
+import { Message } from "discord.js";
 import { Command } from "./definitions";
 import { IAnnouncementRepo } from "../core/announcement/repos";
 import { makeStartAnnouncement } from "../core/announcement/interactions/startAnnouncement";
-import {
-  AnnouncementError,
-  AnnouncementInProgressError,
-  ValidationError,
-} from "../core/announcement/errors";
+import { executeBase } from "./executeBase";
+import { Args } from "./config/Args";
+import { PREFIX } from "../constants";
 
 interface StartAnnouncementCMDProps {
   announcementRepo: IAnnouncementRepo;
@@ -17,7 +14,7 @@ export const help = {
   name: "start-announcement",
   category: "Scheduling",
   description: "Begins the scheduling process for an announcement",
-  usage: "start-announcement",
+  usage: `${PREFIX}start-announcement`,
 };
 
 const conf = {
@@ -29,31 +26,22 @@ export function makeStartAnnouncementCMD(props: StartAnnouncementCMDProps): Comm
   // interaction init
   const startAnnouncement = makeStartAnnouncement(props.announcementRepo);
 
+  async function interaction(message: Message) {
+    return await startAnnouncement({ guildID: message.guild?.id } as any);
+  }
+
+  async function onSuccess(message: Message) {
+    await message.channel.send("Announcement started!");
+  }
+
   return {
-    execute: async function execute(client: Client, message: Message) {
-      try {
-        const response = await startAnnouncement({ guildID: message.guild?.id } as any);
-
-        if (response.failed) {
-          const responseError = response.value as AnnouncementError;
-
-          switch (responseError.constructor) {
-            case ValidationError:
-              await message.channel.send(responseError.message);
-              break;
-            case AnnouncementInProgressError:
-              await message.channel.send("`Announcement in progress for this server.`");
-              break;
-            default:
-              return;
-          }
-          return;
-        }
-
-        await message.channel.send("Announcement started!");
-      } catch (e) {
-        logger.error(e.stack);
-      }
+    execute: async (message: Message, args: Args) => {
+      await executeBase({
+        interaction,
+        onSuccess,
+        message,
+        args,
+      });
     },
     help,
     conf,

@@ -36,7 +36,7 @@ export function generateMessageHandler(client: Client, commands: CommandMap) {
 
     const timeStart = Date.now();
     try {
-      await cmd.execute(client, message, args);
+      await cmd.execute(message, args);
     } catch (e) {
       logger.error(e.stack);
     }

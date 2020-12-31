@@ -1,17 +1,13 @@
-import { Client, Message } from "discord.js";
-import { logger } from "../services";
+import { Message } from "discord.js";
 import { Command } from "./definitions";
 import { IAnnouncementRepo } from "../core/announcement/repos";
 import { IDiscordService } from "../core/announcement/services/discord";
 import { makeSetChannel } from "../core/announcement/interactions/setChannel";
-import {
-  AnnouncementError,
-  AnnouncementNotInProgressError,
-  ChannelDoesNotExistError,
-  ValidationError,
-} from "../core/announcement/errors";
 import { Args } from "./config/Args";
+import { executeBase } from "./executeBase";
 import { AnnouncementOutput } from "../core/announcement/interactions/common";
+import { Response } from "../lib";
+import { PREFIX } from "../constants";
 
 interface SetTimeCMDProps {
   announcementRepo: IAnnouncementRepo;
@@ -22,7 +18,7 @@ export const help = {
   name: "set-channel",
   category: "Scheduling",
   description: "Sets the channel for the in-progress announcement",
-  usage: "set-channel {discord channel name}",
+  usage: `${PREFIX}set-channel {discord channel name}`,
 };
 
 const conf = {
@@ -34,45 +30,40 @@ export function makeSetChannelCMD(props: SetTimeCMDProps): Command {
   // interaction init
   const setChannel = makeSetChannel(props.announcementRepo, props.discordService);
 
+  async function interaction(message: Message, args: Args) {
+    const [rawChannel] = args.argArray;
+    const channel = parseDiscordChannelID(rawChannel);
+
+    return await setChannel({
+      guildID: message.guild?.id,
+      channel,
+    } as any);
+  }
+
+  async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
+    await message.channel.send(
+      `Chanel: ${discordChannelString(response.value?.channel)} was set for the announcement.`,
+    );
+  }
+
   return {
-    execute: async function executeSetChannel(client: Client, message: Message, args: Args) {
-      const [channel] = args.argArray;
-      try {
-        const response = await setChannel({
-          guildID: message.guild?.id,
-          channel: channel && channel.substring(2, channel.length - 1),
-        } as any);
-
-        if (response.failed) {
-          const responseError = response.value as AnnouncementError;
-
-          switch (responseError.constructor) {
-            case ValidationError:
-              await message.channel.send(responseError.message);
-              break;
-            case AnnouncementNotInProgressError:
-              await message.channel.send("`There is no announcement in progress for this server.`");
-              break;
-            case ChannelDoesNotExistError:
-              await message.channel.send(responseError.message);
-              break;
-            default:
-              return;
-          }
-          return;
-        }
-
-        await message.channel.send(
-          `Chanel: <#${
-            (response.value as AnnouncementOutput).channel
-          }> was set for the announcement.`,
-        );
-      } catch (e) {
-        logger.error(e.stack);
-        await message.channel.send("`Sorry, something unexpected happened.`");
-      }
+    execute: async (message: Message, args: Args) => {
+      await executeBase({
+        interaction,
+        onSuccess,
+        message,
+        args,
+      });
     },
     help,
     conf,
   };
+}
+
+function parseDiscordChannelID(channel?: string) {
+  return channel && channel.substring(2, channel.length - 1);
+}
+
+function discordChannelString(channelID?: string) {
+  return `<#${channelID}>`;
 }

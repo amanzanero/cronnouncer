@@ -2,8 +2,8 @@ import Discord from "discord.js";
 import { Args } from "../config/Args";
 
 export type Executor =
-  | ((client: Discord.Client, message: Discord.Message, args: Args) => Promise<void>)
-  | ((client: Discord.Client, message: Discord.Message) => Promise<void>);
+  | ((message: Discord.Message, args: Args) => Promise<void>)
+  | ((message: Discord.Message) => Promise<void>);
 
 export interface Command {
   execute: Executor;
