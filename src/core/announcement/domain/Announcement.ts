@@ -90,7 +90,15 @@ export class Announcement {
     );
 
     if (!hasNecessaryProps) {
-      return Result.fail<Announcement>("missing one ore more necessary props");
+      return Result.fail<Announcement>(
+        "An announcement must have a message, scheduledTime, and channel set before publishing",
+      );
+    }
+
+    const time = this.scheduledTime?.value.getTime() as number;
+    const minuteFromNow = Date.now() + 1000;
+    if (time < minuteFromNow) {
+      return Result.fail<Announcement>("The announcement time is less than a minute from now.");
     }
 
     Object.assign(this.props, { published: true });

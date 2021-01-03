@@ -42,6 +42,15 @@ export class ScheduledTime {
     return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime.toDate() }));
   }
 
+  public static __createFromPersistence(time: string): Result<ScheduledTime> {
+    const guardResult = Guard.againstNullOrUndefined(time, "time");
+    if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
+
+    const mTime = moment(time);
+
+    return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime.toDate() }));
+  }
+
   copy() {
     return new ScheduledTime({ value: moment(this.props.value).toDate() });
   }

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { createConnection, Repository } from "typeorm";
 import { Announcement } from "./announcementModel";
-import { logger } from "../../services";
+import { logger } from "../../util";
 import ormconfig from "./ormconfig";
 import { IS_PROD } from "../../constants";
 

@@ -4,7 +4,7 @@ import { Response } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
   AnnouncementNotInProgressError,
-  ChannelDoesNotExistError,
+  TextChannelDoesNotExistError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
 import {
@@ -60,7 +60,7 @@ test("should return AnnouncementNotInProgressError", async (t) => {
   t.deepEqual(response, expectedErr);
 });
 
-test("should return ChannelDoesNotExistError", async (t) => {
+test("should return TextChannelDoesNotExistError", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
@@ -75,8 +75,8 @@ test("should return ChannelDoesNotExistError", async (t) => {
   const input = { guildID, channel };
   const response = await setChannel(input, deps);
 
-  const expectedErr = Response.fail<ChannelDoesNotExistError>(
-    new ChannelDoesNotExistError(channel),
+  const expectedErr = Response.fail<TextChannelDoesNotExistError>(
+    new TextChannelDoesNotExistError(channel),
   );
   t.deepEqual(response, expectedErr);
 });

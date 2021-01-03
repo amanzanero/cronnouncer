@@ -6,7 +6,7 @@ import { Channel, GuildID } from "../domain";
 import { Response, Result } from "../../../lib";
 import {
   AnnouncementNotInProgressError,
-  ChannelDoesNotExistError,
+  TextChannelDoesNotExistError,
   ValidationError,
 } from "../errors";
 import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";
@@ -32,14 +32,14 @@ export async function setChannel(
     guildIDOrError.getValue(),
   );
 
-  const promiseChannelExists = discordService.channelExists(
+  const promiseTextChannelExists = discordService.textChannelExists(
     guildIDOrError.getValue(),
     channelOrError.getValue(),
   );
 
-  const [announcementInProgress, channelExists] = await Promise.all([
+  const [announcementInProgress, textChannelExists] = await Promise.all([
     promiseAnnouncementInProgress,
-    promiseChannelExists,
+    promiseTextChannelExists,
   ]);
 
   if (!announcementInProgress) {
@@ -48,9 +48,9 @@ export async function setChannel(
     );
   }
 
-  if (!channelExists) {
-    return Response.fail<ChannelDoesNotExistError>(
-      new ChannelDoesNotExistError(channelOrError.getValue().value),
+  if (!textChannelExists) {
+    return Response.fail<TextChannelDoesNotExistError>(
+      new TextChannelDoesNotExistError(channelOrError.getValue().value),
     );
   }
 

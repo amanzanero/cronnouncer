@@ -17,7 +17,7 @@ export interface InputData {
 
 export async function publishAnnouncement(
   { guildID }: InputData,
-  { announcementRepo }: InteractionDependencies,
+  { announcementRepo, cronService }: InteractionDependencies,
 ) {
   const gIDOrError = GuildID.create(guildID);
   if (gIDOrError.isFailure) {
@@ -36,8 +36,20 @@ export async function publishAnnouncement(
 
   const publishResult = inProgressAnnouncement.publish();
   if (publishResult.isFailure) {
-    return Response.fail<AnnouncementIncompleteError>(new AnnouncementIncompleteError());
+    return Response.fail<AnnouncementIncompleteError>(
+      new AnnouncementIncompleteError(publishResult.errorValue()),
+    );
   }
+
+  await Promise.all([
+    announcementRepo.save(inProgressAnnouncement),
+    cronService.scheduleAnnouncement({
+      message: inProgressAnnouncement.message?.value as string,
+      channel: inProgressAnnouncement.channel?.value as string,
+      guildID: inProgressAnnouncement.guildID.value,
+      scheduledTime: inProgressAnnouncement.scheduledTime?.value as Date,
+    }),
+  ]);
 
   return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
 }

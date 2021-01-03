@@ -4,8 +4,12 @@ import { isCommand, parseCommand } from "./util/parser";
 import { logger } from "../util";
 import { UNKNOWN_COMMAND_RESPONSE } from "./index";
 
-function commandRunLog(username: string, authorID: string, cmd: string, time: number) {
-  return `[CMD] ${username} (${authorID}) ran command ${cmd} - ${time}ms`;
+function commandRunLogStart(username: string, authorID: string, cmd: string) {
+  return `[CMD] [${username}] [${authorID}] [START] [${cmd}]`;
+}
+
+function commandRunLogStop(username: string, authorID: string, cmd: string, time: number) {
+  return `[CMD] [${username}] [${authorID}] [STOP] [${cmd}] - ${time}ms`;
 }
 
 export function makeMessageHandler(client: Client, commands: CommandMap) {
@@ -34,15 +38,20 @@ export function makeMessageHandler(client: Client, commands: CommandMap) {
       return;
     }
 
+    logger.info(commandRunLogStart(message.author.tag, message.author.id, cmd.help.name));
     const timeStart = Date.now();
     try {
       await cmd.execute(message, args);
     } catch (e) {
       logger.error(e.stack);
     }
-
     logger.info(
-      commandRunLog(message.author.tag, message.author.id, cmd.help.name, Date.now() - timeStart),
+      commandRunLogStop(
+        message.author.tag,
+        message.author.id,
+        cmd.help.name,
+        Date.now() - timeStart,
+      ),
     );
   };
 }

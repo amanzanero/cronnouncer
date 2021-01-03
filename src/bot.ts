@@ -7,7 +7,9 @@ import { initDB } from "./infra/typeorm";
 
 export async function main(): Promise<string> {
   /* istanbul ignore next */
-  if (!IS_PROD) logger.info(`[DEV] pid: ${process.pid}`);
+  if (!IS_PROD) logger.level = "debug";
+
+  logger.debug(`[DEV] pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
   const { stores, storesDisconnect } = await initDB();
@@ -16,7 +18,10 @@ export async function main(): Promise<string> {
   const commands = makeCommandMap({ stores, discordClient });
   const messageHandler = makeMessageHandler(discordClient, commands);
 
-  discordClient.on("ready", () => logger.info("cronnouncer live"));
+  discordClient.on("ready", () => {
+    logger.info("logged into discord");
+    logger.info("cronnouncer ready to accept messages");
+  });
   discordClient.on("message", messageHandler);
 
   // graceful exit
@@ -27,10 +32,12 @@ export async function main(): Promise<string> {
       await storesDisconnect();
     } catch (e) {
       logger.error(e.stack);
+      process.exit(1);
     }
     logger.info("cronnouncer shutdown");
     process.exit(0);
   });
 
+  logger.info("logging into discord...");
   return await discordClient.login(DISCORD_TOKEN);
 }

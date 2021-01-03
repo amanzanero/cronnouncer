@@ -1,12 +1,10 @@
 import { createLogger, format, transports } from "winston";
 
-const { combine, timestamp, label, printf, colorize } = format;
+const { combine, timestamp, printf, colorize } = format;
 
-const logFormat = printf(
-  ({ level, message, label, timestamp }) => `${timestamp} [${label}] ${level}: ${message}`,
-);
+const logFormat = printf(({ level, message, timestamp }) => `${timestamp} ${level}: ${message}`);
 
 export const logger = createLogger({
-  format: combine(label({ label: "CRONNOUNCER" }), colorize(), timestamp(), logFormat),
+  format: combine(colorize(), timestamp(), logFormat),
   transports: [new transports.Console()],
 });
