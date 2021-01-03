@@ -1,7 +1,12 @@
 {
   "extends": "@istanbuljs/nyc-config-typescript",
   "include": "src",
-  "exclude": ["src/index.ts","src/constants.ts"],
+  "exclude": [
+    "src/errors.ts",
+    "src/constants.ts",
+    "src/index.ts",
+    "src/infra/typeorm"
+    ],
   "reporter": ["html", "text", "text-summary"],
   "all": true,
   "check-coverage": true,

@@ -1,5 +1,5 @@
 import { main } from "./bot";
-import { logger } from "./services";
+import { logger } from "./util";
 
 main().catch((e) => {
   logger.error(e.stack);

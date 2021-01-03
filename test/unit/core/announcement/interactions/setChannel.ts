@@ -1,14 +1,10 @@
 import test from "ava";
-import {
-  makeSetChannel,
-  InputData,
-} from "../../../../../src/core/announcement/interactions/setChannel";
-import { Response, InteractionExecute } from "../../../../../src/lib";
+import { setChannel } from "../../../../../src/core/announcement/interactions/setChannel";
+import { Response } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
 import {
-  AnnouncementError,
   AnnouncementNotInProgressError,
-  ChannelDoesNotExistError,
+  TextChannelDoesNotExistError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
 import {
@@ -19,28 +15,31 @@ import { MockDiscordService } from "../../../../test_utils/mocks/discordService"
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 
 interface TestContext {
-  repo: MockAnnouncementRepo;
-  mockDiscordService: MockDiscordService;
-  interaction: InteractionExecute<InputData, AnnouncementOutput | AnnouncementError>;
+  deps: {
+    announcementRepo: MockAnnouncementRepo;
+    discordService: MockDiscordService;
+  };
 }
 
 test.before((t) => {
-  const repo = new MockAnnouncementRepo();
-  const mockDiscordService = new MockDiscordService();
-  const interaction = makeSetChannel(repo, mockDiscordService);
-  Object.assign(mockDiscordService.channels, {
+  const announcementRepo = new MockAnnouncementRepo();
+  const discordService = new MockDiscordService();
+  Object.assign(discordService.channels, {
     exists: true,
   });
-  Object.assign(t.context, { repo, interaction, mockDiscordService });
+  Object.assign(t.context, {
+    deps: {
+      announcementRepo,
+      discordService,
+    },
+  });
 });
 
 test("should return validation error with bad input", async (t) => {
-  const { interaction } = t.context as TestContext;
+  const { deps } = t.context as TestContext;
 
-  const response = await interaction({
-    guildID: "1",
-    channel: undefined,
-  } as any);
+  const input: any = { guildID: "1", channel: undefined };
+  const response = await setChannel(input, deps);
 
   const expectedErr = Response.fail<ValidationError>(
     new ValidationError("channel is null or undefined"),
@@ -49,13 +48,11 @@ test("should return validation error with bad input", async (t) => {
 });
 
 test("should return AnnouncementNotInProgressError", async (t) => {
-  const { interaction } = t.context as TestContext;
+  const { deps } = t.context as TestContext;
 
   const guildID = "1";
-  const response = await interaction({
-    guildID,
-    channel: "some channel",
-  });
+  const input: any = { guildID, channel: "some channel" };
+  const response = await setChannel(input, deps);
 
   const expectedErr = Response.fail<AnnouncementNotInProgressError>(
     new AnnouncementNotInProgressError(guildID),
@@ -63,8 +60,9 @@ test("should return AnnouncementNotInProgressError", async (t) => {
   t.deepEqual(response, expectedErr);
 });
 
-test("should return ChannelDoesNotExistError", async (t) => {
-  const { interaction, repo } = t.context as TestContext;
+test("should return TextChannelDoesNotExistError", async (t) => {
+  const { deps } = t.context as TestContext;
+  const { announcementRepo } = deps;
 
   const guildID = "2";
   const channel = "dne";
@@ -72,21 +70,20 @@ test("should return ChannelDoesNotExistError", async (t) => {
   const announcement = createMockAnnouncement({
     guildID,
   });
-  await repo.save(announcement);
+  await announcementRepo.save(announcement);
 
-  const response = await interaction({
-    guildID,
-    channel,
-  });
+  const input = { guildID, channel };
+  const response = await setChannel(input, deps);
 
-  const expectedErr = Response.fail<ChannelDoesNotExistError>(
-    new ChannelDoesNotExistError(channel, guildID),
+  const expectedErr = Response.fail<TextChannelDoesNotExistError>(
+    new TextChannelDoesNotExistError(channel),
   );
   t.deepEqual(response, expectedErr);
 });
 
 test("should return success response", async (t) => {
-  const { interaction, repo } = t.context as TestContext;
+  const { deps } = t.context as TestContext;
+  const { announcementRepo } = deps;
 
   const guildID = "3";
   const channel = "exists";
@@ -94,11 +91,10 @@ test("should return success response", async (t) => {
   const announcement = createMockAnnouncement({
     guildID,
   });
-  await repo.save(announcement);
-  const response = await interaction({
-    guildID,
-    channel,
-  });
+  await announcementRepo.save(announcement);
+
+  const input = { guildID, channel };
+  const response = await setChannel(input, deps);
 
   const announcementCopy = announcement.copy();
   const expectedAnnouncement = AnnouncementToOutput(announcementCopy);

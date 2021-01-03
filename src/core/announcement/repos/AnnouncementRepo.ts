@@ -8,9 +8,11 @@ import { Repository } from "typeorm";
 import { AnnouncementMap } from "./AnnouncementMap";
 
 export interface IAnnouncementRepo {
-  findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined>;
+  findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined>;
 
   save(announcement: Announcement): Promise<void>;
+
+  delete(announcement: Announcement): Promise<void>;
 }
 
 export class AnnouncementRepo implements IAnnouncementRepo {
@@ -20,7 +22,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
     this.typeormAnnouncementRepo = typeormRepo;
   }
 
-  async findWorkInProgressByGuildId(guildID: GuildID): Promise<Announcement | undefined> {
+  async findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined> {
     const announcement = await this.typeormAnnouncementRepo.findOne({
       guild_id: guildID.value,
       published: false,
@@ -31,5 +33,11 @@ export class AnnouncementRepo implements IAnnouncementRepo {
   async save(announcement: Announcement): Promise<void> {
     const persist = AnnouncementMap.toPersistence(announcement);
     return await this.typeormAnnouncementRepo.save(persist);
+  }
+
+  async delete(announcement: Announcement): Promise<void> {
+    const persist = AnnouncementMap.toPersistence(announcement);
+    await this.typeormAnnouncementRepo.remove([persist]);
+    return;
   }
 }

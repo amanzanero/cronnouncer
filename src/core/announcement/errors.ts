@@ -24,8 +24,8 @@ export class AnnouncementInProgressError extends AnnouncementError {
 }
 
 export class AnnouncementIncompleteError extends AnnouncementError {
-  constructor() {
-    super("An announcement must have a message, scheduledTime, and channel set before publishing");
+  constructor(message?: string) {
+    super(message);
     Object.setPrototypeOf(this, AnnouncementIncompleteError.prototype); // makes typescript happy
   }
 }
@@ -37,9 +37,9 @@ export class AnnouncementNotInProgressError extends AnnouncementError {
   }
 }
 
-export class ChannelDoesNotExistError extends AnnouncementError {
-  constructor(channel: string, guildID: string) {
-    super(`Channel: ${channel} does not exist in server: ${guildID}`);
-    Object.setPrototypeOf(this, ChannelDoesNotExistError.prototype); // makes typescript happy
+export class TextChannelDoesNotExistError extends AnnouncementError {
+  constructor(channel: string) {
+    super(`Channel \`#${channel}\` is not the name of a text channel in this server.`);
+    Object.setPrototypeOf(this, TextChannelDoesNotExistError.prototype); // makes typescript happy
   }
 }

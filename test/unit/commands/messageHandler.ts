@@ -2,24 +2,24 @@ import test from "ava";
 import sinon from "sinon";
 
 import {
-  generateCommands,
+  makeCommandMap,
   UNKNOWN_COMMAND_RESPONSE,
-  generateMessageHandler,
+  makeMessageHandler,
 } from "../../../src/commands";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
-import * as parser from "../../../src/lib/parser";
-import { logger } from "../../../src/services";
+import * as parser from "../../../src/commands/util/parser";
+import { logger } from "../../../src/util";
 import { PREFIX } from "../../../src/constants";
 
 test.before((t) => {
-  const commands = generateCommands({ announcementStore: {} } as any);
+  const commands = makeCommandMap({ stores: {}, discordClient: {} } as any);
   // stub our executions
   Object.entries(commands).forEach((keyValue) => {
     if (!keyValue[1]) return;
     sinon.stub(keyValue[1], "execute");
   });
   const errorLogSpy = sinon.spy(logger, "error");
-  const messageHandler = generateMessageHandler({} as any, commands);
+  const messageHandler = makeMessageHandler({} as any, commands);
   Object.assign(t.context, { commands, messageHandler, errorLogSpy });
 });
 

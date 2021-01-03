@@ -1,7 +1,6 @@
-import moment from "moment";
-import { Announcement, Channel, DATE_FORMAT, GuildID, Message, ScheduledTime } from "../domain";
+import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain";
 import { Result, UniqueEntityID } from "../../../lib";
-import { logger } from "../../../services";
+import { logger } from "../../../util";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
 
 export class AnnouncementMap {
@@ -41,15 +40,14 @@ export class AnnouncementMap {
 
     let scheduledTimeOrError;
     if (!!raw.scheduled_time) {
-      const date = moment(raw.scheduled_time);
-      scheduledTimeOrError = ScheduledTime.create(date.format(DATE_FORMAT));
+      scheduledTimeOrError = ScheduledTime.__createFromPersistence(raw.scheduled_time);
       createResults.push(scheduledTimeOrError);
     }
 
     const results = Result.combine(createResults);
 
     if (results.isFailure) {
-      logger.error(`[AnnouncementMapper.toDomain] couldn't parse: ${raw}`);
+      logger.error(`[AnnouncementMapper.toDomain] couldn't parse - ${results.errorValue()}`);
       return undefined;
     }
 

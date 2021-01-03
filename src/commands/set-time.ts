@@ -1,65 +1,32 @@
-import { Client, Message } from "discord.js";
-import { logger } from "../services";
-import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos/AnnouncementRepo";
-import { makeSetTime } from "../core/announcement/interactions/setTime";
+import { Message } from "discord.js";
+import { setTime } from "../core/announcement/interactions/setTime";
+import { Args } from "./definitions/Args";
 import {
-  AnnouncementError,
-  AnnouncementNotInProgressError,
-  ValidationError,
-} from "../core/announcement/errors";
-
-interface SetTimeCMDProps {
-  announcementRepo: IAnnouncementRepo;
-}
+  AnnouncementOutput,
+  InteractionDependencies,
+} from "../core/announcement/interactions/common";
+import { Response } from "../lib";
+import { PREFIX } from "../constants";
 
 export const help = {
   name: "set-time",
   category: "Scheduling",
   description: "Sets the time for the in progress announcement",
-  usage: "set-time {MM/DD/YYYY hh:mm am/pm}",
+  usage: `${PREFIX}set-time {MM/DD/YYYY hh:mm am/pm}`,
 };
 
-const conf = {
+export const conf = {
   enabled: true,
   guildOnly: true,
 };
 
-export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
-  // interaction init
-  const setTime = makeSetTime(props.announcementRepo);
+export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
+  const guildID = message.guild?.id as string;
+  return await setTime({ guildID, scheduledTime: args.raw }, props);
+}
 
-  return {
-    execute: async function execute(client: Client, message: Message, args: string[]) {
-      try {
-        const scheduledTime = args.join(" ");
-        const response = await setTime({
-          guildID: message.guild?.id,
-          scheduledTime,
-        } as any);
-
-        if (response.failed) {
-          const responseError = response.value as AnnouncementError;
-
-          switch (responseError.constructor) {
-            case ValidationError:
-              await message.channel.send(responseError.message);
-              break;
-            case AnnouncementNotInProgressError:
-              await message.channel.send("`There is no announcement in progress for this server.`");
-              break;
-            default:
-              return;
-          }
-          return;
-        }
-
-        await message.channel.send(`Time: ${scheduledTime} was set for the announcement.`);
-      } catch (e) {
-        logger.error(e.stack);
-      }
-    },
-    help,
-    conf,
-  };
+export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
+  await message.channel.send(
+    `Time: ${response.value?.scheduledTime} was set for the announcement.`,
+  );
 }
