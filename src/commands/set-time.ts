@@ -1,16 +1,12 @@
 import { Message } from "discord.js";
-import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeSetTime } from "../core/announcement/interactions/setTime";
-import { Args } from "./config/Args";
-import { AnnouncementOutput } from "../core/announcement/interactions/common";
+import { setTime } from "../core/announcement/interactions/setTime";
+import { Args } from "./definitions/Args";
+import {
+  AnnouncementOutput,
+  InteractionDependencies,
+} from "../core/announcement/interactions/common";
 import { Response } from "../lib";
-import { executeBase } from "./executeBase";
 import { PREFIX } from "../constants";
-
-interface SetTimeCMDProps {
-  announcementRepo: IAnnouncementRepo;
-}
 
 export const help = {
   name: "set-time",
@@ -19,38 +15,18 @@ export const help = {
   usage: `${PREFIX}set-time {MM/DD/YYYY hh:mm am/pm}`,
 };
 
-const conf = {
+export const conf = {
   enabled: true,
   guildOnly: true,
 };
 
-export function makeSetTimeCMD(props: SetTimeCMDProps): Command {
-  // interaction init
-  const setTime = makeSetTime(props.announcementRepo);
+export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
+  const guildID = message.guild?.id as string;
+  return await setTime({ guildID, scheduledTime: args.raw }, props);
+}
 
-  async function interaction(message: Message, args: Args) {
-    return await setTime({
-      guildID: message.guild?.id,
-      scheduledTime: args.raw,
-    } as any);
-  }
-
-  async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
-    await message.channel.send(
-      `Time: ${response.value?.scheduledTime} was set for the announcement.`,
-    );
-  }
-
-  return {
-    execute: async (message: Message, args: Args) => {
-      await executeBase({
-        interaction,
-        onSuccess,
-        message,
-        args,
-      });
-    },
-    help,
-    conf,
-  };
+export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
+  await message.channel.send(
+    `Time: ${response.value?.scheduledTime} was set for the announcement.`,
+  );
 }

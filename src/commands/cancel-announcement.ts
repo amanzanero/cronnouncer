@@ -1,14 +1,7 @@
 import { Message } from "discord.js";
-import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeCancelAnnouncement } from "../core/announcement/interactions/cancelAnnouncement";
-import { Args } from "./config/Args";
-import { executeBase } from "./executeBase";
+import { cancelAnnouncement } from "../core/announcement/interactions/cancelAnnouncement";
 import { PREFIX } from "../constants";
-
-interface SetTimeCMDProps {
-  announcementRepo: IAnnouncementRepo;
-}
+import { InteractionDependencies } from "../core/announcement/interactions/common";
 
 export const help = {
   name: "cancel-announcement",
@@ -17,35 +10,16 @@ export const help = {
   usage: `${PREFIX}cancel-announcement`,
 };
 
-const conf = {
+export const conf = {
   enabled: true,
   guildOnly: true,
 };
 
-export function makeCancelAnnouncementCMD(props: SetTimeCMDProps): Command {
-  // interaction init
-  const cancelAnnouncement = makeCancelAnnouncement(props.announcementRepo);
+export async function interaction(props: InteractionDependencies, message: Message) {
+  const guildID = message.guild?.id as string;
+  return await cancelAnnouncement({ guildID }, props);
+}
 
-  async function interaction(message: Message) {
-    return await cancelAnnouncement({
-      guildID: message.guild?.id,
-    } as any);
-  }
-
-  async function onSuccess(message: Message) {
-    await message.channel.send("The announcement in progress was canceled and removed.");
-  }
-
-  return {
-    execute: async (message: Message, args: Args) => {
-      await executeBase({
-        interaction,
-        onSuccess,
-        message,
-        args,
-      });
-    },
-    help,
-    conf,
-  };
+export async function onSuccess(message: Message) {
+  await message.channel.send("The announcement in progress was canceled and removed.");
 }

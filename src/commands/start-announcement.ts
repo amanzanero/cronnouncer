@@ -1,14 +1,7 @@
 import { Message } from "discord.js";
-import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeStartAnnouncement } from "../core/announcement/interactions/startAnnouncement";
-import { executeBase } from "./executeBase";
-import { Args } from "./config/Args";
+import { startAnnouncement } from "../core/announcement/interactions/startAnnouncement";
 import { PREFIX } from "../constants";
-
-interface StartAnnouncementCMDProps {
-  announcementRepo: IAnnouncementRepo;
-}
+import { InteractionDependencies } from "../core/announcement/interactions/common";
 
 export const help = {
   name: "start-announcement",
@@ -17,33 +10,16 @@ export const help = {
   usage: `${PREFIX}start-announcement`,
 };
 
-const conf = {
+export const conf = {
   enabled: true,
   guildOnly: true,
 };
 
-export function makeStartAnnouncementCMD(props: StartAnnouncementCMDProps): Command {
-  // interaction init
-  const startAnnouncement = makeStartAnnouncement(props.announcementRepo);
+export async function interaction(props: InteractionDependencies, message: Message) {
+  const guildID = message.guild?.id as string;
+  return await startAnnouncement({ guildID }, props);
+}
 
-  async function interaction(message: Message) {
-    return await startAnnouncement({ guildID: message.guild?.id } as any);
-  }
-
-  async function onSuccess(message: Message) {
-    await message.channel.send("Announcement started!");
-  }
-
-  return {
-    execute: async (message: Message, args: Args) => {
-      await executeBase({
-        interaction,
-        onSuccess,
-        message,
-        args,
-      });
-    },
-    help,
-    conf,
-  };
+export async function onSuccess(message: Message) {
+  await message.channel.send("Announcement started!");
 }

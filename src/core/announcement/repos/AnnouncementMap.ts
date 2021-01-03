@@ -1,7 +1,7 @@
 import moment from "moment";
 import { Announcement, Channel, DATE_FORMAT, GuildID, Message, ScheduledTime } from "../domain";
 import { Result, UniqueEntityID } from "../../../lib";
-import { logger } from "../../../services";
+import { logger } from "../../../util";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
 
 export class AnnouncementMap {

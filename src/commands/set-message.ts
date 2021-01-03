@@ -1,14 +1,8 @@
 import { Message } from "discord.js";
-import { Command } from "./definitions";
-import { IAnnouncementRepo } from "../core/announcement/repos";
-import { makeSetMessage } from "../core/announcement/interactions/setMessage";
-import { Args } from "./config/Args";
-import { executeBase } from "./executeBase";
+import { setMessage } from "../core/announcement/interactions/setMessage";
+import { Args } from "./definitions/Args";
 import { PREFIX } from "../constants";
-
-interface SetTimeCMDProps {
-  announcementRepo: IAnnouncementRepo;
-}
+import { InteractionDependencies } from "../core/announcement/interactions/common";
 
 export const help = {
   name: "set-message",
@@ -17,36 +11,16 @@ export const help = {
   usage: `${PREFIX}set-time {announcement content}`,
 };
 
-const conf = {
+export const conf = {
   enabled: true,
   guildOnly: true,
 };
 
-export function makeSetMessageCMD(props: SetTimeCMDProps): Command {
-  // interaction init
-  const setMessage = makeSetMessage(props.announcementRepo);
+export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
+  const guildID = message.guild?.id as string;
+  return await setMessage({ guildID, message: args.raw }, props);
+}
 
-  async function interaction(message: Message, args: Args) {
-    return await setMessage({
-      guildID: message.guild?.id,
-      message: args.raw,
-    } as any);
-  }
-
-  async function onSuccess(message: Message) {
-    await message.channel.send("Message set for announcement.");
-  }
-
-  return {
-    execute: async (message: Message, args: Args) => {
-      await executeBase({
-        interaction,
-        onSuccess,
-        message,
-        args,
-      });
-    },
-    help,
-    conf,
-  };
+export async function onSuccess(message: Message) {
+  await message.channel.send("Message set for announcement.");
 }

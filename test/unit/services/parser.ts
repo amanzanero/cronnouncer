@@ -1,7 +1,7 @@
 import test from "ava";
-import { parseCommand } from "../../../src/commands/config/parser";
+import { parseCommand } from "../../../src/commands/util/parser";
 import { PREFIX } from "../../../src/constants";
-import { Args } from "../../../src/commands/config/Args";
+import { Args } from "../../../src/commands/definitions/Args";
 
 test("parses command", (t) => {
   t.deepEqual(parseCommand(`${PREFIX}command`), { command: "command", args: new Args("") });

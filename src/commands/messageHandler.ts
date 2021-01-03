@@ -1,14 +1,14 @@
 import { Client, Message } from "discord.js";
-import { CommandMap } from "../definitions";
-import { isCommand, parseCommand } from "./parser";
-import { logger } from "../../services";
-import { UNKNOWN_COMMAND_RESPONSE } from "../index";
+import { CommandMap } from "./definitions";
+import { isCommand, parseCommand } from "./util/parser";
+import { logger } from "../util";
+import { UNKNOWN_COMMAND_RESPONSE } from "./index";
 
 function commandRunLog(username: string, authorID: string, cmd: string, time: number) {
   return `[CMD] ${username} (${authorID}) ran command ${cmd} - ${time}ms`;
 }
 
-export function generateMessageHandler(client: Client, commands: CommandMap) {
+export function makeMessageHandler(client: Client, commands: CommandMap) {
   return async function handleMessage(message: Message) {
     if (message.author.bot) return; // we dont fuk w bots
     if (!isCommand(message.content)) return;

@@ -1,8 +1,8 @@
 import Discord from "discord.js";
 
 import { DISCORD_TOKEN, IS_PROD } from "./constants";
-import { logger } from "./services";
-import { generateMessageHandler, generateCommands } from "./commands";
+import { logger } from "./util";
+import { makeCommandMap, makeMessageHandler } from "./commands";
 import { initDB } from "./infra/typeorm";
 
 export async function main(): Promise<string> {
@@ -13,8 +13,8 @@ export async function main(): Promise<string> {
   const { stores, storesDisconnect } = await initDB();
 
   const discordClient = new Discord.Client();
-  const commands = generateCommands({ stores, discordClient });
-  const messageHandler = generateMessageHandler(discordClient, commands);
+  const commands = makeCommandMap({ stores, discordClient });
+  const messageHandler = makeMessageHandler(discordClient, commands);
 
   discordClient.on("ready", () => logger.info("cronnouncer live"));
   discordClient.on("message", messageHandler);

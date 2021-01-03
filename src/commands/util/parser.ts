@@ -1,5 +1,5 @@
 import { PREFIX } from "../../constants";
-import { Args } from "./Args";
+import { Args } from "../definitions/Args";
 
 export function isCommand(command: string): boolean {
   return command.startsWith(PREFIX);

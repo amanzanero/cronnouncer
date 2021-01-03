@@ -5,7 +5,7 @@ import { help as setMessageHelp } from "./set-message";
 import { help as setTimeHelp } from "./set-time";
 import { help as startAnnouncementHelp } from "./start-announcement";
 import { PREFIX } from "../constants";
-import { logger } from "../services";
+import { logger } from "../util";
 
 const help = {
   name: "help",

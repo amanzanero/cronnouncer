@@ -1,5 +1,12 @@
 import moment from "moment";
 import { Announcement, DATE_FORMAT } from "../domain";
+import { IAnnouncementRepo } from "../repos";
+import { IDiscordService } from "../services/discord";
+
+export interface InteractionDependencies {
+  announcementRepo: IAnnouncementRepo;
+  discordService: IDiscordService;
+}
 
 export interface AnnouncementOutput {
   guildID: string;
