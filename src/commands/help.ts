@@ -1,4 +1,3 @@
-import { Message } from "discord.js";
 import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";
@@ -37,11 +36,11 @@ export function makeHelpCMD(): Command {
   // interaction init
 
   return {
-    execute: async function execute(message: Message) {
+    execute: async function execute({ requestID, message }) {
       try {
         await message.channel.send(HELP_MESSAGE);
       } catch (e) {
-        logger.error(e.stack);
+        logger.error(e, { requestID });
       }
     },
     help,

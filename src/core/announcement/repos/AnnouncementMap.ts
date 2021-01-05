@@ -61,7 +61,7 @@ export class AnnouncementMap {
       },
       new UniqueEntityID(raw.announcement_id),
     );
-    announcementOrError.isFailure ? console.log(announcementOrError.error) : "";
+    if (announcementOrError.isFailure) logger.error(announcementOrError.error);
 
     return announcementOrError.isSuccess ? announcementOrError.getValue() : undefined;
   }

@@ -1,15 +1,17 @@
 import { Client, Message } from "discord.js";
+import { v4 as uuid } from "uuid";
+
 import { CommandMap } from "./definitions";
 import { isCommand, parseCommand } from "./util/parser";
 import { logger } from "../util";
 import { UNKNOWN_COMMAND_RESPONSE } from "./index";
 
-function commandRunLogStart(username: string, authorID: string, cmd: string) {
-  return `[CMD] [${username}] [${authorID}] [START] [${cmd}]`;
+function commandRunLogStart(username: string, cmd: string) {
+  return `[CMD] [START] [${username}] [${cmd}]`;
 }
 
-function commandRunLogStop(username: string, authorID: string, cmd: string, time: number) {
-  return `[CMD] [${username}] [${authorID}] [STOP] [${cmd}] - ${time}ms`;
+function commandRunLogStop(username: string, cmd: string, time: number) {
+  return `[CMD] [STOP] [${username}] [${cmd}] - ${time}ms`;
 }
 
 export function makeMessageHandler(client: Client, commands: CommandMap) {
@@ -25,7 +27,7 @@ export function makeMessageHandler(client: Client, commands: CommandMap) {
       try {
         await message.channel.send(UNKNOWN_COMMAND_RESPONSE);
       } catch (e) {
-        logger.error(e.stack);
+        logger.error(e);
       }
       return;
     }
@@ -38,20 +40,16 @@ export function makeMessageHandler(client: Client, commands: CommandMap) {
       return;
     }
 
-    logger.info(commandRunLogStart(message.author.tag, message.author.id, cmd.help.name));
+    const requestID = uuid();
+    logger.info(commandRunLogStart(message.author.tag, cmd.help.name), { requestID });
     const timeStart = Date.now();
     try {
-      await cmd.execute(message, args);
+      await cmd.execute({ requestID, message, args });
     } catch (e) {
-      logger.error(e.stack);
+      logger.error(e, { requestID });
     }
-    logger.info(
-      commandRunLogStop(
-        message.author.tag,
-        message.author.id,
-        cmd.help.name,
-        Date.now() - timeStart,
-      ),
-    );
+    logger.info(commandRunLogStop(message.author.tag, cmd.help.name, Date.now() - timeStart), {
+      requestID,
+    });
   };
 }

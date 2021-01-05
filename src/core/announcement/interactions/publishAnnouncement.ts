@@ -17,7 +17,7 @@ export interface InputData {
 
 export async function publishAnnouncement(
   { guildID }: InputData,
-  { announcementRepo, cronService }: InteractionDependencies,
+  { announcementRepo, cronService, requestID }: InteractionDependencies,
 ) {
   const gIDOrError = GuildID.create(guildID);
   if (gIDOrError.isFailure) {
@@ -48,6 +48,7 @@ export async function publishAnnouncement(
       channel: inProgressAnnouncement.channel?.value as string,
       guildID: inProgressAnnouncement.guildID.value,
       scheduledTime: inProgressAnnouncement.scheduledTime?.value as Date,
+      requestID,
     }),
   ]);
 

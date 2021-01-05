@@ -7,6 +7,7 @@ interface ScheduleAnnouncementProps {
   guildID: string;
   channel: string;
   scheduledTime: Date;
+  requestID?: string;
 }
 
 export interface ICronService {
@@ -28,7 +29,7 @@ export class CronService implements ICronService {
       guild = await this.discordClient.guilds.fetch(props.guildID);
       channel = guild.channels.cache.get(props.channel) as TextChannel;
     } catch (e) {
-      logger.error(e.stack);
+      logger.error(e, { requestID: props.requestID });
       return;
     }
 
@@ -40,9 +41,10 @@ export class CronService implements ICronService {
           await channel.send(props.message);
           logger.info(
             `[ANNOUNCEMENT] sent to channel: ${props.channel} on guild: ${props.guildID}`,
+            { requestID: props.requestID },
           );
         } catch (e) {
-          logger.error(e.stack);
+          logger.error(e, { requestID: props.requestID });
         }
       },
     );

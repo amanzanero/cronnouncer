@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import { Announcement, DATE_FORMAT } from "../domain";
 import { IAnnouncementRepo } from "../repos";
 import { IDiscordService } from "../services/discord";
@@ -8,6 +8,7 @@ export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
   discordService: IDiscordService;
   cronService: ICronService;
+  requestID: string;
 }
 
 export interface AnnouncementOutput {
