@@ -1,9 +1,4 @@
-import Discord from "discord.js";
-import { Args } from "./Args";
-
-export type Executor =
-  | ((message: Discord.Message, args: Args) => Promise<void>)
-  | ((message: Discord.Message) => Promise<void>);
+import { Executor } from "./Executor";
 
 export interface Command {
   execute: Executor;
