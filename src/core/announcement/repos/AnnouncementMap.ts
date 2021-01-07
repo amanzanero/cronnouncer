@@ -1,7 +1,7 @@
 import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../util";
-import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
+import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 
 export class AnnouncementMap {
   public static toPersistence(announcement: Announcement): any {

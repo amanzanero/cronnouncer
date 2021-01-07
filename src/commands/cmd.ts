@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
 import { DbStores } from "../infra/typeorm";
-import { AnnouncementRepo } from "../core/announcement/repos";
+import { AnnouncementRepo, AnnouncementSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
 import { Command, CommandMap, CMD } from "./definitions";
@@ -21,10 +21,13 @@ interface CommandMapProps {
 
 export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
   const announcementRepo = new AnnouncementRepo(commandMapProps.stores.announcementStore);
+  const announcementSettingsRepo = new AnnouncementSettingsRepo(
+    commandMapProps.stores.announcementSettingsStore,
+  );
   const cronService = new CronService(commandMapProps.discordClient);
   const discordService = new DiscordService(commandMapProps.discordClient);
 
-  const cmdProps = { announcementRepo, cronService, discordService };
+  const cmdProps = { announcementRepo, announcementSettingsRepo, cronService, discordService };
 
   return {
     help: makeHelpCMD(),
@@ -39,6 +42,7 @@ export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
 
 interface CMDProps {
   announcementRepo: AnnouncementRepo;
+  announcementSettingsRepo: AnnouncementSettingsRepo;
   cronService: CronService;
   discordService: DiscordService;
 }

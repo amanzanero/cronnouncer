@@ -1,11 +1,11 @@
 import { DATABASE_URL, PG_DB, PG_HOST, PG_PASSWORD, PG_PORT, PG_USER } from "../../constants";
-import { Announcement } from "./announcementModel";
+import { Announcement, AnnouncementSettings } from "./models";
 
 const baseOptions = {
   type: "postgres",
-  entities: [Announcement],
+  entities: [Announcement, AnnouncementSettings],
   synchronize: false,
-  migrations: ["build/infra/typeorm/migrations/*.js"],
+  migrations: ["src/infra/typeorm/migrations/*.ts"],
   cli: {
     migrationsDir: "src/infra/typeorm/migrations",
   },
@@ -19,7 +19,7 @@ export default [
     ...baseOptions,
   },
   {
-    name: "dev",
+    name: "local",
     host: PG_HOST,
     port: PG_PORT,
     username: PG_USER,
