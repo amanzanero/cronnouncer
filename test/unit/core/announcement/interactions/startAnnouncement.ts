@@ -1,7 +1,7 @@
 import test from "ava";
 import { startAnnouncement } from "../../../../../src/core/announcement/interactions/startAnnouncement";
 import { Response } from "../../../../../src/lib";
-import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
+import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementInProgressError,
   ValidationError,

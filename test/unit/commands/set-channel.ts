@@ -3,7 +3,7 @@ import { MockAnnouncementRepo } from "../../test_utils/mocks/announcementRepo";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
 import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
-import { createMockAnnouncement } from "../../test_utils/mocks/mockAnnouncement";
+import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
 import { GuildID } from "../../../src/core/announcement/domain/announcement";
 import { makeExecuteBase } from "../../../src/commands/executeBase";
@@ -18,7 +18,7 @@ test.before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const discordService = new MockDiscordService();
   const deps = { announcementRepo, discordService };
-  const execute = makeExecuteBase(deps, setChannelCMD);
+  const execute = makeExecuteBase(deps as any, setChannelCMD);
 
   const newAnnouncement = createMockAnnouncement({ guildID: "1" });
   await announcementRepo.save(newAnnouncement);
@@ -34,7 +34,7 @@ test("channel gets set", async (t) => {
     channel: { send: async (s: string) => s },
   };
   const args = new Args("<#1234>");
-  await execute(mockMessage as any, args);
+  await execute({ requestID: "1", message: mockMessage as any, args });
 
   const announcement = await announcementRepo.findWorkInProgressByGuildID(
     GuildID.create("1").getValue(),

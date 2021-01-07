@@ -57,7 +57,7 @@ test("handles unknown command with reply - throws gracefully", async (t) => {
   sinon.stub(message.channel, "send").throws(err);
 
   await messageHandler(message);
-  t.true(errorLogSpy.calledOnceWith(err.stack));
+  t.true(errorLogSpy.calledOnceWith(err));
 });
 
 test.serial("executes a command", async (t) => {

@@ -1,7 +1,7 @@
 import test from "ava";
 import { setChannel } from "../../../../../src/core/announcement/interactions/setChannel";
 import { Response } from "../../../../../src/lib";
-import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
+import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementNotInProgressError,
   TextChannelDoesNotExistError,
@@ -13,11 +13,14 @@ import {
 } from "../../../../../src/core/announcement/interactions/common";
 import { MockDiscordService } from "../../../../test_utils/mocks/discordService";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
+import { ICronService } from "../../../../../src/core/announcement/services/cron";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
     discordService: MockDiscordService;
+    cronService: ICronService; // not actually used
+    requestID: string;
   };
 }
 
@@ -39,7 +42,7 @@ test("should return validation error with bad input", async (t) => {
   const { deps } = t.context as TestContext;
 
   const input: any = { guildID: "1", channel: undefined };
-  const response = await setChannel(input, deps);
+  const response = await setChannel(input, deps as any);
 
   const expectedErr = Response.fail<ValidationError>(
     new ValidationError("channel is null or undefined"),
@@ -52,7 +55,7 @@ test("should return AnnouncementNotInProgressError", async (t) => {
 
   const guildID = "1";
   const input: any = { guildID, channel: "some channel" };
-  const response = await setChannel(input, deps);
+  const response = await setChannel(input, deps as any);
 
   const expectedErr = Response.fail<AnnouncementNotInProgressError>(
     new AnnouncementNotInProgressError(guildID),
@@ -73,7 +76,7 @@ test("should return TextChannelDoesNotExistError", async (t) => {
   await announcementRepo.save(announcement);
 
   const input = { guildID, channel };
-  const response = await setChannel(input, deps);
+  const response = await setChannel(input, deps as any);
 
   const expectedErr = Response.fail<TextChannelDoesNotExistError>(
     new TextChannelDoesNotExistError(channel),
@@ -94,7 +97,7 @@ test("should return success response", async (t) => {
   await announcementRepo.save(announcement);
 
   const input = { guildID, channel };
-  const response = await setChannel(input, deps);
+  const response = await setChannel(input, deps as any);
 
   const announcementCopy = announcement.copy();
   const expectedAnnouncement = AnnouncementToOutput(announcementCopy);
