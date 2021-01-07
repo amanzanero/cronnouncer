@@ -2,7 +2,7 @@ import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
 import { logger } from "../../../util";
 
-interface ScheduleAnnouncementProps {
+export interface ScheduleAnnouncementProps {
   message: string;
   guildID: string;
   channel: string;
