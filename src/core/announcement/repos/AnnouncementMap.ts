@@ -1,4 +1,4 @@
-import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain";
+import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../util";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";

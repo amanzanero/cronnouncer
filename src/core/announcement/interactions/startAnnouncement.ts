@@ -3,7 +3,7 @@
  */
 
 import { IAnnouncementRepo } from "../repos";
-import { Announcement, GuildID } from "../domain";
+import { Announcement, GuildID } from "../domain/announcement";
 import { Response } from "../../../lib";
 import { AnnouncementInProgressError, ValidationError } from "../errors";
 import { AnnouncementOutput } from "./common";

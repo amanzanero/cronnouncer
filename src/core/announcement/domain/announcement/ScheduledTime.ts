@@ -1,5 +1,5 @@
-import moment from "moment";
-import { Guard, Result } from "../../../lib";
+import moment from "moment-timezone";
+import { Guard, Result } from "../../../../lib";
 
 interface ScheduledTimeProps {
   value: Date;

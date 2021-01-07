@@ -5,7 +5,7 @@ import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
 import { createMockAnnouncement } from "../../test_utils/mocks/mockAnnouncement";
 import { Args } from "../../../src/commands/definitions/Args";
-import { GuildID } from "../../../src/core/announcement/domain";
+import { GuildID } from "../../../src/core/announcement/domain/announcement";
 import { makeExecuteBase } from "../../../src/commands/executeBase";
 
 interface TestContext {

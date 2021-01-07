@@ -12,7 +12,7 @@ import {
   AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/common";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
-import { DATE_FORMAT } from "../../../../../src/core/announcement/domain";
+import { DATE_FORMAT } from "../../../../../src/core/announcement/domain/announcement";
 
 interface TestContext {
   deps: {

@@ -1,7 +1,7 @@
 import test from "ava";
 import moment from "moment";
 import { Response } from "../../../../../src/lib";
-import { createMockAnnouncement } from "../../../../test_utils/mocks/mockAnnouncement";
+import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementIncompleteError,
   AnnouncementNotInProgressError,

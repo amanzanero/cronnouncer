@@ -1,11 +1,11 @@
 /*
-Contains definition for an announcement (aggregate root)
+Contains definition for an announcement
  */
 
 import { ScheduledTime } from "./ScheduledTime";
 import { GuildID } from "./GuildID";
 import { Message } from "./Message";
-import { Guard, Result, UniqueEntityID } from "../../../lib";
+import { Guard, Result, UniqueEntityID } from "../../../../lib";
 import { Channel } from "./Channel";
 
 interface AnnouncementProps {
@@ -91,7 +91,7 @@ export class Announcement {
 
     if (!hasNecessaryProps) {
       return Result.fail<Announcement>(
-        "An announcement must have a message, scheduledTime, and channel set before publishing",
+        "An announcement must have a message, scheduledTime, and channel set before publishing.",
       );
     }
 

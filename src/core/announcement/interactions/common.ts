@@ -1,11 +1,13 @@
 import moment from "moment-timezone";
-import { Announcement, DATE_FORMAT } from "../domain";
-import { IAnnouncementRepo } from "../repos";
+import { Announcement, DATE_FORMAT } from "../domain/announcement";
+import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../repos";
 import { IDiscordService } from "../services/discord";
 import { ICronService } from "../services/cron";
+import { AnnouncementSettings } from "../domain/announcementSettings";
 
 export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
+  announcementSettingsRepo: IAnnouncementSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
   requestID: string;
@@ -29,5 +31,19 @@ export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   if (a.scheduledTime) {
     Object.assign(output, { scheduledTime: moment(a.scheduledTime.value).format(DATE_FORMAT) });
   }
+  return output;
+}
+
+export interface AnnouncementSettingsOutput {
+  guildID: string;
+  timezone?: string;
+}
+
+export function AnnouncementSettingsToOutput(a: AnnouncementSettings): AnnouncementSettingsOutput {
+  const output = {
+    guildID: a.guildID.value,
+  };
+  if (a.timezone) Object.assign(output, { timezone: a.timezone.value });
+
   return output;
 }

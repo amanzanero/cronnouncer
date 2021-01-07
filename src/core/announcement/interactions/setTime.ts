@@ -2,7 +2,7 @@
  * This file contains the interaction for setting the announcement time
  */
 
-import { GuildID, ScheduledTime } from "../domain";
+import { GuildID, ScheduledTime } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
 import { AnnouncementNotInProgressError, ValidationError } from "../errors";
 import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";

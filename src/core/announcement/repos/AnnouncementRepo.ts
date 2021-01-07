@@ -2,8 +2,8 @@
  * his file contains a repository composer for announcements
  */
 
-import { Announcement, GuildID } from "../domain";
-import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
+import { Announcement, GuildID } from "../domain/announcement";
+import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Repository } from "typeorm";
 import { AnnouncementMap } from "./AnnouncementMap";
 

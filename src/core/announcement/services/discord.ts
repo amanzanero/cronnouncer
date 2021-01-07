@@ -1,4 +1,4 @@
-import { Channel, GuildID } from "../domain";
+import { Channel, GuildID } from "../domain/announcement";
 import { Client } from "discord.js";
 
 export interface IDiscordService {

@@ -7,7 +7,7 @@ import {
   GuildID,
   Message,
   ScheduledTime,
-} from "../../../src/core/announcement/domain";
+} from "../../../src/core/announcement/domain/announcement";
 import { UniqueEntityID } from "../../../src/lib";
 
 interface OptionalMockAnnouncementProps {

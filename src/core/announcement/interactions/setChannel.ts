@@ -2,7 +2,7 @@
  * This file contains the interaction for setting the announcement channel
  */
 
-import { Channel, GuildID } from "../domain";
+import { Channel, GuildID } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
 import {
   AnnouncementNotInProgressError,

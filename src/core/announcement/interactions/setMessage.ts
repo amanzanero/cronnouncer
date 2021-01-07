@@ -2,7 +2,7 @@
  * This file contains the interaction for setting the announcement message
  */
 
-import { GuildID, Message } from "../domain";
+import { GuildID, Message } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
 import { AnnouncementNotInProgressError, ValidationError } from "../errors";
 import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";

@@ -1,7 +1,7 @@
 /**
  * This file contains the use case for starting a new announcement
  */
-import { GuildID } from "../domain";
+import { GuildID } from "../domain/announcement";
 import { Response } from "../../../lib";
 import { AnnouncementNotInProgressError, ValidationError } from "../errors";
 import { InteractionDependencies } from "./common";
