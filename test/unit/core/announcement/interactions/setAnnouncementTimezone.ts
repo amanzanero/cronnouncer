@@ -28,11 +28,23 @@ test("should return a failure for invalid input", async (t) => {
     },
     { announcementSettingsRepo } as any,
   );
-
   const expectedResponse = Response.fail<ValidationError>(
     new ValidationError(Timezone.invalidTimezoneMessage(timezone)),
   );
   t.deepEqual(response, expectedResponse);
+
+  const nullTimezone = undefined;
+  const nullTimezoneResponse = await setAnnouncementTimezone(
+    {
+      guildID: "1",
+      timezone: nullTimezone,
+    } as any,
+    { announcementSettingsRepo } as any,
+  );
+  const expectedNullTimezoneResponse = Response.fail<ValidationError>(
+    new ValidationError("timezone is null or undefined"),
+  );
+  t.deepEqual(nullTimezoneResponse, expectedNullTimezoneResponse);
 });
 
 test("should create new instance of announcement settings when not created", async (t) => {
@@ -83,5 +95,4 @@ test("should update existing instance of announcement settings with timezone", a
     updatedAnnouncementSettings && updatedAnnouncementSettings.id,
     existingAnnouncementSettings.id,
   ); // make sure it's the same instance
-  t.notDeepEqual(updatedAnnouncementSettings, existingAnnouncementSettings); // should have been updated
 });

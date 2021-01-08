@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { GuildID } from "../domain/announcement";
+import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Response } from "../../../lib";
 import {
   AnnouncementIncompleteError,
@@ -58,13 +58,16 @@ export async function publishAnnouncement(
     );
   }
 
+  const message = inProgressAnnouncement.message as Message;
+  const channel = inProgressAnnouncement.channel as Channel;
+  const scheduledTime = inProgressAnnouncement.scheduledTime as ScheduledTime;
   await Promise.all([
     announcementRepo.save(inProgressAnnouncement),
     cronService.scheduleAnnouncement({
-      message: inProgressAnnouncement.message?.value as string,
-      channel: inProgressAnnouncement.channel?.value as string,
+      message: message.value as string,
+      channel: channel.value as string,
       guildID: inProgressAnnouncement.guildID.value,
-      scheduledTimeUTC: inProgressAnnouncement.scheduledTime?.value as string,
+      scheduledTimeUTC: scheduledTime.value as string,
       requestID,
     }),
   ]);

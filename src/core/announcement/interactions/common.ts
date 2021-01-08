@@ -41,10 +41,8 @@ export interface AnnouncementSettingsOutput {
 }
 
 export function AnnouncementSettingsToOutput(a: AnnouncementSettings): AnnouncementSettingsOutput {
-  const output = {
+  return {
     guildID: a.guildID.value,
+    timezone: a.timezone.value,
   };
-  if (a.timezone) Object.assign(output, { timezone: a.timezone.value });
-
-  return output;
 }

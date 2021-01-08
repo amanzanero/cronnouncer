@@ -6,6 +6,7 @@ import { createMockAnnouncement } from "../../../../test_utils/mocks/announcemen
 import {
   AnnouncementNotInProgressError,
   TimeInPastError,
+  TimezoneNotSetError,
   ValidationError,
 } from "../../../../../src/core/announcement/errors";
 import {
@@ -82,6 +83,18 @@ test("should fail with bad input", async (t) => {
   const responseFutureTime = await setTime(inputFutureTime, deps as any);
   const expectedFutureTimeError = new TimeInPastError();
   t.deepEqual(responseFutureTime.value, expectedFutureTimeError);
+});
+
+test("should fail if there is no timezone", async (t) => {
+  const { deps } = t.context as TestContext;
+  const mScheduledTime = moment().add(2, "minutes");
+
+  const guildID = "no timezone";
+  const input: any = { guildID, scheduledTime: mScheduledTime.format(DATE_FORMAT) };
+  const response = await setTime(input, deps as any);
+
+  const expectedErr = new TimezoneNotSetError();
+  t.deepEqual(response.value, expectedErr);
 });
 
 test("should fail if there is no announcement in progress", async (t) => {

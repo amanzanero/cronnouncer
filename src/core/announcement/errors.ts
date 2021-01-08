@@ -47,7 +47,7 @@ export class TextChannelDoesNotExistError extends AnnouncementError {
 export class TimezoneNotSetError extends AnnouncementError {
   constructor() {
     super("A timezone must be set before creating an announcement.");
-    Object.setPrototypeOf(this, TextChannelDoesNotExistError.prototype); // makes typescript happy
+    Object.setPrototypeOf(this, TimezoneNotSetError.prototype); // makes typescript happy
   }
 }
 
