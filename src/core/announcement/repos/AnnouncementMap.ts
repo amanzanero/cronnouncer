@@ -8,7 +8,7 @@ export class AnnouncementMap {
     const persist = new AnnouncementModel();
     Object.assign(persist, {
       announcement_id: announcement.id.value,
-      scheduled_time: announcement.scheduledTime?.value.toISOString(),
+      scheduled_time: announcement.scheduledTime?.value,
       message: announcement.message?.value,
       channel: announcement.channel?.value,
       guild_id: announcement.guildID.value,
@@ -40,7 +40,7 @@ export class AnnouncementMap {
 
     let scheduledTimeOrError;
     if (!!raw.scheduled_time) {
-      scheduledTimeOrError = ScheduledTime.__createFromPersistence(raw.scheduled_time);
+      scheduledTimeOrError = ScheduledTime.create(raw.scheduled_time);
       createResults.push(scheduledTimeOrError);
     }
 

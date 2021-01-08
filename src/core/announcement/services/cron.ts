@@ -6,9 +6,11 @@ export interface ScheduleAnnouncementProps {
   message: string;
   guildID: string;
   channel: string;
-  scheduledTime: Date;
+  scheduledTimeUTC: string;
   requestID?: string;
 }
+
+export const DATE_FORMAT = "M/D/YYYY h:mm a";
 
 export interface ICronService {
   scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void>;
@@ -34,8 +36,8 @@ export class CronService implements ICronService {
     }
 
     schedule.scheduleJob(
-      `${props.guildID}: ${props.scheduledTime}`,
-      props.scheduledTime,
+      `${props.guildID}: ${props.scheduledTimeUTC}`,
+      props.scheduledTimeUTC,
       async () => {
         try {
           await channel.send(props.message);

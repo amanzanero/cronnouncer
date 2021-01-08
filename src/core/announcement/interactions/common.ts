@@ -1,15 +1,16 @@
-import moment from "moment-timezone";
-import { Announcement, DATE_FORMAT } from "../domain/announcement";
+import { Announcement } from "../domain/announcement";
 import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../repos";
 import { IDiscordService } from "../services/discord";
 import { ICronService } from "../services/cron";
 import { AnnouncementSettings } from "../domain/announcementSettings";
+import { ITimeService } from "../services/time";
 
 export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
   announcementSettingsRepo: IAnnouncementSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
+  timeService: ITimeService;
   requestID: string;
 }
 
@@ -29,7 +30,7 @@ export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   if (a.channel) Object.assign(output, { channel: a.channel.value });
   if (a.message) Object.assign(output, { message: a.message.value });
   if (a.scheduledTime) {
-    Object.assign(output, { scheduledTime: moment(a.scheduledTime.value).format(DATE_FORMAT) });
+    Object.assign(output, { scheduledTime: a.scheduledTime.value });
   }
   return output;
 }

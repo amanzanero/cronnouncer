@@ -43,3 +43,24 @@ export class TextChannelDoesNotExistError extends AnnouncementError {
     Object.setPrototypeOf(this, TextChannelDoesNotExistError.prototype); // makes typescript happy
   }
 }
+
+export class TimezoneNotSetError extends AnnouncementError {
+  constructor() {
+    super("A timezone must be set before creating an announcement.");
+    Object.setPrototypeOf(this, TextChannelDoesNotExistError.prototype); // makes typescript happy
+  }
+}
+
+export class TimeInPastError extends AnnouncementError {
+  constructor() {
+    super("Scheduled time must be at least a minute away.");
+    Object.setPrototypeOf(this, TimeInPastError.prototype); // makes typescript happy
+  }
+}
+
+export class InvalidTimeError extends AnnouncementError {
+  constructor(time: string) {
+    super(`Time: \`${time}\` was not in the correct format.`);
+    Object.setPrototypeOf(this, InvalidTimeError.prototype); // makes typescript happy
+  }
+}

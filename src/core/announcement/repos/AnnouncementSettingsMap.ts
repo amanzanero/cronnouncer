@@ -8,6 +8,7 @@ export class AnnouncementSettingsMap {
   public static toPersistence(announcementSettings: AnnouncementSettings): any {
     const persist = new AnnouncementSettingsModel();
     Object.assign(persist, {
+      guild_id: announcementSettings.guildID.value,
       announcement_settings_id: announcementSettings.id.value,
       timezone: announcementSettings.timezone?.value,
     });
@@ -16,13 +17,8 @@ export class AnnouncementSettingsMap {
 
   public static toDomain(raw: AnnouncementSettingsModel): AnnouncementSettings | undefined {
     const guildIDOrError = GuildID.create(raw.guild_id);
-    const createResults: Result<any>[] = [guildIDOrError];
-
-    let timezoneOrError;
-    if (raw.timezone) {
-      timezoneOrError = Timezone.create(raw.timezone);
-      createResults.push(timezoneOrError);
-    }
+    const timezoneOrError = Timezone.create(raw.timezone);
+    const createResults: Result<any>[] = [guildIDOrError, timezoneOrError];
 
     const results = Result.combine(createResults);
     if (results.isFailure) {
@@ -33,7 +29,7 @@ export class AnnouncementSettingsMap {
     const announcementOrError = AnnouncementSettings.create(
       {
         guildID: guildIDOrError.getValue(),
-        timezone: timezoneOrError?.getValue(),
+        timezone: timezoneOrError.getValue(),
       },
       new UniqueEntityID(raw.announcement_settings_id),
     );

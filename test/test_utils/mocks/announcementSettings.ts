@@ -16,7 +16,7 @@ export function createMockAnnouncementSettings(
   props: OptionalMockAnnouncementSettingsProps,
 ): AnnouncementSettings {
   const guildID = GuildID.create(props.guildID || v4()).getValue();
-  const timezone = props.timezone ? Timezone.create(props.timezone).getValue() : undefined;
+  const timezone = Timezone.create(props.timezone ? props.timezone : "US/Pacific").getValue();
 
   return AnnouncementSettings.create(
     {

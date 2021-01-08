@@ -1,20 +1,15 @@
-import moment from "moment-timezone";
 import { Guard, Result } from "../../../../lib";
+import { DATE_FORMAT } from "../../services/cron";
+import moment from "moment-timezone";
 
 interface ScheduledTimeProps {
-  value: Date;
-}
-
-export const DATE_FORMAT = "M/D/YYYY h:mm a";
-
-export function invalidDateMessage(time: string) {
-  return `Time: ${time} was not formatted correctly.`;
+  value: string;
 }
 
 export class ScheduledTime {
   public readonly props;
 
-  get value(): Date {
+  get value(): string {
     return this.props.value;
   }
 
@@ -22,36 +17,29 @@ export class ScheduledTime {
     this.props = props;
   }
 
-  /**
-   * Accepts a date object
-   * @param time
-   */
-  public static create(time: string): Result<ScheduledTime> {
-    const guardResult = Guard.againstNullOrUndefined(time, "time");
-    if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
-
+  static isCorrectDateTimeFormat(time: string): boolean {
     const mTime = moment(time, DATE_FORMAT, true);
-
-    if (!mTime.isValid()) return Result.fail<ScheduledTime>(invalidDateMessage(time));
-
-    const minuteFromNow = moment().add(1, "minute");
-
-    if (!mTime.isAfter(minuteFromNow))
-      return Result.fail<ScheduledTime>("Scheduled time must be at least a minute away.");
-
-    return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime.toDate() }));
+    return mTime.isValid();
   }
 
-  public static __createFromPersistence(time: string): Result<ScheduledTime> {
+  static invalidTimeMessage(time: string) {
+    return `Time: \`${time}\` was not in the correct format.`;
+  }
+
+  public static create(time: string): Result<ScheduledTime> {
     const guardResult = Guard.againstNullOrUndefined(time, "time");
-    if (!guardResult.succeeded) return Result.fail<ScheduledTime>(guardResult.message);
+    if (!guardResult.succeeded) {
+      return Result.fail<ScheduledTime>(guardResult.message);
+    }
 
-    const mTime = moment(time);
+    if (!ScheduledTime.isCorrectDateTimeFormat(time)) {
+      return Result.fail<ScheduledTime>(ScheduledTime.invalidTimeMessage(time));
+    }
 
-    return Result.ok<ScheduledTime>(new ScheduledTime({ value: mTime.toDate() }));
+    return Result.ok<ScheduledTime>(new ScheduledTime({ value: time }));
   }
 
   copy() {
-    return new ScheduledTime({ value: moment(this.props.value).toDate() });
+    return new ScheduledTime({ value: this.props.value });
   }
 }

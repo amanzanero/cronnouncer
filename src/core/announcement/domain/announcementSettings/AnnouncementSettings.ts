@@ -8,7 +8,7 @@ import { GuildID } from "../announcement";
 
 interface AnnouncementSettingsProps {
   guildID: GuildID;
-  timezone?: Timezone;
+  timezone: Timezone;
 }
 
 interface AnnouncementSettingsCopyProps {
