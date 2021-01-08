@@ -34,11 +34,13 @@ export async function setAnnouncementTimezone(
   if (!announcementSettings) {
     announcementSettings = AnnouncementSettings.create({
       guildID: guildIDOrError.getValue(),
+      timezone: timezoneOrError.getValue(),
     }).getValue();
   }
-  const editedSettings = announcementSettings.copy({ timezone: timezoneOrError.getValue() });
 
-  await announcementSettingsRepo.save(editedSettings);
+  await announcementSettingsRepo.save(announcementSettings);
 
-  return Response.success<AnnouncementSettingsOutput>(AnnouncementSettingsToOutput(editedSettings));
+  return Response.success<AnnouncementSettingsOutput>(
+    AnnouncementSettingsToOutput(announcementSettings),
+  );
 }

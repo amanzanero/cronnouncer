@@ -4,6 +4,7 @@ import { help as setMessageHelp } from "./set-message";
 import { help as setTimeHelp } from "./set-time";
 import { help as publishHelp } from "./publish";
 import { help as startAnnouncementHelp } from "./start-announcement";
+import { help as timezoneHelp } from "./timezone";
 import { PREFIX } from "../constants";
 import { logger } from "../util";
 
@@ -20,6 +21,7 @@ const conf = {
 };
 
 const HELP_ARRAY = [
+  timezoneHelp,
   startAnnouncementHelp,
   setChannelHelp,
   setMessageHelp,

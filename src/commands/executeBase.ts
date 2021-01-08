@@ -7,6 +7,7 @@ import { Executor, Interaction, Success } from "./definitions";
 import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../core/announcement/repos";
 import { IDiscordService } from "../core/announcement/services/discord";
 import { ICronService } from "../core/announcement/services/cron";
+import { ITimeService } from "../core/announcement/services/time";
 
 interface ExecuteBaseProps {
   interaction: Interaction;
@@ -18,6 +19,7 @@ interface ExecuteBaseDependencies {
   announcementSettingsRepo: IAnnouncementSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
+  timeService: ITimeService;
 }
 
 export function makeExecuteBase(

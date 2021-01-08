@@ -12,7 +12,9 @@ import * as setMessageCMD from "./set-message";
 import * as setChannelCMD from "./set-channel";
 import * as cancelAnnouncementCMD from "./cancel-announcement";
 import * as publishAnnouncementCMD from "./publish";
+import * as timezoneCMD from "./timezone";
 import { CronService } from "../core/announcement/services/cron";
+import { TimeService } from "../core/announcement/services/time";
 
 interface CommandMapProps {
   stores: DbStores;
@@ -26,11 +28,19 @@ export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
   );
   const cronService = new CronService(commandMapProps.discordClient);
   const discordService = new DiscordService(commandMapProps.discordClient);
+  const timeService = new TimeService();
 
-  const cmdProps = { announcementRepo, announcementSettingsRepo, cronService, discordService };
+  const cmdProps = {
+    announcementRepo,
+    announcementSettingsRepo,
+    cronService,
+    discordService,
+    timeService,
+  };
 
   return {
     help: makeHelpCMD(),
+    timezone: makeCMD(cmdProps, timezoneCMD),
     "cancel-announcement": makeCMD(cmdProps, cancelAnnouncementCMD),
     "start-announcement": makeCMD(cmdProps, startAnnouncementCMD),
     "set-channel": makeCMD(cmdProps, setChannelCMD),
@@ -45,6 +55,7 @@ interface CMDProps {
   announcementSettingsRepo: AnnouncementSettingsRepo;
   cronService: CronService;
   discordService: DiscordService;
+  timeService: TimeService;
 }
 
 function makeCMD(props: CMDProps, cmd: CMD): Command {
