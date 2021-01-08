@@ -6,12 +6,14 @@ import {
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
 import { Response } from "../lib";
-import { PREFIX } from "../constants";
+import { PREFIX, SUPPORTED_TIMEZONES } from "../constants";
 
 export const help = {
   name: "timezone",
   category: "Configuration",
-  description: "Sets the timezone for the discord server.",
+  description: `Sets the timezone for the discord server. Available timezones (case sensitive): ${SUPPORTED_TIMEZONES.map(
+    (zone) => `\`${zone}\``,
+  ).join(", ")}`,
   usage: `${PREFIX}timezone {timezone}`,
 };
 
