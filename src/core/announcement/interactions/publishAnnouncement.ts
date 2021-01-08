@@ -51,6 +51,10 @@ export async function publishAnnouncement(
     timeService,
     timezone: settings.timezone,
   });
+  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
+    inProgressAnnouncement.scheduledTime as ScheduledTime,
+    settings.timezone,
+  );
 
   if (publishResult.isFailure) {
     return Response.fail<AnnouncementIncompleteError>(
@@ -60,14 +64,14 @@ export async function publishAnnouncement(
 
   const message = inProgressAnnouncement.message as Message;
   const channel = inProgressAnnouncement.channel as Channel;
-  const scheduledTime = inProgressAnnouncement.scheduledTime as ScheduledTime;
+
   await Promise.all([
     announcementRepo.save(inProgressAnnouncement),
     cronService.scheduleAnnouncement({
       message: message.value as string,
       channel: channel.value as string,
       guildID: inProgressAnnouncement.guildID.value,
-      scheduledTimeUTC: scheduledTime.value as string,
+      scheduledTimeUTC,
       requestID,
     }),
   ]);
