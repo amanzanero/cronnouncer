@@ -1,10 +1,14 @@
 /**
  * This file contains the interaction for setting the announcement time
  */
-
-import { GuildID, ScheduledTime } from "../domain";
+import { GuildID, ScheduledTime } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
-import { AnnouncementNotInProgressError, ValidationError } from "../errors";
+import {
+  AnnouncementNotInProgressError,
+  TimeInPastError,
+  TimezoneNotSetError,
+  ValidationError,
+} from "../errors";
 import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";
 
 export interface InputData {
@@ -14,7 +18,7 @@ export interface InputData {
 
 export async function setTime(
   { guildID, scheduledTime }: InputData,
-  { announcementRepo }: InteractionDependencies,
+  { announcementRepo, announcementSettingsRepo, timeService }: InteractionDependencies,
 ) {
   const guildIDOrError = GuildID.create(guildID);
   const scheduledTimeOrError = ScheduledTime.create(scheduledTime);
@@ -24,10 +28,14 @@ export async function setTime(
     return Response.fail<ValidationError>(new ValidationError(combinedResult.errorValue()));
   }
 
-  // get existing announcement
-  const announcementInProgress = await announcementRepo.findWorkInProgressByGuildID(
-    guildIDOrError.getValue(),
-  );
+  const [settings, announcementInProgress] = await Promise.all([
+    announcementSettingsRepo.getByGuildID(guildIDOrError.getValue()),
+    announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
+  ]);
+
+  if (!settings || !settings.timezone) {
+    return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
+  }
 
   if (!announcementInProgress) {
     return Response.fail<AnnouncementNotInProgressError>(
@@ -35,7 +43,10 @@ export async function setTime(
     );
   }
 
-  // set a time
+  if (!timeService.isValidFutureTime(scheduledTimeOrError.getValue(), settings.timezone)) {
+    return Response.fail<TimeInPastError>(new TimeInPastError());
+  }
+
   const announcementWithTime = announcementInProgress.copy({
     scheduledTime: scheduledTimeOrError.getValue(),
   });

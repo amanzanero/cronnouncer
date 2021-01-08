@@ -11,3 +11,18 @@ export const PG_USER = process.env.PG_USER;
 export const PG_PASSWORD = process.env.PG_PASSWORD;
 export const PG_DB = process.env.PG_DB;
 export const DATABASE_URL = process.env.DATABASE_URL;
+
+export const SUPPORTED_TIMEZONES = [
+  "US/Alaska",
+  "US/Aleutian",
+  "US/Arizona",
+  "US/Central",
+  "US/East-Indiana",
+  "US/Eastern",
+  "US/Hawaii",
+  "US/Indiana-Starke",
+  "US/Michigan",
+  "US/Mountain",
+  "US/Pacific",
+  "US/Samoa",
+];

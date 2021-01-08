@@ -8,7 +8,7 @@ export const help = {
   name: "set-message",
   category: "Scheduling",
   description: "Sets the message for the in-progress announcement",
-  usage: `${PREFIX}set-time {announcement content}`,
+  usage: `${PREFIX}set-message {announcement content}`,
 };
 
 export const conf = {

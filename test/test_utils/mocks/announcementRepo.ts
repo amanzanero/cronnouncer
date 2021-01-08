@@ -1,4 +1,4 @@
-import { Announcement, GuildID } from "../../../src/core/announcement/domain";
+import { Announcement, GuildID } from "../../../src/core/announcement/domain/announcement";
 import { IAnnouncementRepo } from "../../../src/core/announcement/repos";
 
 /**

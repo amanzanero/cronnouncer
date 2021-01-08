@@ -9,7 +9,7 @@ export async function main(): Promise<string> {
   /* istanbul ignore next */
   if (!IS_PROD) logger.level = "debug";
 
-  logger.debug(`[DEV] pid: ${process.pid}`);
+  logger.debug(`pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
   const { stores, storesDisconnect } = await initDB();
@@ -31,7 +31,7 @@ export async function main(): Promise<string> {
       discordClient.destroy();
       await storesDisconnect();
     } catch (e) {
-      logger.error(e.stack);
+      logger.error(e);
       process.exit(1);
     }
     logger.info("cronnouncer shutdown");

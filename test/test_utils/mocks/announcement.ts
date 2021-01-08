@@ -3,12 +3,12 @@ import { v4 } from "uuid";
 import {
   Announcement,
   Channel,
-  DATE_FORMAT,
   GuildID,
   Message,
   ScheduledTime,
-} from "../../../src/core/announcement/domain";
+} from "../../../src/core/announcement/domain/announcement";
 import { UniqueEntityID } from "../../../src/lib";
+import { DATE_FORMAT } from "../../../src/core/announcement/services/cron";
 
 interface OptionalMockAnnouncementProps {
   id?: string;

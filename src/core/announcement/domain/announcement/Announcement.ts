@@ -1,12 +1,15 @@
 /*
-Contains definition for an announcement (aggregate root)
+Contains definition for an announcement
  */
 
 import { ScheduledTime } from "./ScheduledTime";
 import { GuildID } from "./GuildID";
 import { Message } from "./Message";
-import { Guard, Result, UniqueEntityID } from "../../../lib";
+import { Guard, Result, UniqueEntityID } from "../../../../lib";
 import { Channel } from "./Channel";
+import { ITimeService } from "../../services/time";
+import { Timezone } from "../announcementSettings";
+import { TimeInPastError } from "../../errors";
 
 interface AnnouncementProps {
   message?: Message;
@@ -20,6 +23,11 @@ interface AnnouncementCopyProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
   channel?: Channel;
+}
+
+interface PublishProps {
+  timeService: ITimeService;
+  timezone: Timezone;
 }
 
 export class Announcement {
@@ -81,7 +89,7 @@ export class Announcement {
     ).getValue();
   }
 
-  publish() {
+  publish({ timeService, timezone }: PublishProps) {
     const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
       (acc, curr) => {
         return acc && !!curr;
@@ -91,17 +99,15 @@ export class Announcement {
 
     if (!hasNecessaryProps) {
       return Result.fail<Announcement>(
-        "An announcement must have a message, scheduledTime, and channel set before publishing",
+        "An announcement must have a message, scheduledTime, and channel set before publishing.",
       );
     }
 
-    const time = this.scheduledTime?.value.getTime() as number;
-    const minuteFromNow = Date.now() + 1000;
-    if (time < minuteFromNow) {
-      return Result.fail<Announcement>("The announcement time is less than a minute from now.");
+    if (!timeService.isValidFutureTime(this.scheduledTime as ScheduledTime, timezone)) {
+      return Result.fail<Announcement>(new TimeInPastError().message);
     }
 
     Object.assign(this.props, { published: true });
-    return Result.ok<any>(this);
+    return Result.ok<Announcement>(this);
   }
 }

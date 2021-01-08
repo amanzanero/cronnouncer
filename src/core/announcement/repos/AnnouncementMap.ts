@@ -1,14 +1,14 @@
-import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain";
+import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../util";
-import { Announcement as AnnouncementModel } from "../../../infra/typeorm/announcementModel";
+import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 
 export class AnnouncementMap {
   public static toPersistence(announcement: Announcement): any {
     const persist = new AnnouncementModel();
     Object.assign(persist, {
       announcement_id: announcement.id.value,
-      scheduled_time: announcement.scheduledTime?.value.toISOString(),
+      scheduled_time: announcement.scheduledTime?.value,
       message: announcement.message?.value,
       channel: announcement.channel?.value,
       guild_id: announcement.guildID.value,
@@ -40,7 +40,7 @@ export class AnnouncementMap {
 
     let scheduledTimeOrError;
     if (!!raw.scheduled_time) {
-      scheduledTimeOrError = ScheduledTime.__createFromPersistence(raw.scheduled_time);
+      scheduledTimeOrError = ScheduledTime.create(raw.scheduled_time);
       createResults.push(scheduledTimeOrError);
     }
 
@@ -61,7 +61,7 @@ export class AnnouncementMap {
       },
       new UniqueEntityID(raw.announcement_id),
     );
-    announcementOrError.isFailure ? console.log(announcementOrError.error) : "";
+    if (announcementOrError.isFailure) logger.error(announcementOrError.error);
 
     return announcementOrError.isSuccess ? announcementOrError.getValue() : undefined;
   }
