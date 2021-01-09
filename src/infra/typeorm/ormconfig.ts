@@ -5,7 +5,7 @@ const baseOptions = {
   type: "postgres",
   entities: [Announcement, AnnouncementSettings],
   synchronize: false,
-  migrations: ["src/infra/typeorm/migrations/*.ts"],
+  migrations: ["src/infra/typeorm/migrations/*.js"],
   cli: {
     migrationsDir: "src/infra/typeorm/migrations",
   },
