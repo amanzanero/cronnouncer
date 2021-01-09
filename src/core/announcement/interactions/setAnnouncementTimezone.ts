@@ -36,6 +36,8 @@ export async function setAnnouncementTimezone(
       guildID: guildIDOrError.getValue(),
       timezone: timezoneOrError.getValue(),
     }).getValue();
+  } else {
+    announcementSettings = announcementSettings.copy({ timezone: timezoneOrError.getValue() });
   }
 
   await announcementSettingsRepo.save(announcementSettings);
