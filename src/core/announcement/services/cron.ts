@@ -42,7 +42,7 @@ export class CronService implements ICronService {
         try {
           await channel.send(props.message);
           logger.info(
-            `[ANNOUNCEMENT] sent to channel: ${props.channel} on guild: ${props.guildID}`,
+            `[ANNOUNCEMENT] channel: ${channel.name} (${props.channel}) guild: ${guild.name} (${props.guildID})`,
             { requestID: props.requestID },
           );
         } catch (e) {
