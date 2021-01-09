@@ -11,7 +11,7 @@ import { PREFIX, SUPPORTED_TIMEZONES } from "../constants";
 export const help = {
   name: "timezone",
   category: "Configuration",
-  description: `Sets the timezone for the discord server. Available timezones (case sensitive): ${SUPPORTED_TIMEZONES.map(
+  description: `Sets the timezone for the discord server (you only have to do this once). Available timezones (case sensitive): ${SUPPORTED_TIMEZONES.map(
     (zone) => `\`${zone}\``,
   ).join(", ")}`,
   usage: `${PREFIX}timezone {timezone}`,
