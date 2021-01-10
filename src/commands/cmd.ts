@@ -11,7 +11,7 @@ import * as setTimeCMD from "./set-time";
 import * as setMessageCMD from "./set-message";
 import * as setChannelCMD from "./set-channel";
 import * as cancelAnnouncementCMD from "./cancel-announcement";
-import * as publishAnnouncementCMD from "./publish";
+import * as scheduleAnnouncementCMD from "./schedule";
 import * as timezoneCMD from "./timezone";
 import { CronService } from "../core/announcement/services/cron";
 import { TimeService } from "../core/announcement/services/time";
@@ -46,7 +46,7 @@ export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
     "set-channel": makeCMD(cmdProps, setChannelCMD),
     "set-message": makeCMD(cmdProps, setMessageCMD),
     "set-time": makeCMD(cmdProps, setTimeCMD),
-    publish: makeCMD(cmdProps, publishAnnouncementCMD),
+    schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
   };
 }
 

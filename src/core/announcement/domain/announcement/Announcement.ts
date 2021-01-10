@@ -10,19 +10,21 @@ import { Channel } from "./Channel";
 import { ITimeService } from "../../services/time";
 import { Timezone } from "../announcementSettings";
 import { TimeInPastError } from "../../errors";
+import { AnnouncementStatus, Status } from "./Status";
 
 interface AnnouncementProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
   channel?: Channel;
   guildID: GuildID;
-  published: boolean;
+  status: Status;
 }
 
 interface AnnouncementCopyProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
   channel?: Channel;
+  status?: Status;
 }
 
 interface PublishProps {
@@ -59,13 +61,13 @@ export class Announcement {
     return this.props.guildID;
   }
 
-  get published() {
-    return this.props.published;
+  get status() {
+    return this.props.status;
   }
 
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
-      { argument: props.published, argumentName: "published" },
+      { argument: props.status, argumentName: "status" },
       { argument: props.guildID, argumentName: "guildID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
@@ -83,13 +85,13 @@ export class Announcement {
         scheduledTime: props?.scheduledTime || this.scheduledTime,
         channel: props?.channel || this.channel,
         guildID: this.guildID,
-        published: this.published,
+        status: this.status,
       },
       this.id,
     ).getValue();
   }
 
-  publish({ timeService, timezone }: PublishProps) {
+  schedule({ timeService, timezone }: PublishProps) {
     const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
       (acc, curr) => {
         return acc && !!curr;
@@ -107,7 +109,7 @@ export class Announcement {
       return Result.fail<Announcement>(new TimeInPastError().message);
     }
 
-    Object.assign(this.props, { published: true });
+    Object.assign(this.props, { status: AnnouncementStatus.scheduled });
     return Result.ok<Announcement>(this);
   }
 }

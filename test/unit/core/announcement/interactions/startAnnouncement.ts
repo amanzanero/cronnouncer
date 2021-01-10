@@ -11,6 +11,7 @@ import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementR
 import { AnnouncementOutput } from "../../../../../src/core/announcement/interactions/common";
 import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
 import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
+import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 
 interface TestContext {
   deps: {
@@ -75,7 +76,10 @@ test("should successfully create", async (t) => {
   const response = await startAnnouncement({ guildID: "guild-with-timezone" }, deps as any);
 
   t.deepEqual(
-    Response.success<AnnouncementOutput>({ guildID: "guild-with-timezone", published: false }),
+    Response.success<AnnouncementOutput>({
+      guildID: "guild-with-timezone",
+      status: AnnouncementStatus.active,
+    }),
     response,
   );
 });

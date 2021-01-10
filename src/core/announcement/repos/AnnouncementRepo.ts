@@ -6,6 +6,7 @@ import { Announcement, GuildID } from "../domain/announcement";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Repository } from "typeorm";
 import { AnnouncementMap } from "./AnnouncementMap";
+import { AnnouncementStatus } from "../domain/announcement/Status";
 
 export interface IAnnouncementRepo {
   findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined>;
@@ -25,7 +26,7 @@ export class AnnouncementRepo implements IAnnouncementRepo {
   async findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined> {
     const announcement = await this.typeormAnnouncementRepo.findOne({
       guild_id: guildID.value,
-      published: false,
+      status: AnnouncementStatus.active,
     });
     return announcement && AnnouncementMap.toDomain(announcement);
   }

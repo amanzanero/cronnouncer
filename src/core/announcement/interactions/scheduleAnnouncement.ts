@@ -16,7 +16,7 @@ export interface InputData {
   guildID: string;
 }
 
-export async function publishAnnouncement(
+export async function scheduleAnnouncement(
   { guildID }: InputData,
   {
     announcementRepo,
@@ -47,15 +47,10 @@ export async function publishAnnouncement(
     );
   }
 
-  const publishResult = inProgressAnnouncement.publish({
+  const publishResult = inProgressAnnouncement.schedule({
     timeService,
     timezone: settings.timezone,
   });
-  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
-    inProgressAnnouncement.scheduledTime as ScheduledTime,
-    settings.timezone,
-  );
-
   if (publishResult.isFailure) {
     return Response.fail<AnnouncementIncompleteError>(
       new AnnouncementIncompleteError(publishResult.errorValue()),
@@ -65,6 +60,10 @@ export async function publishAnnouncement(
   const message = inProgressAnnouncement.message as Message;
   const channel = inProgressAnnouncement.channel as Channel;
 
+  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
+    inProgressAnnouncement.scheduledTime as ScheduledTime,
+    settings.timezone,
+  );
   await Promise.all([
     announcementRepo.save(inProgressAnnouncement),
     cronService.scheduleAnnouncement({

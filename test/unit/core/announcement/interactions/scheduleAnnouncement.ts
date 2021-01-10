@@ -13,7 +13,7 @@ import {
   AnnouncementToOutput,
 } from "../../../../../src/core/announcement/interactions/common";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
-import { publishAnnouncement } from "../../../../../src/core/announcement/interactions/publishAnnouncement";
+import { scheduleAnnouncement } from "../../../../../src/core/announcement/interactions/scheduleAnnouncement";
 import { MockCronService } from "../../../../test_utils/mocks/cronService";
 import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
@@ -53,7 +53,7 @@ test("should fail with undefined input", async (t) => {
   const { deps } = t.context as TestContext;
 
   const input: any = { guildID: undefined };
-  const response = await publishAnnouncement(input, deps as any);
+  const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new ValidationError("guildID is null or undefined");
   t.deepEqual(response.value, expectedErr);
@@ -64,7 +64,7 @@ test("should fail if there is no announcement in progress", async (t) => {
 
   const guildID = "guildWithSettings";
   const input: any = { guildID };
-  const response = await publishAnnouncement(input, deps as any);
+  const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementNotInProgressError(guildID);
   t.deepEqual(response.value, expectedErr);
@@ -75,7 +75,7 @@ test("should fail if there is no timezone", async (t) => {
 
   const guildID = "no timezone";
   const input: any = { guildID };
-  const response = await publishAnnouncement(input, deps as any);
+  const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new TimezoneNotSetError();
   t.deepEqual(response.value, expectedErr);
@@ -97,7 +97,7 @@ test("should fail if announcement in progress is not complete", async (t) => {
   await announcementRepo.save(announcement);
 
   const input: any = { guildID };
-  const response = await publishAnnouncement(input, deps as any);
+  const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementIncompleteError(
     "An announcement must have a message, scheduledTime, and channel set before publishing.",
@@ -126,7 +126,7 @@ test("should pass if announcement in progress is completed", async (t) => {
   await announcementRepo.save(announcement);
 
   const input: any = { guildID };
-  const response = await publishAnnouncement(input, deps as any);
+  const response = await scheduleAnnouncement(input, deps as any);
 
   const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
   t.deepEqual(response, expected);

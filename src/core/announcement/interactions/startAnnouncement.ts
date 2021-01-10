@@ -5,7 +5,8 @@
 import { Announcement, GuildID } from "../domain/announcement";
 import { Response } from "../../../lib";
 import { AnnouncementInProgressError, TimezoneNotSetError, ValidationError } from "../errors";
-import { AnnouncementOutput, InteractionDependencies } from "./common";
+import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";
+import { AnnouncementStatus, Status } from "../domain/announcement/Status";
 
 export interface InputData {
   guildID: string;
@@ -20,11 +21,12 @@ export async function startAnnouncement(
   if (guildIDOrError.isFailure) {
     return Response.fail<ValidationError>(new ValidationError(guildIDOrError.errorValue()));
   }
+  const gID = guildIDOrError.getValue();
 
   // ensure no announcement is already being made
   const [announcementInProgress, announcementSettings] = await Promise.all([
-    announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
-    announcementSettingsRepo.getByGuildID(guildIDOrError.getValue()),
+    announcementRepo.findWorkInProgressByGuildID(gID),
+    announcementSettingsRepo.getByGuildID(gID),
   ]);
 
   if (announcementInProgress) {
@@ -35,16 +37,13 @@ export async function startAnnouncement(
     return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
   }
 
-  // good to create on from here
-  const newAnnouncementOrError = Announcement.create({
-    guildID: guildIDOrError.getValue(),
-    published: false,
-  });
+  const status = Status.create(AnnouncementStatus.active).getValue();
+  const newAnnouncement = Announcement.create({
+    guildID: gID,
+    status: status,
+  }).getValue();
 
-  await announcementRepo.save(newAnnouncementOrError.getValue());
+  await announcementRepo.save(newAnnouncement);
 
-  return Response.success<AnnouncementOutput>({
-    guildID: newAnnouncementOrError.getValue().guildID.value,
-    published: false,
-  });
+  return Response.success<AnnouncementOutput>(AnnouncementToOutput(newAnnouncement));
 }
