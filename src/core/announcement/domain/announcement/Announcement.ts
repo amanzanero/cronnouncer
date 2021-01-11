@@ -109,7 +109,9 @@ export class Announcement {
       return Result.fail<Announcement>(new TimeInPastError().message);
     }
 
-    Object.assign(this.props, { status: AnnouncementStatus.scheduled });
+    const newStatus = Status.create(AnnouncementStatus.scheduled).getValue();
+
+    Object.assign(this.props, { status: newStatus });
     return Result.ok<Announcement>(this);
   }
 }

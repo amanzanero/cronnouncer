@@ -51,22 +51,13 @@ export async function scheduleAnnouncement(
     );
   }
 
-  const message = inProgressAnnouncement.message as Message;
-  const channel = inProgressAnnouncement.channel as Channel;
-
   const scheduledTimeUTC = timeService.scheduleTimeToUTC(
     inProgressAnnouncement.scheduledTime as ScheduledTime,
     settings.timezone,
   );
   await Promise.all([
     announcementRepo.save(inProgressAnnouncement),
-    cronService.scheduleAnnouncement({
-      message: message.value as string,
-      channel: channel.value as string,
-      guildID: inProgressAnnouncement.guildID.value,
-      scheduledTimeUTC,
-      requestID,
-    }),
+    cronService.scheduleAnnouncement(inProgressAnnouncement, scheduledTimeUTC),
   ]);
 
   return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));

@@ -11,6 +11,8 @@ import { AnnouncementStatus } from "../domain/announcement/Status";
 export interface IAnnouncementRepo {
   findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined>;
 
+  findScheduled(): Promise<Announcement[]>;
+
   save(announcement: Announcement): Promise<void>;
 
   delete(announcement: Announcement): Promise<void>;
@@ -29,6 +31,19 @@ export class AnnouncementRepo implements IAnnouncementRepo {
       status: AnnouncementStatus.active,
     });
     return announcement && AnnouncementMap.toDomain(announcement);
+  }
+
+  async findScheduled(): Promise<Announcement[]> {
+    const announcements = await this.typeormAnnouncementRepo.find({
+      status: AnnouncementStatus.scheduled,
+    });
+
+    const domainAnnouncements: Announcement[] = [];
+    return announcements.reduce((domAncmts, ancmt) => {
+      const domAncmt = AnnouncementMap.toDomain(ancmt);
+      if (!!domAncmt) domAncmts.push(domAncmt);
+      return domAncmts;
+    }, domainAnnouncements);
   }
 
   async save(announcement: Announcement): Promise<void> {

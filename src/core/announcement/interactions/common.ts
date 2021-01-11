@@ -11,7 +11,7 @@ export interface InteractionDependencies {
   discordService: IDiscordService;
   cronService: ICronService;
   timeService: ITimeService;
-  requestID: string;
+  requestID?: string;
 }
 
 export interface AnnouncementOutput {

@@ -26,7 +26,7 @@ export async function startAnnouncement(
   // ensure no announcement is already being made
   const [announcementInProgress, announcementSettings] = await Promise.all([
     announcementRepo.findWorkInProgressByGuildID(gID),
-    announcementSettingsRepo.getByGuildID(gID),
+    announcementSettingsRepo.findByGuildID(gID),
   ]);
 
   if (announcementInProgress) {

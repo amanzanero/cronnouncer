@@ -24,6 +24,10 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
     return filtered.shift();
   }
 
+  async findScheduled(): Promise<Announcement[]> {
+    return [] as Announcement[];
+  }
+
   public async save(announcement: Announcement) {
     const records = this.datastore[announcement.guildID.value];
     const announcementList = records ? records : [];

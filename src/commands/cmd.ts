@@ -1,5 +1,3 @@
-import { Client } from "discord.js";
-import { DbStores } from "../infra/typeorm";
 import { AnnouncementRepo, AnnouncementSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
@@ -16,28 +14,15 @@ import * as timezoneCMD from "./timezone";
 import { CronService } from "../core/announcement/services/cron";
 import { TimeService } from "../core/announcement/services/time";
 
-interface CommandMapProps {
-  stores: DbStores;
-  discordClient: Client;
+interface CMDProps {
+  announcementRepo: AnnouncementRepo;
+  announcementSettingsRepo: AnnouncementSettingsRepo;
+  cronService: CronService;
+  discordService: DiscordService;
+  timeService: TimeService;
 }
 
-export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
-  const announcementRepo = new AnnouncementRepo(commandMapProps.stores.announcementStore);
-  const announcementSettingsRepo = new AnnouncementSettingsRepo(
-    commandMapProps.stores.announcementSettingsStore,
-  );
-  const cronService = new CronService(commandMapProps.discordClient);
-  const discordService = new DiscordService(commandMapProps.discordClient);
-  const timeService = new TimeService();
-
-  const cmdProps = {
-    announcementRepo,
-    announcementSettingsRepo,
-    cronService,
-    discordService,
-    timeService,
-  };
-
+export function makeCommandMap(cmdProps: CMDProps): CommandMap {
   return {
     help: makeHelpCMD(),
     timezone: makeCMD(cmdProps, timezoneCMD),
@@ -48,14 +33,6 @@ export function makeCommandMap(commandMapProps: CommandMapProps): CommandMap {
     "set-time": makeCMD(cmdProps, setTimeCMD),
     schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
   };
-}
-
-interface CMDProps {
-  announcementRepo: AnnouncementRepo;
-  announcementSettingsRepo: AnnouncementSettingsRepo;
-  cronService: CronService;
-  discordService: DiscordService;
-  timeService: TimeService;
 }
 
 function makeCMD(props: CMDProps, cmd: CMD): Command {
