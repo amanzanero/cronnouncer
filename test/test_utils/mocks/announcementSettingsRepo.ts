@@ -16,8 +16,18 @@ export class MockAnnouncementSettingsRepo implements IAnnouncementSettingsRepo {
     this.datastore = {};
   }
 
-  public async getByGuildID(guildID: GuildID): Promise<AnnouncementSettings | undefined> {
+  public async findByGuildID(guildID: GuildID): Promise<AnnouncementSettings | undefined> {
     return this.datastore[guildID.value];
+  }
+
+  public async findByGuildIDs(guildIDs: GuildID[]) {
+    return guildIDs.reduce((acc, gid) => {
+      const settings = this.datastore[gid.value];
+      if (!!settings) {
+        acc[gid.value] = settings;
+      }
+      return acc;
+    }, {} as { [guildID: string]: AnnouncementSettings });
   }
 
   public async save(announcementSettings: AnnouncementSettings) {

@@ -63,7 +63,7 @@ test("should create new instance of announcement settings when not created", asy
   t.deepEqual(response, expectedResponse);
 
   const guildID = GuildID.create("2").getValue();
-  t.true(!!(await announcementSettingsRepo.getByGuildID(guildID)));
+  t.true(!!(await announcementSettingsRepo.findByGuildID(guildID)));
 });
 
 test("should update existing instance of announcement settings with timezone", async (t) => {
@@ -86,7 +86,7 @@ test("should update existing instance of announcement settings with timezone", a
 
   const expectedResponse = Response.success<AnnouncementSettingsOutput>({ guildID: "2", timezone });
 
-  const updatedAnnouncementSettings = await announcementSettingsRepo.getByGuildID(
+  const updatedAnnouncementSettings = await announcementSettingsRepo.findByGuildID(
     existingAnnouncementSettings.guildID,
   );
 

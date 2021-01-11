@@ -29,7 +29,7 @@ export async function setTime(
   }
 
   const [settings, announcementInProgress] = await Promise.all([
-    announcementSettingsRepo.getByGuildID(guildIDOrError.getValue()),
+    announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
     announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
   ]);
 

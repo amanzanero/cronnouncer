@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
+import { GuildID, ScheduledTime } from "../domain/announcement";
 import { Response } from "../../../lib";
 import {
   AnnouncementIncompleteError,
@@ -18,13 +18,7 @@ export interface InputData {
 
 export async function scheduleAnnouncement(
   { guildID }: InputData,
-  {
-    announcementRepo,
-    announcementSettingsRepo,
-    cronService,
-    timeService,
-    requestID,
-  }: InteractionDependencies,
+  { announcementRepo, announcementSettingsRepo, cronService, timeService }: InteractionDependencies,
 ) {
   const gIDOrError = GuildID.create(guildID);
   if (gIDOrError.isFailure) {
@@ -33,7 +27,7 @@ export async function scheduleAnnouncement(
 
   // get in progress announcement
   const [settings, inProgressAnnouncement] = await Promise.all([
-    announcementSettingsRepo.getByGuildID(gIDOrError.getValue()),
+    announcementSettingsRepo.findByGuildID(gIDOrError.getValue()),
     announcementRepo.findWorkInProgressByGuildID(gIDOrError.getValue()),
   ]);
 
