@@ -31,7 +31,7 @@ export class CronService implements ICronService {
       guild = await this.discordClient.guilds.fetch(announcement.guildID.value);
       channel = guild.channels.cache.get((announcement.channel as Channel).value) as TextChannel;
     } catch (e) {
-      logger.error(e, { requestID: props.requestID });
+      logger.error(e);
       return;
     }
 
