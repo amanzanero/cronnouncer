@@ -14,8 +14,8 @@ export class Announcement {
   @Column({ nullable: true })
   message: string;
 
-  @Column()
-  published: boolean;
+  @Column({ length: 20 })
+  status: string;
 
   @Column({ nullable: true })
   scheduled_time: string;

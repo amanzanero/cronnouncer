@@ -1,9 +1,7 @@
-import Discord from "discord.js";
-
 import { DISCORD_TOKEN, IS_PROD } from "./constants";
 import { logger } from "./util";
 import { makeCommandMap, makeMessageHandler } from "./commands";
-import { initDB } from "./infra/typeorm";
+import { onStartup, onShutdown, onReady } from "./events";
 
 export async function main(): Promise<string> {
   /* istanbul ignore next */
@@ -12,29 +10,27 @@ export async function main(): Promise<string> {
   logger.debug(`pid: ${process.pid}`);
   logger.info("starting cronnouncer...");
 
-  const { stores, storesDisconnect } = await initDB();
+  const deps = await onStartup();
+  const { discordClient } = deps;
 
-  const discordClient = new Discord.Client();
-  const commands = makeCommandMap({ stores, discordClient });
+  const commands = makeCommandMap(deps);
   const messageHandler = makeMessageHandler(discordClient, commands);
 
-  discordClient.on("ready", () => {
+  discordClient.on("ready", async () => {
     logger.info("logged into discord");
     logger.info("cronnouncer ready to accept messages");
+    await onReady(deps);
   });
   discordClient.on("message", messageHandler);
 
   // graceful exit
   process.on("SIGTERM", async () => {
-    logger.info("shutting down cronnouncer...");
     try {
-      discordClient.destroy();
-      await storesDisconnect();
+      await onShutdown({ discordClient, closeDatabase: deps.storesDisconnect });
     } catch (e) {
       logger.error(e);
       process.exit(1);
     }
-    logger.info("cronnouncer shutdown");
     process.exit(0);
   });
 

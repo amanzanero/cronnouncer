@@ -2,7 +2,7 @@ import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";
 import { help as setTimeHelp } from "./set-time";
-import { help as publishHelp } from "./publish";
+import { help as scheduleHelp } from "./schedule";
 import { help as startAnnouncementHelp } from "./start-announcement";
 import { help as timezoneHelp } from "./timezone";
 import { PREFIX } from "../constants";
@@ -26,7 +26,7 @@ const HELP_ARRAY = [
   setChannelHelp,
   setMessageHelp,
   setTimeHelp,
-  publishHelp,
+  scheduleHelp,
   help,
 ];
 

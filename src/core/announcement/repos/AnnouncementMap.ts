@@ -2,6 +2,7 @@ import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domai
 import { Result, UniqueEntityID } from "../../../lib";
 import { logger } from "../../../util";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
+import { Status } from "../domain/announcement/Status";
 
 export class AnnouncementMap {
   public static toPersistence(announcement: Announcement): any {
@@ -12,7 +13,7 @@ export class AnnouncementMap {
       message: announcement.message?.value,
       channel: announcement.channel?.value,
       guild_id: announcement.guildID.value,
-      published: announcement.published,
+      status: announcement.status.value,
     });
     return persist;
   }
@@ -23,8 +24,8 @@ export class AnnouncementMap {
    */
   public static toDomain(raw: AnnouncementModel): Announcement | undefined {
     const guildIDOrError = GuildID.create(raw.guild_id);
-
-    const createResults: Result<any>[] = [guildIDOrError];
+    const statusOrError = Status.create(raw.status);
+    const createResults: Result<any>[] = [guildIDOrError, statusOrError];
 
     let channelOrError;
     if (!!raw.channel) {
@@ -57,7 +58,7 @@ export class AnnouncementMap {
         message: messageOrError?.getValue(),
         scheduledTime: scheduledTimeOrError?.getValue(),
         channel: channelOrError?.getValue(),
-        published: raw.published,
+        status: statusOrError.getValue(),
       },
       new UniqueEntityID(raw.announcement_id),
     );

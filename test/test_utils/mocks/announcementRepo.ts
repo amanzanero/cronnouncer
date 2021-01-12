@@ -1,5 +1,6 @@
 import { Announcement, GuildID } from "../../../src/core/announcement/domain/announcement";
 import { IAnnouncementRepo } from "../../../src/core/announcement/repos";
+import { AnnouncementStatus } from "../../../src/core/announcement/domain/announcement/Status";
 
 /**
  * Using in-memory for testing
@@ -19,8 +20,12 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
     const records = this.datastore[guildID.value];
     if (!records) return;
 
-    const filtered = records.filter((curr) => !curr.published);
+    const filtered = records.filter((curr) => curr.status.value === AnnouncementStatus.active);
     return filtered.shift();
+  }
+
+  async findScheduled(): Promise<Announcement[]> {
+    return [] as Announcement[];
   }
 
   public async save(announcement: Announcement) {

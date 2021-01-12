@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { publishAnnouncement } from "../core/announcement/interactions/publishAnnouncement";
+import { scheduleAnnouncement } from "../core/announcement/interactions/scheduleAnnouncement";
 import { PREFIX } from "../constants";
 import {
   AnnouncementOutput,
@@ -8,9 +8,9 @@ import {
 import { Response } from "../lib";
 
 export const help = {
-  name: "publish",
+  name: "schedule",
   category: "Scheduling",
-  description: "Publishes the announcement and schedules it.",
+  description: "Schedules the announcement to be sent.",
   usage: `${PREFIX}publish`,
 };
 
@@ -21,7 +21,7 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message) {
   const guildID = message.guild?.id as string;
-  return await publishAnnouncement({ guildID }, props);
+  return await scheduleAnnouncement({ guildID }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

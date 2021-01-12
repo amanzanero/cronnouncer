@@ -29,7 +29,9 @@ export async function setAnnouncementTimezone(
     return Response.fail<ValidationError>(new ValidationError(combinedResult.errorValue()));
   }
 
-  let announcementSettings = await announcementSettingsRepo.getByGuildID(guildIDOrError.getValue());
+  let announcementSettings = await announcementSettingsRepo.findByGuildID(
+    guildIDOrError.getValue(),
+  );
 
   if (!announcementSettings) {
     announcementSettings = AnnouncementSettings.create({

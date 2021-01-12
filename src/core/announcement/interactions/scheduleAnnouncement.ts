@@ -2,7 +2,7 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
+import { GuildID, ScheduledTime } from "../domain/announcement";
 import { Response } from "../../../lib";
 import {
   AnnouncementIncompleteError,
@@ -16,15 +16,9 @@ export interface InputData {
   guildID: string;
 }
 
-export async function publishAnnouncement(
+export async function scheduleAnnouncement(
   { guildID }: InputData,
-  {
-    announcementRepo,
-    announcementSettingsRepo,
-    cronService,
-    timeService,
-    requestID,
-  }: InteractionDependencies,
+  { announcementRepo, announcementSettingsRepo, cronService, timeService }: InteractionDependencies,
 ) {
   const gIDOrError = GuildID.create(guildID);
   if (gIDOrError.isFailure) {
@@ -33,7 +27,7 @@ export async function publishAnnouncement(
 
   // get in progress announcement
   const [settings, inProgressAnnouncement] = await Promise.all([
-    announcementSettingsRepo.getByGuildID(gIDOrError.getValue()),
+    announcementSettingsRepo.findByGuildID(gIDOrError.getValue()),
     announcementRepo.findWorkInProgressByGuildID(gIDOrError.getValue()),
   ]);
 
@@ -47,33 +41,23 @@ export async function publishAnnouncement(
     );
   }
 
-  const publishResult = inProgressAnnouncement.publish({
+  const publishResult = inProgressAnnouncement.schedule({
     timeService,
     timezone: settings.timezone,
   });
-  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
-    inProgressAnnouncement.scheduledTime as ScheduledTime,
-    settings.timezone,
-  );
-
   if (publishResult.isFailure) {
     return Response.fail<AnnouncementIncompleteError>(
       new AnnouncementIncompleteError(publishResult.errorValue()),
     );
   }
 
-  const message = inProgressAnnouncement.message as Message;
-  const channel = inProgressAnnouncement.channel as Channel;
-
+  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
+    inProgressAnnouncement.scheduledTime as ScheduledTime,
+    settings.timezone,
+  );
   await Promise.all([
     announcementRepo.save(inProgressAnnouncement),
-    cronService.scheduleAnnouncement({
-      message: message.value as string,
-      channel: channel.value as string,
-      guildID: inProgressAnnouncement.guildID.value,
-      scheduledTimeUTC,
-      requestID,
-    }),
+    cronService.scheduleAnnouncement(inProgressAnnouncement, scheduledTimeUTC),
   ]);
 
   return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
