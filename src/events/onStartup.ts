@@ -3,6 +3,7 @@ import Discord from "discord.js";
 import { AnnouncementRepo, AnnouncementSettingsRepo } from "../core/announcement/repos";
 import { CronService } from "../core/announcement/services/cron";
 import { DiscordService } from "../core/announcement/services/discord";
+import { LoggerService } from "../core/announcement/services/logger";
 import { TimeService } from "../core/announcement/services/time";
 
 export async function onStartup() {
@@ -13,6 +14,7 @@ export async function onStartup() {
   const announcementSettingsRepo = new AnnouncementSettingsRepo(stores.announcementSettingsStore);
   const cronService = new CronService(discordClient);
   const discordService = new DiscordService(discordClient);
+  const loggerService = new LoggerService();
   const timeService = new TimeService();
 
   return {
@@ -23,6 +25,7 @@ export async function onStartup() {
     announcementSettingsRepo,
     cronService,
     discordService,
+    loggerService,
     timeService,
   };
 }

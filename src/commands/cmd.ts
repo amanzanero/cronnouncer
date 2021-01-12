@@ -13,12 +13,14 @@ import * as scheduleAnnouncementCMD from "./schedule";
 import * as timezoneCMD from "./timezone";
 import { CronService } from "../core/announcement/services/cron";
 import { TimeService } from "../core/announcement/services/time";
+import { LoggerService } from "../core/announcement/services/logger";
 
 interface CMDProps {
   announcementRepo: AnnouncementRepo;
   announcementSettingsRepo: AnnouncementSettingsRepo;
   cronService: CronService;
   discordService: DiscordService;
+  loggerService: LoggerService;
   timeService: TimeService;
 }
 

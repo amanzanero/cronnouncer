@@ -3,6 +3,7 @@ import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../repos";
 import { IDiscordService } from "../services/discord";
 import { ICronService } from "../services/cron";
 import { AnnouncementSettings } from "../domain/announcementSettings";
+import { ILoggerService } from "../services/logger";
 import { ITimeService } from "../services/time";
 
 export interface InteractionDependencies {
@@ -10,6 +11,7 @@ export interface InteractionDependencies {
   announcementSettingsRepo: IAnnouncementSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
+  loggerService: ILoggerService;
   timeService: ITimeService;
   requestID?: string;
 }
