@@ -1,8 +1,5 @@
-import {
-  CronService,
-  ICronService,
-  ScheduleAnnouncementProps,
-} from "../../../src/core/announcement/services/cron";
+import { Announcement } from "../../../src/core/announcement/domain/announcement";
+import { CronService, ICronService } from "../../../src/core/announcement/services/cron";
 
 export class MockCronService implements ICronService {
   emptyCronService: CronService;
@@ -11,7 +8,8 @@ export class MockCronService implements ICronService {
     this.emptyCronService = new CronService({} as any);
   }
 
-  async scheduleAnnouncement(_: ScheduleAnnouncementProps): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async scheduleAnnouncement(_: Announcement, __: string): Promise<void> {
     return;
   }
 }
