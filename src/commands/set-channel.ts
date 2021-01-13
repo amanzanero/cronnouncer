@@ -1,5 +1,4 @@
 import { Message } from "discord.js";
-import { setChannel } from "../core/announcement/interactions/setChannel";
 import { Args } from "./definitions/Args";
 import {
   AnnouncementOutput,
@@ -7,6 +6,7 @@ import {
 } from "../core/announcement/interactions/common";
 import { Response } from "../lib";
 import { PREFIX } from "../constants";
+import { editAnnouncementInfo } from "../core/announcement/interactions/editAnnouncementInfo";
 
 export const help = {
   name: "set-channel",
@@ -25,7 +25,7 @@ export async function interaction(props: InteractionDependencies, message: Messa
   const channel = parseDiscordChannelID(rawChannel);
   const guildID = message.guild?.id as string;
 
-  return await setChannel({ guildID, channel }, props);
+  return await editAnnouncementInfo({ guildID, channel }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
-import { setMessage } from "../core/announcement/interactions/setMessage";
 import { Args } from "./definitions/Args";
 import { PREFIX } from "../constants";
 import { InteractionDependencies } from "../core/announcement/interactions/common";
+import { editAnnouncementInfo } from "../core/announcement/interactions/editAnnouncementInfo";
 
 export const help = {
   name: "set-message",
@@ -18,7 +18,7 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const guildID = message.guild?.id as string;
-  return await setMessage({ guildID, message: args.raw }, props);
+  return await editAnnouncementInfo({ guildID, message: args.raw }, props);
 }
 
 export async function onSuccess(message: Message) {

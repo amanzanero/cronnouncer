@@ -1,5 +1,4 @@
 import { Message } from "discord.js";
-import { setTime } from "../core/announcement/interactions/setTime";
 import { Args } from "./definitions/Args";
 import {
   AnnouncementOutput,
@@ -7,6 +6,7 @@ import {
 } from "../core/announcement/interactions/common";
 import { Response } from "../lib";
 import { PREFIX } from "../constants";
+import { editAnnouncementInfo } from "../core/announcement/interactions/editAnnouncementInfo";
 
 export const help = {
   name: "set-time",
@@ -22,7 +22,7 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const guildID = message.guild?.id as string;
-  return await setTime({ guildID, scheduledTime: args.raw }, props);
+  return await editAnnouncementInfo({ guildID, scheduledTime: args.raw }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

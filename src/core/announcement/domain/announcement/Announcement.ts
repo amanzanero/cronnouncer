@@ -91,6 +91,18 @@ export class Announcement {
     ).getValue();
   }
 
+  updateMessage(message: Message) {
+    Object.assign(this.props, { message });
+  }
+
+  updateScheduledTime(scheduledTime: ScheduledTime) {
+    Object.assign(this.props, { scheduledTime });
+  }
+
+  updateChannel(channel: Channel) {
+    Object.assign(this.props, { channel });
+  }
+
   schedule({ timeService, timezone }: PublishProps) {
     const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
       (acc, curr) => {

@@ -4,7 +4,7 @@ interface MessageProps {
   value: string;
 }
 
-const MAX_LENGTH = 500;
+const MAX_LENGTH = 1000;
 const MIN_LENGTH = 1;
 
 export class Message {
@@ -27,14 +27,16 @@ export class Message {
     if (!guardResult.succeeded) return Result.fail<Message>(guardResult.message);
 
     if (!Message.isAppropriateLength(message as string))
-      return Result.fail<Message>(
-        `The incoming message was not between ${MIN_LENGTH} and ${MAX_LENGTH}`,
-      );
+      return Result.fail<Message>(Message.characterCountOutOfRangeMessage());
 
     return Result.ok<Message>(new Message({ value: message }));
   }
 
   copy() {
     return Message.create(this.props.value).getValue();
+  }
+
+  static characterCountOutOfRangeMessage() {
+    return `The message must be between ${MIN_LENGTH} and ${MAX_LENGTH} characters`;
   }
 }
