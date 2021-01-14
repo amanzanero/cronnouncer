@@ -1,19 +1,19 @@
 import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
-import { logger } from "../../../util";
-import { Announcement, Channel, GuildID, Message } from "../domain/announcement";
+import { Announcement, Channel, Message } from "../domain/announcement";
+import { ILoggerService } from "./logger";
 
 export interface ScheduleAnnouncementProps {
-  message: Message;
-  guildID: GuildID;
-  channel: Channel;
+  announcement: Announcement;
   scheduledTimeUTC: string;
+
+  loggerService: ILoggerService;
 }
 
 export const DATE_FORMAT = "M/D/YYYY h:mm a";
 
 export interface ICronService {
-  scheduleAnnouncement(announcement: Announcement, scheduledTimeUTC: string): Promise<void>;
+  scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void>;
 }
 
 export class CronService implements ICronService {
@@ -23,7 +23,9 @@ export class CronService implements ICronService {
     this.discordClient = discordClient;
   }
 
-  async scheduleAnnouncement(announcement: Announcement, scheduledTimeUTC: string): Promise<void> {
+  async scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void> {
+    const { announcement, scheduledTimeUTC, loggerService } = props;
+
     let guild: Guild;
     let channel: TextChannel;
 
@@ -31,14 +33,15 @@ export class CronService implements ICronService {
       guild = await this.discordClient.guilds.fetch(announcement.guildID.value);
       channel = guild.channels.cache.get((announcement.channel as Channel).value) as TextChannel;
     } catch (e) {
-      logger.error(e);
+      loggerService.error("CronService.scheduleAnnouncement", e);
       return;
     }
 
     schedule.scheduleJob(`${announcement.id}`, scheduledTimeUTC, async () => {
       try {
         await channel.send((announcement.message as Message).value);
-        logger.info(
+        loggerService.info(
+          "CronService.scheduleAnnouncement",
           `[ANNOUNCEMENT] channel: ${channel.name} (${
             (announcement.channel as Channel).value
           }) guild: ${guild.name} (${announcement.guildID.value}) announcement: ${
@@ -46,7 +49,10 @@ export class CronService implements ICronService {
           }`,
         );
       } catch (e) {
-        logger.error(`[ANNOUNCEMENT] announcement: ${announcement.id.value} ${e.stack}`);
+        loggerService.error(
+          "CronService.scheduleAnnouncement",
+          `[ANNOUNCEMENT] announcement: ${announcement.id.value} ${e.stack}`,
+        );
       }
     });
   }

@@ -9,6 +9,7 @@ import {
   AnnouncementSettingsOutput,
   AnnouncementSettingsToOutput,
   InteractionDependencies,
+  interactionLogWrapper,
 } from "./common";
 import { AnnouncementSettings, Timezone } from "../domain/announcementSettings";
 
@@ -19,32 +20,35 @@ export interface InputData {
 
 export async function setAnnouncementTimezone(
   { guildID, timezone }: InputData,
-  { announcementSettingsRepo }: InteractionDependencies,
+  deps: InteractionDependencies,
 ) {
-  const guildIDOrError = GuildID.create(guildID);
-  const timezoneOrError = Timezone.create(timezone);
-  const combinedResult = Result.combine([guildIDOrError, timezoneOrError]);
+  return await interactionLogWrapper(deps, "setAnnouncementTimezone", async () => {
+    const { announcementSettingsRepo } = deps;
+    const guildIDOrError = GuildID.create(guildID);
+    const timezoneOrError = Timezone.create(timezone);
+    const combinedResult = Result.combine([guildIDOrError, timezoneOrError]);
 
-  if (combinedResult.isFailure) {
-    return Response.fail<ValidationError>(new ValidationError(combinedResult.errorValue()));
-  }
+    if (combinedResult.isFailure) {
+      return Response.fail<ValidationError>(new ValidationError(combinedResult.errorValue()));
+    }
 
-  let announcementSettings = await announcementSettingsRepo.findByGuildID(
-    guildIDOrError.getValue(),
-  );
+    let announcementSettings = await announcementSettingsRepo.findByGuildID(
+      guildIDOrError.getValue(),
+    );
 
-  if (!announcementSettings) {
-    announcementSettings = AnnouncementSettings.create({
-      guildID: guildIDOrError.getValue(),
-      timezone: timezoneOrError.getValue(),
-    }).getValue();
-  } else {
-    announcementSettings = announcementSettings.copy({ timezone: timezoneOrError.getValue() });
-  }
+    if (!announcementSettings) {
+      announcementSettings = AnnouncementSettings.create({
+        guildID: guildIDOrError.getValue(),
+        timezone: timezoneOrError.getValue(),
+      }).getValue();
+    } else {
+      announcementSettings = announcementSettings.copy({ timezone: timezoneOrError.getValue() });
+    }
 
-  await announcementSettingsRepo.save(announcementSettings);
+    await announcementSettingsRepo.save(announcementSettings);
 
-  return Response.success<AnnouncementSettingsOutput>(
-    AnnouncementSettingsToOutput(announcementSettings),
-  );
+    return Response.success<AnnouncementSettingsOutput>(
+      AnnouncementSettingsToOutput(announcementSettings),
+    );
+  });
 }

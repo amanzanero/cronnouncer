@@ -5,6 +5,7 @@ import { ICronService } from "../services/cron";
 import { AnnouncementSettings } from "../domain/announcementSettings";
 import { ILoggerService } from "../services/logger";
 import { ITimeService } from "../services/time";
+import { Response } from "../../../lib";
 
 export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
@@ -47,4 +48,19 @@ export function AnnouncementSettingsToOutput(a: AnnouncementSettings): Announcem
     guildID: a.guildID.value,
     timezone: a.timezone.value,
   };
+}
+
+export async function interactionLogWrapper(
+  deps: { loggerService: ILoggerService; requestID?: string },
+  interactionName: string,
+  interaction: () => Promise<Response<any>>,
+) {
+  const start = Date.now();
+  deps.loggerService.info(`${interactionName}>>>`, undefined, { requestID: deps.requestID });
+  const response = await interaction();
+  deps.loggerService.info(`${interactionName}<<<<`, `- ${Date.now() - start}ms`, {
+    requestID: deps.requestID,
+  });
+
+  return response;
 }

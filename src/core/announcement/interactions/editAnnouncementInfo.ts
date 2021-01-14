@@ -1,17 +1,23 @@
 /**
- * This file contains the interaction for setting the announcement channel
+ * This file contains the interaction for editing announcement info
  */
 
 import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
 import {
   AnnouncementNotInProgressError,
+  InvalidTimeError,
   TextChannelDoesNotExistError,
   TimeInPastError,
   TimezoneNotSetError,
   ValidationError,
 } from "../errors";
-import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";
+import {
+  AnnouncementOutput,
+  AnnouncementToOutput,
+  InteractionDependencies,
+  interactionLogWrapper,
+} from "./common";
 
 export interface InputData {
   guildID: string;
@@ -22,85 +28,88 @@ export interface InputData {
 
 export async function editAnnouncementInfo(
   { guildID, channel, message, scheduledTime }: InputData,
-  {
-    announcementRepo,
-    announcementSettingsRepo,
-    discordService,
-    timeService,
-  }: InteractionDependencies,
+  deps: InteractionDependencies,
 ) {
-  const guildIDOrError = GuildID.create(guildID);
+  return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
+    const { announcementRepo, announcementSettingsRepo, discordService, timeService } = deps;
 
-  const [activeAnnouncement, announcementSettings] = await Promise.all([
-    announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
-    announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
-  ]);
+    const guildIDOrError = GuildID.create(guildID);
 
-  if (!activeAnnouncement) {
-    return Response.fail<AnnouncementNotInProgressError>(
-      new AnnouncementNotInProgressError(guildID),
-    );
-  }
+    const [activeAnnouncement, announcementSettings] = await Promise.all([
+      announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
+      announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
+    ]);
 
-  if (!announcementSettings || !announcementSettings.timezone) {
-    return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
-  }
-
-  const validationResults: Result<any>[] = [];
-
-  if (message !== undefined) {
-    const messageOrError = Message.create(message);
-    validationResults.push(messageOrError);
-
-    if (messageOrError.isFailure) {
-      return Response.fail<ValidationError>(new ValidationError(messageOrError.errorValue()));
+    if (!activeAnnouncement) {
+      return Response.fail<AnnouncementNotInProgressError>(
+        new AnnouncementNotInProgressError(guildID),
+      );
     }
 
-    activeAnnouncement.updateMessage(messageOrError.getValue());
-  }
+    if (!announcementSettings || !announcementSettings.timezone) {
+      return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
+    }
 
-  if (scheduledTime !== undefined) {
-    const scheduledTimeOrError = ScheduledTime.create(scheduledTime);
-    validationResults.push(scheduledTimeOrError);
+    const validationResults: Result<any>[] = [];
 
-    if (scheduledTimeOrError.isSuccess) {
-      const isValidTimeInFuture = !timeService.isValidFutureTime(
-        scheduledTimeOrError.getValue(),
-        announcementSettings.timezone,
-      );
+    if (message !== undefined) {
+      const messageOrError = Message.create(message);
+      validationResults.push(messageOrError);
 
-      if (isValidTimeInFuture) {
-        return Response.fail<TimeInPastError>(new TimeInPastError());
+      if (messageOrError.isFailure) {
+        return Response.fail<ValidationError>(new ValidationError(messageOrError.errorValue()));
       }
 
-      activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
-    }
-  }
-
-  if (channel !== undefined) {
-    const channelOrError = Channel.create(channel);
-
-    if (channelOrError.isFailure) {
-      return Response.fail<ValidationError>(new ValidationError(channelOrError.errorValue()));
+      activeAnnouncement.updateMessage(messageOrError.getValue());
     }
 
-    const promiseTextChannelExists = await discordService.textChannelExists(
-      guildIDOrError.getValue(),
-      channelOrError.getValue(),
-    );
-    if (!promiseTextChannelExists) {
-      return Response.fail<TextChannelDoesNotExistError>(new TextChannelDoesNotExistError(channel));
+    if (scheduledTime !== undefined) {
+      const scheduledTimeOrError = ScheduledTime.create(scheduledTime);
+      validationResults.push(scheduledTimeOrError);
+
+      if (scheduledTimeOrError.isSuccess) {
+        const isValidTimeInFuture = !timeService.isValidFutureTime(
+          scheduledTimeOrError.getValue(),
+          announcementSettings.timezone,
+        );
+
+        if (isValidTimeInFuture) {
+          return Response.fail<TimeInPastError>(new TimeInPastError());
+        }
+
+        activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
+      } else {
+        return Response.fail<InvalidTimeError>(new InvalidTimeError(scheduledTime));
+      }
     }
 
-    activeAnnouncement.updateChannel(channelOrError.getValue());
-  }
+    if (channel !== undefined) {
+      const channelOrError = Channel.create(channel);
 
-  const combined = Result.combine(validationResults);
-  if (combined.isFailure) {
-    return Response.fail<ValidationError>(new ValidationError(combined.errorValue()));
-  }
+      if (channelOrError.isFailure) {
+        return Response.fail<ValidationError>(new ValidationError(channelOrError.errorValue()));
+      }
 
-  await announcementRepo.save(activeAnnouncement);
+      const promiseTextChannelExists = await discordService.textChannelExists(
+        guildIDOrError.getValue(),
+        channelOrError.getValue(),
+      );
+      if (!promiseTextChannelExists) {
+        return Response.fail<TextChannelDoesNotExistError>(
+          new TextChannelDoesNotExistError(channel),
+        );
+      }
 
-  return Response.success<AnnouncementOutput>(AnnouncementToOutput(activeAnnouncement));
+      activeAnnouncement.updateChannel(channelOrError.getValue());
+    }
+
+    const combined = Result.combine(validationResults);
+    if (combined.isFailure) {
+      return Response.fail<ValidationError>(new ValidationError(combined.errorValue()));
+    }
+
+    await announcementRepo.save(activeAnnouncement);
+
+    return Response.success<AnnouncementOutput>(AnnouncementToOutput(activeAnnouncement));
+  });
 }
