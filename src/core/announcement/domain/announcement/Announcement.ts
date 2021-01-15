@@ -126,4 +126,13 @@ export class Announcement {
     Object.assign(this.props, { status: newStatus });
     return Result.ok<Announcement>(this);
   }
+
+  unSchedule() {
+    if (this.status.value === AnnouncementStatus.sent) {
+      return Result.fail<Announcement>("An announcement that has been sent cannot be unscheduled.");
+    }
+
+    Object.assign(this.props, { status: AnnouncementStatus.unscheduled });
+    return Result.ok<Announcement>(this);
+  }
 }

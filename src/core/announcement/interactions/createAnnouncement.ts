@@ -4,7 +4,7 @@
 
 import { Announcement, GuildID } from "../domain/announcement";
 import { Response } from "../../../lib";
-import { AnnouncementInProgressError, TimezoneNotSetError, ValidationError } from "../errors";
+import { TimezoneNotSetError, ValidationError } from "../errors";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
@@ -17,7 +17,7 @@ export interface InputData {
   guildID: string;
 }
 
-export async function startAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
+export async function createAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
   return await interactionLogWrapper(deps, "startAnnouncement", async () => {
     // check data transfer object is valid first
     const { announcementRepo, announcementSettingsRepo } = deps;
@@ -28,20 +28,13 @@ export async function startAnnouncement({ guildID }: InputData, deps: Interactio
     const gID = guildIDOrError.getValue();
 
     // ensure no announcement is already being made
-    const [announcementInProgress, announcementSettings] = await Promise.all([
-      announcementRepo.findWorkInProgressByGuildID(gID),
-      announcementSettingsRepo.findByGuildID(gID),
-    ]);
-
-    if (announcementInProgress) {
-      return Response.fail<AnnouncementInProgressError>(new AnnouncementInProgressError(guildID));
-    }
+    const announcementSettings = await announcementSettingsRepo.findByGuildID(gID);
 
     if (!announcementSettings || !announcementSettings.timezone) {
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
     }
 
-    const status = Status.create(AnnouncementStatus.active).getValue();
+    const status = Status.create(AnnouncementStatus.unscheduled).getValue();
     const newAnnouncement = Announcement.create({
       guildID: gID,
       status: status,

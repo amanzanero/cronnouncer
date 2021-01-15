@@ -6,7 +6,7 @@ import { GuildID, ScheduledTime } from "../domain/announcement";
 import { Response } from "../../../lib";
 import {
   AnnouncementIncompleteError,
-  AnnouncementNotInProgressError,
+  AnnouncementNotFoundError,
   TimezoneNotSetError,
   ValidationError,
 } from "../errors";
@@ -18,21 +18,29 @@ import {
 } from "./common";
 
 export interface InputData {
+  announcementID: string;
   guildID: string;
 }
 
-export async function scheduleAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
+export async function scheduleAnnouncement(
+  { announcementID, guildID }: InputData,
+  deps: InteractionDependencies,
+) {
   return await interactionLogWrapper(deps, "scheduleAnnouncement", async () => {
     const { announcementRepo, announcementSettingsRepo, cronService, timeService } = deps;
-    const gIDOrError = GuildID.create(guildID);
-    if (gIDOrError.isFailure) {
-      return Response.fail<ValidationError>(new ValidationError(gIDOrError.errorValue()));
+
+    if (!announcementID) {
+      return Response.fail<ValidationError>(
+        new ValidationError("No announcement id was provided."),
+      );
     }
+
+    const gIDOrError = GuildID.create(guildID);
 
     // get in progress announcement
     const [settings, inProgressAnnouncement] = await Promise.all([
       announcementSettingsRepo.findByGuildID(gIDOrError.getValue()),
-      announcementRepo.findWorkInProgressByGuildID(gIDOrError.getValue()),
+      announcementRepo.findByID(announcementID),
     ]);
 
     if (!settings || !settings.timezone) {
@@ -40,8 +48,8 @@ export async function scheduleAnnouncement({ guildID }: InputData, deps: Interac
     }
 
     if (!inProgressAnnouncement) {
-      return Response.fail<AnnouncementNotInProgressError>(
-        new AnnouncementNotInProgressError(guildID),
+      return Response.fail<AnnouncementNotFoundError>(
+        new AnnouncementNotFoundError(announcementID),
       );
     }
 

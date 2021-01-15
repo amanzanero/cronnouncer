@@ -3,7 +3,8 @@ import { editAnnouncementInfo } from "../../../../../src/core/announcement/inter
 import { Response } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
-  AnnouncementNotInProgressError,
+  AnnouncementNotFoundError,
+  InvalidTimeError,
   TextChannelDoesNotExistError,
   TimeInPastError,
   TimezoneNotSetError,
@@ -21,7 +22,8 @@ import { TimeService } from "../../../../../src/core/announcement/services/time"
 import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
 import moment from "moment";
 import { DATE_FORMAT } from "../../../../../src/core/announcement/services/cron";
-import { Message, ScheduledTime } from "../../../../../src/core/announcement/domain/announcement";
+import { Message } from "../../../../../src/core/announcement/domain/announcement";
+import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
 
 interface TestContext {
   deps: {
@@ -30,6 +32,7 @@ interface TestContext {
     cronService: MockCronService;
     discordService: MockDiscordService;
     timeService: TimeService;
+    loggerService: MockLoggerService;
   };
 }
 
@@ -39,6 +42,8 @@ test.before(async (t) => {
   const discordService = new MockDiscordService();
   const timeService = new TimeService();
   const cronService = new MockCronService();
+  const loggerService = new MockLoggerService();
+
   Object.assign(t.context, {
     deps: {
       announcementRepo,
@@ -46,6 +51,7 @@ test.before(async (t) => {
       cronService,
       discordService,
       timeService,
+      loggerService,
     },
   });
 
@@ -53,32 +59,10 @@ test.before(async (t) => {
     exists: true,
   });
 
-  await announcementRepo.save(
-    createMockAnnouncement({
-      guildID: "guildWithSettingsAndAnnouncement",
-    }),
-  );
-  await announcementRepo.save(
-    createMockAnnouncement({
-      guildID: "guildWithNoSettings",
-    }),
-  );
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
-      timezone: "US/Pacific",
-      guildID: "guildWithSettingsAndAnnouncement",
-    }),
-  );
   await announcementSettingsRepo.save(
     createMockAnnouncementSettings({
       timezone: "US/Pacific",
       guildID: "guildWithSettings",
-    }),
-  );
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
-      timezone: "US/Pacific",
-      guildID: "dne",
     }),
   );
 });
@@ -92,28 +76,44 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 test("should return validation error with bad input", async (t) => {
   const { deps } = t.context as TestContext;
+  const { announcementRepo } = deps;
 
-  const input: any = {
-    guildID: "guildWithSettingsAndAnnouncement",
+  const announcement = createMockAnnouncement({
+    guildID: "guildWithSettings",
+  });
+  await announcementRepo.save(announcement);
+
+  const input = {
+    announcementID: announcement.id.value,
+    guildID: "guildWithSettings",
     message: longMessage + longMessage,
   };
   const response = await editAnnouncementInfo(input, deps as any);
-
   const expectedErr = Response.fail<ValidationError>(
     new ValidationError(Message.characterCountOutOfRangeMessage()),
   );
   t.deepEqual(response, expectedErr);
+
+  const inputNoID = {
+    guildID: "guildWithSettings",
+    message: longMessage + longMessage,
+  };
+  const responseNoID = await editAnnouncementInfo(inputNoID as any, deps as any);
+  const expectedErrNoID = Response.fail<ValidationError>(
+    new ValidationError("No announcement id was provided."),
+  );
+  t.deepEqual(responseNoID, expectedErrNoID);
 });
 
-test("should return AnnouncementNotInProgressError", async (t) => {
+test("should return AnnouncementNotFoundError", async (t) => {
   const { deps } = t.context as TestContext;
 
-  const guildID = "1";
-  const input: any = { guildID, channel: "some channel" };
+  const announcementID = "1";
+  const input = { announcementID, guildID: "guildWithSettings", channel: "some channel" };
   const response = await editAnnouncementInfo(input, deps as any);
 
-  const expectedErr = Response.fail<AnnouncementNotInProgressError>(
-    new AnnouncementNotInProgressError(guildID),
+  const expectedErr = Response.fail<AnnouncementNotFoundError>(
+    new AnnouncementNotFoundError(announcementID),
   );
   t.deepEqual(response, expectedErr);
 });
@@ -122,7 +122,7 @@ test("should return TextChannelDoesNotExistError", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
-  const guildID = "guildWithSettingsAndAnnouncement";
+  const guildID = "guildWithSettings";
   const channel = "dne";
 
   const announcement = createMockAnnouncement({
@@ -130,7 +130,7 @@ test("should return TextChannelDoesNotExistError", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { guildID, channel };
+  const input = { announcementID: announcement.id.value, guildID, channel };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<TextChannelDoesNotExistError>(
@@ -143,7 +143,7 @@ test("should return success response", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
-  const guildID = "guildWithSettingsAndAnnouncement";
+  const guildID = "guildWithSettings";
   const channel = "exists";
 
   const announcement = createMockAnnouncement({
@@ -151,7 +151,7 @@ test("should return success response", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { guildID, channel };
+  const input = { announcementID: announcement.id.value, guildID, channel };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const announcementCopy = announcement.copy();
@@ -164,19 +164,17 @@ test("should return success response", async (t) => {
 
 test("should set message if announcement in progress", async (t) => {
   const { deps } = t.context as TestContext;
-  const { announcementRepo, announcementSettingsRepo } = deps;
+  const { announcementRepo } = deps;
 
-  const guildID = "2";
+  const guildID = "guildWithSettings";
   const message = "A valid message";
 
   const announcement = createMockAnnouncement({
     guildID,
   });
   await announcementRepo.save(announcement);
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({ guildID, timezone: "US/Pacific" }),
-  );
-  const input = { guildID, message };
+
+  const input = { announcementID: announcement.id.value, guildID, message };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const announcementCopy = announcement.copy();
@@ -189,10 +187,20 @@ test("should set message if announcement in progress", async (t) => {
 
 test("should not set time if there is no timezone", async (t) => {
   const { deps } = t.context as TestContext;
-  const mScheduledTime = moment().add(2, "minutes");
+  const { announcementRepo } = deps;
 
   const guildID = "guildWithNoSettings";
-  const input: any = { guildID, scheduledTime: mScheduledTime.format(DATE_FORMAT) };
+  const announcement = createMockAnnouncement({
+    guildID,
+  });
+  await announcementRepo.save(announcement);
+
+  const mScheduledTime = moment().add(2, "minutes");
+  const input = {
+    announcementID: announcement.id.value,
+    guildID,
+    scheduledTime: mScheduledTime.format(DATE_FORMAT),
+  };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
@@ -201,24 +209,44 @@ test("should not set time if there is no timezone", async (t) => {
 
 test("should not set improperly formatted time", async (t) => {
   const { deps } = t.context as TestContext;
-  const mScheduledTime = moment().add(2, "minutes");
+  const { announcementRepo } = deps;
 
-  const guildID = "guildWithSettingsAndAnnouncement";
-  const input: any = { guildID, scheduledTime: mScheduledTime.toISOString() };
+  const guildID = "guildWithSettings";
+  const announcement = createMockAnnouncement({
+    guildID,
+  });
+  await announcementRepo.save(announcement);
+
+  const mScheduledTime = moment().add(2, "minutes");
+  const input = {
+    announcementID: announcement.id.value,
+    guildID,
+    scheduledTime: mScheduledTime.toISOString(),
+  };
   const response = await editAnnouncementInfo(input, deps as any);
 
-  const expectedErr = Response.fail<ValidationError>(
-    new ValidationError(ScheduledTime.invalidTimeMessage(mScheduledTime.toISOString())),
+  const expectedErr = Response.fail<InvalidTimeError>(
+    new InvalidTimeError(mScheduledTime.toISOString()),
   );
   t.deepEqual(response, expectedErr);
 });
 
 test("should not set past time", async (t) => {
   const { deps } = t.context as TestContext;
-  const mScheduledTime = moment();
+  const { announcementRepo } = deps;
 
-  const guildID = "guildWithSettingsAndAnnouncement";
-  const input: any = { guildID, scheduledTime: mScheduledTime.format(DATE_FORMAT) };
+  const guildID = "guildWithSettings";
+  const announcement = createMockAnnouncement({
+    guildID,
+  });
+  await announcementRepo.save(announcement);
+
+  const mScheduledTime = moment();
+  const input: any = {
+    announcementID: announcement.id.value,
+    guildID,
+    scheduledTime: mScheduledTime.format(DATE_FORMAT),
+  };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<TimeInPastError>(new TimeInPastError());
@@ -241,7 +269,11 @@ test("should set time if announcement in progress", async (t) => {
   const settings = createMockAnnouncementSettings({ timezone: "US/Pacific", guildID });
   await announcementSettingsRepo.save(settings);
 
-  const input = { guildID, scheduledTime: mScheduledTime.format(DATE_FORMAT) };
+  const input = {
+    announcementID: announcement.id.value,
+    guildID,
+    scheduledTime: mScheduledTime.format(DATE_FORMAT),
+  };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));

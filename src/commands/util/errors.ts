@@ -2,6 +2,7 @@ import {
   AnnouncementError,
   AnnouncementIncompleteError,
   AnnouncementInProgressError,
+  AnnouncementNotFoundError,
   AnnouncementNotInProgressError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
@@ -26,6 +27,7 @@ export function getActionFromError({ message, responseError }: ErrorActionProps)
     case AnnouncementIncompleteError:
     case TextChannelDoesNotExistError:
     case TimeInPastError:
+    case AnnouncementNotFoundError:
       return () => message.channel.send(responseError.message);
     case AnnouncementInProgressError:
       return () =>

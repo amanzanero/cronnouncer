@@ -5,7 +5,7 @@
 import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Response, Result } from "../../../lib";
 import {
-  AnnouncementNotInProgressError,
+  AnnouncementNotFoundError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
   TimeInPastError,
@@ -20,6 +20,7 @@ import {
 } from "./common";
 
 export interface InputData {
+  announcementID: string;
   guildID: string;
   channel?: string;
   message?: string;
@@ -27,22 +28,28 @@ export interface InputData {
 }
 
 export async function editAnnouncementInfo(
-  { guildID, channel, message, scheduledTime }: InputData,
+  { announcementID, guildID, channel, message, scheduledTime }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
     const { announcementRepo, announcementSettingsRepo, discordService, timeService } = deps;
 
+    if (!announcementID) {
+      return Response.fail<ValidationError>(
+        new ValidationError("No announcement id was provided."),
+      );
+    }
+
     const guildIDOrError = GuildID.create(guildID);
 
     const [activeAnnouncement, announcementSettings] = await Promise.all([
-      announcementRepo.findWorkInProgressByGuildID(guildIDOrError.getValue()),
+      announcementRepo.findByID(announcementID),
       announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
     ]);
 
     if (!activeAnnouncement) {
-      return Response.fail<AnnouncementNotInProgressError>(
-        new AnnouncementNotInProgressError(guildID),
+      return Response.fail<AnnouncementNotFoundError>(
+        new AnnouncementNotFoundError(announcementID),
       );
     }
 
@@ -50,12 +57,8 @@ export async function editAnnouncementInfo(
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
     }
 
-    const validationResults: Result<any>[] = [];
-
     if (message !== undefined) {
       const messageOrError = Message.create(message);
-      validationResults.push(messageOrError);
-
       if (messageOrError.isFailure) {
         return Response.fail<ValidationError>(new ValidationError(messageOrError.errorValue()));
       }
@@ -65,8 +68,6 @@ export async function editAnnouncementInfo(
 
     if (scheduledTime !== undefined) {
       const scheduledTimeOrError = ScheduledTime.create(scheduledTime);
-      validationResults.push(scheduledTimeOrError);
-
       if (scheduledTimeOrError.isSuccess) {
         const isValidTimeInFuture = !timeService.isValidFutureTime(
           scheduledTimeOrError.getValue(),
@@ -85,11 +86,6 @@ export async function editAnnouncementInfo(
 
     if (channel !== undefined) {
       const channelOrError = Channel.create(channel);
-
-      if (channelOrError.isFailure) {
-        return Response.fail<ValidationError>(new ValidationError(channelOrError.errorValue()));
-      }
-
       const promiseTextChannelExists = await discordService.textChannelExists(
         guildIDOrError.getValue(),
         channelOrError.getValue(),
@@ -101,11 +97,6 @@ export async function editAnnouncementInfo(
       }
 
       activeAnnouncement.updateChannel(channelOrError.getValue());
-    }
-
-    const combined = Result.combine(validationResults);
-    if (combined.isFailure) {
-      return Response.fail<ValidationError>(new ValidationError(combined.errorValue()));
     }
 
     await announcementRepo.save(activeAnnouncement);

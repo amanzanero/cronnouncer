@@ -25,7 +25,7 @@ interface OptionalMockAnnouncementProps {
 
 export function createMockAnnouncement(props: OptionalMockAnnouncementProps): Announcement {
   const guildID = GuildID.create(props.guildID || v4()).getValue();
-  const status = Status.create(props.status || AnnouncementStatus.active).getValue();
+  const status = Status.create(props.status || AnnouncementStatus.unscheduled).getValue();
 
   const scheduledTime = props.scheduledTime
     ? ScheduledTime.create(props.scheduledTime.format(DATE_FORMAT)).getValue()

@@ -18,6 +18,7 @@ export interface InteractionDependencies {
 }
 
 export interface AnnouncementOutput {
+  id: string;
   guildID: string;
   status: string;
   channel?: string;
@@ -27,6 +28,7 @@ export interface AnnouncementOutput {
 
 export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   const output = {
+    id: a.id.value,
     guildID: a.guildID.value,
     status: a.status.value,
   };

@@ -1,18 +1,18 @@
 import { Message } from "discord.js";
-import { scheduleAnnouncement } from "../core/announcement/interactions/scheduleAnnouncement";
+import { deleteAnnouncement } from "../core/announcement/interactions/deleteAnnouncement";
 import { PREFIX } from "../constants";
 import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
 import { Args } from "./definitions/Args";
+import { Response } from "../lib";
 
 export const help = {
-  name: "schedule",
+  name: "delete",
   category: "Scheduling",
-  description: "Schedules the announcement to be sent.",
-  usage: `${PREFIX}schedule`,
+  description: "Deletes and un-schedules an announcement",
+  usage: `${PREFIX}delete`,
 };
 
 export const conf = {
@@ -21,14 +21,11 @@ export const conf = {
 };
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
-  const guildID = message.guild?.id as string;
   const announcementID = args.firstArg;
-  return await scheduleAnnouncement({ announcementID, guildID }, props);
+  return await deleteAnnouncement({ announcementID }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
-  const value = response.value as AnnouncementOutput;
-  await message.channel.send(
-    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channel}>`,
-  );
+  const announcementID = (response.value as AnnouncementOutput).id;
+  await message.channel.send(`Announcement: \`${announcementID}\` was deleted.`);
 }

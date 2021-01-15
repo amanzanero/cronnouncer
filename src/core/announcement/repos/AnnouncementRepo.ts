@@ -2,14 +2,14 @@
  * his file contains a repository composer for announcements
  */
 
-import { Announcement, GuildID } from "../domain/announcement";
+import { Announcement } from "../domain/announcement";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Repository } from "typeorm";
 import { AnnouncementMap } from "./AnnouncementMap";
 import { AnnouncementStatus } from "../domain/announcement/Status";
 
 export interface IAnnouncementRepo {
-  findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined>;
+  findByID(announcementID: string): Promise<Announcement | undefined>;
 
   findScheduled(): Promise<Announcement[]>;
 
@@ -25,10 +25,9 @@ export class AnnouncementRepo implements IAnnouncementRepo {
     this.typeormAnnouncementRepo = typeormRepo;
   }
 
-  async findWorkInProgressByGuildID(guildID: GuildID): Promise<Announcement | undefined> {
+  async findByID(announcementID: string): Promise<Announcement | undefined> {
     const announcement = await this.typeormAnnouncementRepo.findOne({
-      guild_id: guildID.value,
-      status: AnnouncementStatus.active,
+      announcement_id: announcementID,
     });
     return announcement && AnnouncementMap.toDomain(announcement);
   }

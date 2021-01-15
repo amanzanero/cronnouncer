@@ -1,8 +1,7 @@
 import { Guard, Result } from "../../../../lib";
 
 export enum AnnouncementStatus {
-  active = "active",
-  inactive = "inactive",
+  unscheduled = "unscheduled",
   scheduled = "scheduled",
   sent = "sent",
 }
