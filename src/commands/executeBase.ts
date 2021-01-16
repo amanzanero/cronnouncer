@@ -5,8 +5,9 @@ import { Response } from "../lib";
 import { AnnouncementOutput } from "../core/announcement/interactions/common";
 import { Executor, Interaction, Success } from "./definitions";
 import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../core/announcement/repos";
-import { IDiscordService } from "../core/announcement/services/discord";
 import { ICronService } from "../core/announcement/services/cron";
+import { IDiscordService } from "../core/announcement/services/discord";
+import { ILoggerService } from "../core/announcement/services/logger";
 import { ITimeService } from "../core/announcement/services/time";
 
 interface ExecuteBaseProps {
@@ -19,6 +20,7 @@ interface ExecuteBaseDependencies {
   announcementSettingsRepo: IAnnouncementSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
+  loggerService: ILoggerService;
   timeService: ITimeService;
 }
 

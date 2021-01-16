@@ -16,4 +16,8 @@ export class Args {
   get argArray() {
     return this.rawArgs.split(" ");
   }
+
+  get firstArg() {
+    return this.rawArgs.split(/\s/g)[0];
+  }
 }

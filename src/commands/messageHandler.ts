@@ -5,13 +5,14 @@ import { CommandMap } from "./definitions";
 import { isCommand, parseCommand } from "./util/parser";
 import { logger } from "../util";
 import { UNKNOWN_COMMAND_RESPONSE } from "./index";
+import { PREFIX } from "../constants";
 
 function commandRunLogStart(username: string, cmd: string) {
-  return `[CMD] [START] [${username}] [${cmd}]`;
+  return `[${PREFIX}${cmd}>>>] [${username}] `;
 }
 
 function commandRunLogStop(username: string, cmd: string, time: number) {
-  return `[CMD] [STOP] [${username}] [${cmd}] - ${time}ms`;
+  return `[${PREFIX}${cmd}<<<] [${username}] - ${time}ms`;
 }
 
 export function makeMessageHandler(client: Client, commands: CommandMap) {

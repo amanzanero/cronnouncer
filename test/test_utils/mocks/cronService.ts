@@ -2,6 +2,7 @@ import {
   CronService,
   ICronService,
   ScheduleAnnouncementProps,
+  UnScheduleAnnouncemntProps,
 } from "../../../src/core/announcement/services/cron";
 
 export class MockCronService implements ICronService {
@@ -11,7 +12,12 @@ export class MockCronService implements ICronService {
     this.emptyCronService = new CronService({} as any);
   }
 
-  async scheduleAnnouncement(_: ScheduleAnnouncementProps): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async unScheduleAnnouncement(_: UnScheduleAnnouncemntProps): Promise<void> {
+    return;
+  }
+
+  async scheduleAnnouncement(_: ScheduleAnnouncementProps) {
     return;
   }
 }

@@ -1,17 +1,18 @@
 import { Message } from "discord.js";
-import { publishAnnouncement } from "../core/announcement/interactions/publishAnnouncement";
+import { createAnnouncement } from "../core/announcement/interactions/createAnnouncement";
 import { PREFIX } from "../constants";
 import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
 import { Response } from "../lib";
+import { announcementStringEmbed } from "./util/announcementString";
 
 export const help = {
-  name: "publish",
+  name: "create",
   category: "Scheduling",
-  description: "Publishes the announcement and schedules it.",
-  usage: `${PREFIX}publish`,
+  description: "Creates a new announcement",
+  usage: `${PREFIX}create`,
 };
 
 export const conf = {
@@ -21,12 +22,10 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message) {
   const guildID = message.guild?.id as string;
-  return await publishAnnouncement({ guildID }, props);
+  return await createAnnouncement({ guildID }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
-  const value = response.value as AnnouncementOutput;
-  await message.channel.send(
-    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channel}>`,
-  );
+  await message.channel.send("Announcement started!");
+  await message.channel.send(announcementStringEmbed(response.value as AnnouncementOutput));
 }

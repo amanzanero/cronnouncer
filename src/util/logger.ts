@@ -1,12 +1,11 @@
 import { createLogger, format, transports } from "winston";
 import { IS_PROD } from "../constants";
 
-const { combine, timestamp, printf } = format;
+const { combine, errors, timestamp, printf, colorize } = format;
 
 const logFormat = printf(({ level, message, timestamp, requestID }) => {
-  const text = (message as any) instanceof Error ? ((message as unknown) as Error).stack : message;
   const rID = !!requestID ? `[${requestID}] ` : "";
-  return `${timestamp} [${level}] ${rID}${text}`;
+  return `${timestamp} [${level}] ${rID}${message}`;
 });
 
 const transportsList: any[] = [new transports.Console()];
@@ -19,6 +18,8 @@ if (IS_PROD) {
   transportsList.push(new transports.File({ filename: `logs/${Date.now()}-combined.log` }));
 }
 export const logger = createLogger({
-  format: combine(timestamp(), logFormat),
+  format: IS_PROD
+    ? combine(errors({ stack: true }), timestamp(), logFormat)
+    : combine(colorize(), timestamp(), logFormat),
   transports: transportsList,
 });

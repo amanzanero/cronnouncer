@@ -2,11 +2,13 @@ import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";
 import { help as setTimeHelp } from "./set-time";
-import { help as publishHelp } from "./publish";
-import { help as startAnnouncementHelp } from "./start-announcement";
+import { help as scheduleHelp } from "./schedule";
+import { help as createHelp } from "./create";
+import { help as unschdeuleHelp } from "./unschedule";
 import { help as timezoneHelp } from "./timezone";
 import { PREFIX } from "../constants";
 import { logger } from "../util";
+import { baseEmbed } from "../lib";
 
 const help = {
   name: "help",
@@ -22,25 +24,33 @@ const conf = {
 
 const HELP_ARRAY = [
   timezoneHelp,
-  startAnnouncementHelp,
+  createHelp,
   setChannelHelp,
   setMessageHelp,
   setTimeHelp,
-  publishHelp,
+  scheduleHelp,
+  unschdeuleHelp,
   help,
 ];
 
-function descriptionLine(help: Command["help"]) {
-  return `**${PREFIX}${help.name}** ${help.description}`;
-}
+export function helpEmbed() {
+  const embed = baseEmbed();
+  embed.setTitle("Commands");
 
-function usageLine(help: Command["help"]) {
-  return `    usage: \`${help.usage}`;
+  HELP_ARRAY.forEach((help) => {
+    embed.addFields(
+      { name: `${PREFIX}${help.name}`, value: help.description, inline: true },
+      { name: "Usage", value: `\`${help.usage}\``, inline: true },
+      {
+        name: "\u200B",
+        value: "\u200B",
+        inline: true,
+      },
+    );
+  });
+  embed.setTimestamp();
+  return embed;
 }
-
-export const HELP_MESSAGE = HELP_ARRAY.reduce((acc, curr) => {
-  return `${acc}> ${descriptionLine(curr)}\n> ${usageLine(curr)}\`\n`;
-}, "");
 
 export function makeHelpCMD(): Command {
   // interaction init
@@ -48,7 +58,7 @@ export function makeHelpCMD(): Command {
   return {
     execute: async function execute({ requestID, message }) {
       try {
-        await message.channel.send(HELP_MESSAGE);
+        await message.channel.send(helpEmbed());
       } catch (e) {
         logger.error(e, { requestID });
       }

@@ -16,6 +16,20 @@ export class ValidationError extends AnnouncementError {
   }
 }
 
+export class AnnouncementNotFoundError extends AnnouncementError {
+  constructor(announcementID: string) {
+    super(`There was no announcement found with id: \`${announcementID}\``);
+    Object.setPrototypeOf(this, AnnouncementNotFoundError.prototype); // makes typescript happy
+  }
+}
+
+export class AnnouncementLockedStatusError extends AnnouncementError {
+  constructor(announcementID: string) {
+    super(`Announcement: \`${announcementID}\` has already been sent.`);
+    Object.setPrototypeOf(this, AnnouncementLockedStatusError.prototype); // makes typescript happy
+  }
+}
+
 export class AnnouncementInProgressError extends AnnouncementError {
   constructor(guildID: string) {
     super(`There is already an announcement in progress for server: ${guildID}`);

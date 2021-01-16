@@ -18,7 +18,7 @@ export class Channel {
   public static create(channel: string): Result<Channel> {
     const guardResult = Guard.againstNullOrUndefined(channel, "channel");
     if (!guardResult.succeeded) {
-      return Result.fail<Channel>(guardResult.message);
+      return Result.fail<Channel>("Channel cannot be empty");
     } else {
       return Result.ok<Channel>(new Channel({ value: channel }));
     }
