@@ -26,7 +26,6 @@ export async function interaction(props: InteractionDependencies, message: Messa
   const announcementID = args.firstArg;
   const rawMessage = args.raw.substring(announcementID.length).trim();
 
-  console.log({ args, announcementID, rawMessage });
   return await editAnnouncementInfo({ announcementID, guildID, message: rawMessage }, props);
 }
 

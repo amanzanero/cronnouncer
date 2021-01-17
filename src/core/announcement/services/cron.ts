@@ -2,11 +2,13 @@ import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
 import { Announcement, Channel, Message } from "../domain/announcement";
 import { ILoggerService } from "./logger";
+import { IAnnouncementRepo } from "../repos";
 
 export interface ScheduleAnnouncementProps {
   announcement: Announcement;
   scheduledTimeUTC: string;
 
+  announcementRepo: IAnnouncementRepo;
   loggerService: ILoggerService;
   requestID?: string;
 }
@@ -33,7 +35,7 @@ export class CronService implements ICronService {
   }
 
   async scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void> {
-    const { announcement, scheduledTimeUTC, loggerService, requestID } = props;
+    const { announcement, scheduledTimeUTC, announcementRepo, loggerService, requestID } = props;
 
     let guild: Guild;
     let channel: TextChannel;
@@ -49,21 +51,26 @@ export class CronService implements ICronService {
     schedule.scheduleJob(`${announcement.id}`, scheduledTimeUTC, async () => {
       try {
         await channel.send((announcement.message as Message).value);
+        announcement.sent();
+        await announcementRepo.save(announcement);
+
         loggerService.info(
           "CronService.scheduleAnnouncement",
-          `[ANNOUNCEMENT] channel: ${channel.name} (${
-            (announcement.channel as Channel).value
-          }) guild: ${guild.name} (${announcement.guildID.value}) announcement: ${
-            announcement.id.value
-          }`,
-          { requestID },
+          `announcement sent to channel #${channel.name} on guild: ${guild.name}`,
+          {
+            requestID,
+            guildID: guild.id,
+            channelID: channel.id,
+            announcementID: announcement.id.value,
+          },
         );
       } catch (e) {
-        loggerService.error(
-          "CronService.scheduleAnnouncement",
-          `[ANNOUNCEMENT] announcement: ${announcement.id.value} ${e.stack}`,
-          { requestID },
-        );
+        loggerService.error(e, {
+          requestID,
+          guildID: guild.id,
+          channelID: channel.id,
+          announcementID: announcement.id.value,
+        });
       }
     });
   }
@@ -75,7 +82,12 @@ export class CronService implements ICronService {
     loggerService.info(
       "CronService.unScheduleAnnouncement",
       `unscheduled announcement: ${announcement.id}`,
-      { requestID },
+      {
+        requestID,
+        guildID: announcement.guildID.value,
+        channelID: announcement.channel?.value,
+        announcementID: announcement.id.value,
+      },
     );
   }
 }

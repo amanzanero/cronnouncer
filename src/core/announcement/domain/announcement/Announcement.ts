@@ -135,4 +135,13 @@ export class Announcement {
     Object.assign(this.props, { status: AnnouncementStatus.unscheduled });
     return Result.ok<Announcement>(this);
   }
+
+  sent() {
+    if (this.status.value !== AnnouncementStatus.scheduled) {
+      return Result.fail<Announcement>("An announcement must be scheduled before being sent.");
+    }
+
+    Object.assign(this.props, { status: Status.create(AnnouncementStatus.sent).getValue() });
+    return Result.ok<Announcement>(this);
+  }
 }

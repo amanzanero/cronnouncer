@@ -78,12 +78,7 @@ test.serial("should reschedule", async (t) => {
   await Promise.all(promises);
 
   await rescheduleAnnouncements({ ...deps, loggerService } as any);
-  t.true(
-    logSpy.calledWith(
-      "rescheduleAnnouncements",
-      `successfully scheduled announcements: [${announcements}]`,
-    ),
-  );
+  t.true(logSpy.calledWith("rescheduleAnnouncements", `successfully scheduled 10 announcements`));
 });
 
 test.serial("should handle cron error", async (t) => {
@@ -105,6 +100,7 @@ test.serial("should handle cron error", async (t) => {
       announcement,
       loggerService: sinon.match.any,
       scheduledTimeUTC: sinon.match.any,
+      announcementRepo: sinon.match.any,
     })
     .throws(new Error("Random cron error"));
 
@@ -112,11 +108,5 @@ test.serial("should handle cron error", async (t) => {
 
   await rescheduleAnnouncements({ ...deps, loggerService, cronService } as any);
 
-  const announcements = [announcement.id.value];
-  t.true(
-    logSpy.calledWith(
-      "rescheduleAnnouncements",
-      `failed to schedule announcements: [${announcements}]`,
-    ),
-  );
+  t.true(logSpy.calledWithMatch(`failed to schedule 1 announcements`, sinon.match.any));
 });

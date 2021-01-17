@@ -22,6 +22,12 @@ export async function main(): Promise<string> {
     await onReady(deps);
   });
   discordClient.on("message", messageHandler);
+  discordClient.on("guildCreate", async (guild) => {
+    logger.info(`Bot added to server: ${guild.name}`, { guildID: guild.id });
+  });
+  discordClient.on("guildDelete", (guild) => {
+    logger.info(`Bot removed from server: ${guild.name}`, { guildID: guild.id });
+  });
 
   // graceful exit
   process.on("SIGTERM", async () => {

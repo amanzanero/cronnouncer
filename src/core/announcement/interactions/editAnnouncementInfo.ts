@@ -3,7 +3,7 @@
  */
 
 import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
-import { Response, Result } from "../../../lib";
+import { Response } from "../../../lib";
 import {
   AnnouncementNotFoundError,
   InvalidTimeError,

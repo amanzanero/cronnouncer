@@ -5,7 +5,7 @@ export class MockLoggerService implements ILoggerService {
     return;
   }
 
-  error(_: string, __: Error | string, ___?: any) {
+  error(__: Error | string, ___?: any) {
     return;
   }
 }

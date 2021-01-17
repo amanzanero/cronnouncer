@@ -4,10 +4,11 @@ import { InteractionDependencies } from "../core/announcement/interactions/commo
 
 export async function onReady(deps: InteractionDependencies) {
   try {
-    logger.info("[onStartup] scheduling pending announcements...");
+    logger.info("[onReady>>>>]");
+    const start = Date.now();
     await rescheduleAnnouncements(deps);
-    logger.info("[onStartup] announcements scheduled");
+    logger.info(`[onReady<<<<] - ${start - Date.now()}ms`);
   } catch (e) {
-    logger.error(`[onStartup] ${e.stack}`);
+    logger.error(e);
   }
 }

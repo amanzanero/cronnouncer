@@ -7,12 +7,12 @@ import { logger } from "../util";
 import { UNKNOWN_COMMAND_RESPONSE } from "./index";
 import { PREFIX } from "../constants";
 
-function commandRunLogStart(username: string, cmd: string) {
-  return `[${PREFIX}${cmd}>>>] [${username}] `;
+function commandRunLogStart(cmd: string) {
+  return `${PREFIX}${cmd}>>>`;
 }
 
-function commandRunLogStop(username: string, cmd: string, time: number) {
-  return `[${PREFIX}${cmd}<<<] [${username}] - ${time}ms`;
+function commandRunLogStop(cmd: string, time: number) {
+  return `${PREFIX}${cmd}<<< - ${time}ms`;
 }
 
 export function makeMessageHandler(client: Client, commands: CommandMap) {
@@ -42,15 +42,18 @@ export function makeMessageHandler(client: Client, commands: CommandMap) {
     }
 
     const requestID = uuid();
-    logger.info(commandRunLogStart(message.author.tag, cmd.help.name), { requestID });
+    const user = message.author.tag;
+    logger.info(commandRunLogStart(cmd.help.name), { requestID, user });
+
     const timeStart = Date.now();
     try {
       await cmd.execute({ requestID, message, args });
     } catch (e) {
       logger.error(e, { requestID });
     }
-    logger.info(commandRunLogStop(message.author.tag, cmd.help.name, Date.now() - timeStart), {
+    logger.info(commandRunLogStop(cmd.help.name, Date.now() - timeStart), {
       requestID,
+      user,
     });
   };
 }

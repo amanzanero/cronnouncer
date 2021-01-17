@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Discord bot for scheduled announcements",
   "main": "build/index.js",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
     "start": "NODE_ENV=production node --enable-source-maps build/index.js",
     "dev": "ts-node-dev src/index.ts",
@@ -49,6 +52,7 @@
     "typescript": "^4.1.2"
   },
   "dependencies": {
+    "@google-cloud/logging-winston": "^4.0.2",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "moment-timezone": "^0.5.32",

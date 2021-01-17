@@ -1,25 +1,22 @@
 import { createLogger, format, transports } from "winston";
-import { IS_PROD } from "../constants";
+import { LoggingWinston } from "@google-cloud/logging-winston";
+import path from "path";
+import { GCLOUD_PROJECT_ID } from "../constants";
 
-const { combine, errors, timestamp, printf, colorize } = format;
-
-const logFormat = printf(({ level, message, timestamp, requestID }) => {
-  const rID = !!requestID ? `[${requestID}] ` : "";
-  return `${timestamp} [${level}] ${rID}${message}`;
-});
+const { combine, errors, timestamp, json } = format;
 
 const transportsList: any[] = [new transports.Console()];
-if (IS_PROD) {
-  // - Write to all logs with level `info` and below to `combined.log`
-  // - Write all logs error (and below) to `error.log`.
-  transportsList.push(
-    new transports.File({ filename: `logs/${Date.now()}-error.log`, level: "error" }),
-  );
-  transportsList.push(new transports.File({ filename: `logs/${Date.now()}-combined.log` }));
+
+if (GCLOUD_PROJECT_ID) {
+  const loggingWinston = new LoggingWinston({
+    projectId: GCLOUD_PROJECT_ID,
+    keyFilename: path.resolve(__dirname, "../../service-key.json"),
+    logName: "cronnouncer-prod",
+  });
+  transportsList.push(loggingWinston);
 }
+
 export const logger = createLogger({
-  format: IS_PROD
-    ? combine(errors({ stack: true }), timestamp(), logFormat)
-    : combine(colorize(), timestamp(), logFormat),
+  format: combine(errors({ stack: true }), timestamp(), json()),
   transports: transportsList,
 });

@@ -72,6 +72,7 @@ export async function scheduleAnnouncement(
       cronService.scheduleAnnouncement({
         announcement: inProgressAnnouncement,
         scheduledTimeUTC,
+        announcementRepo,
         loggerService: deps.loggerService,
       }),
     ]);

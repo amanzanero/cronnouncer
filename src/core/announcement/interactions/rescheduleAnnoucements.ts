@@ -25,8 +25,8 @@ export async function rescheduleAnnouncements(deps: InteractionDependencies) {
       scheduledAnnouncements.map((ancmt) => ancmt.guildID),
     );
 
-    const successfullyScheduled: string[] = [];
-    const failedScheduled: string[] = [];
+    const successfullyScheduledAnnouncements: string[] = [];
+    const failedScheduledAnnouncements: string[] = [];
     const scheduledPromises = scheduledAnnouncements.reduce((acc, scheduledAncmt) => {
       const scheduledTimeUTC = timeService.scheduleTimeToUTC(
         scheduledAncmt.scheduledTime as ScheduledTime,
@@ -38,11 +38,12 @@ export async function rescheduleAnnouncements(deps: InteractionDependencies) {
           await cronService.scheduleAnnouncement({
             announcement: scheduledAncmt,
             scheduledTimeUTC,
+            announcementRepo,
             loggerService,
           });
-          successfullyScheduled.push(scheduledAncmt.id.value);
+          successfullyScheduledAnnouncements.push(scheduledAncmt.id.value);
         } catch (e) {
-          failedScheduled.push(scheduledAncmt.id.value);
+          failedScheduledAnnouncements.push(scheduledAncmt.id.value);
           loggerService.error("rescheduleAnnouncements", e);
         }
       };
@@ -58,17 +59,22 @@ export async function rescheduleAnnouncements(deps: InteractionDependencies) {
 
     await Promise.all(scheduledPromises);
 
-    if (successfullyScheduled.length > 0) {
+    if (successfullyScheduledAnnouncements.length > 0) {
       loggerService.info(
         "rescheduleAnnouncements",
-        `successfully scheduled announcements: [${successfullyScheduled}]`,
+        `successfully scheduled ${successfullyScheduledAnnouncements.length} announcements`,
+        {
+          successfullyScheduledAnnouncements,
+        },
       );
     }
 
-    if (failedScheduled.length) {
+    if (failedScheduledAnnouncements.length) {
       loggerService.error(
-        "rescheduleAnnouncements",
-        `failed to schedule announcements: [${failedScheduled}]`,
+        `failed to schedule ${failedScheduledAnnouncements.length} announcements`,
+        {
+          failedScheduledAnnouncements,
+        },
       );
     }
 

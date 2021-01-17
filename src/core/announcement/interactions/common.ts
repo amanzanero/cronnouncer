@@ -58,7 +58,7 @@ export async function interactionLogWrapper(
   interaction: () => Promise<Response<any>>,
 ) {
   const start = Date.now();
-  deps.loggerService.info(`${interactionName}>>>`, undefined, { requestID: deps.requestID });
+  deps.loggerService.info(`${interactionName}>>>>`, undefined, { requestID: deps.requestID });
   const response = await interaction();
   deps.loggerService.info(`${interactionName}<<<<`, `- ${Date.now() - start}ms`, {
     requestID: deps.requestID,

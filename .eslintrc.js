@@ -14,5 +14,6 @@ module.exports = {
     // e.g. "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/explicit-module-boundary-types": 0,
+    "no-console": 2,
   },
 };
