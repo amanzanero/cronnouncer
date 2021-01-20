@@ -13,7 +13,7 @@ export interface ScheduleAnnouncementProps {
   requestID?: string;
 }
 
-export interface UnScheduleAnnouncemntProps {
+export interface UnScheduleAnnouncementProps {
   announcement: Announcement;
   loggerService: ILoggerService;
   requestID?: string;
@@ -24,7 +24,7 @@ export const DATE_FORMAT = "M/D/YYYY h:mm a";
 export interface ICronService {
   scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void>;
 
-  unScheduleAnnouncement(props: UnScheduleAnnouncemntProps): Promise<void>;
+  unScheduleAnnouncement(props: UnScheduleAnnouncementProps): void;
 }
 
 export class CronService implements ICronService {
@@ -48,7 +48,7 @@ export class CronService implements ICronService {
       return;
     }
 
-    schedule.scheduleJob(`${announcement.id}`, scheduledTimeUTC, async () => {
+    schedule.scheduleJob(announcement.id.value, scheduledTimeUTC, async () => {
       try {
         await channel.send((announcement.message as Message).value);
         announcement.sent();
@@ -75,13 +75,13 @@ export class CronService implements ICronService {
     });
   }
 
-  async unScheduleAnnouncement(props: UnScheduleAnnouncemntProps): Promise<void> {
+  unScheduleAnnouncement(props: UnScheduleAnnouncementProps) {
     const { announcement, loggerService, requestID } = props;
 
-    schedule.cancelJob(`${announcement.id}`);
+    schedule.cancelJob(announcement.id.value);
     loggerService.info(
       "CronService.unScheduleAnnouncement",
-      `unscheduled announcement: ${announcement.id}`,
+      `unscheduled announcement: ${announcement.id.value}`,
       {
         requestID,
         guildID: announcement.guildID,

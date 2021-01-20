@@ -18,7 +18,7 @@ export async function unScheduleAnnouncement(
   { announcementID: shortID, guildID }: InputData,
   deps: InteractionDependencies,
 ) {
-  return await interactionLogWrapper(deps, "cancelAnnouncement", async () => {
+  return await interactionLogWrapper(deps, "unScheduleAnnouncement", async () => {
     const { announcementRepo } = deps;
 
     const guardUndefined = Guard.againstNullOrUndefinedBulk([
@@ -44,7 +44,11 @@ export async function unScheduleAnnouncement(
         new AnnouncementLockedStatusError(shortID.toString()),
       );
     }
-
+    deps.cronService.unScheduleAnnouncement({
+      announcement: inProgressAnnouncement,
+      loggerService: deps.loggerService,
+      requestID: deps.requestID,
+    });
     await announcementRepo.save(inProgressAnnouncement);
 
     return Response.success<void>();
