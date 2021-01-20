@@ -52,7 +52,7 @@ test("should delete", async (t) => {
   const guildID = "2";
 
   const announcement = createMockAnnouncement({
-    channel: "some-channel",
+    channelID: "some-channel",
     guildID,
     message: "A message!",
     scheduledTime: moment().add(1, "day"),

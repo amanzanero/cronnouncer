@@ -4,36 +4,36 @@ import { Response } from "../../../../../src/lib";
 import { TimezoneNotSetError, ValidationError } from "../../../../../src/core/announcement/errors";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 import { AnnouncementOutput } from "../../../../../src/core/announcement/interactions/common";
-import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
-import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
+import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSettingsRepo";
+import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
-    announcementSettingsRepo: MockAnnouncementSettingsRepo;
+    guildSettingsRepo: MockGuildSettingsRepo;
     loggerService: MockLoggerService;
   };
 }
 
 test.before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
-  const announcementSettingsRepo = new MockAnnouncementSettingsRepo();
+  const guildSettingsRepo = new MockGuildSettingsRepo();
   const loggerService = new MockLoggerService();
   Object.assign(t.context, {
     deps: {
       announcementRepo,
-      announcementSettingsRepo,
+      guildSettingsRepo,
       loggerService,
     },
   });
 
-  const settings = createMockAnnouncementSettings({
+  const settings = createMockGuildSettings({
     timezone: "US/Pacific",
     guildID: "guild-with-timezone",
   });
-  await announcementSettingsRepo.save(settings);
+  await guildSettingsRepo.save(settings);
 });
 
 test("should fail with undefined DTO field", async (t) => {
@@ -41,7 +41,7 @@ test("should fail with undefined DTO field", async (t) => {
 
   const response = await createAnnouncement({} as any, deps as any);
 
-  const expectedErr = new ValidationError("guildID is null or undefined");
+  const expectedErr = new ValidationError("No guildID was provided");
   t.deepEqual(response.value, expectedErr);
 });
 

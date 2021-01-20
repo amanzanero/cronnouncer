@@ -3,7 +3,7 @@ import { getActionFromError } from "../util/errors";
 import { Response } from "../../lib";
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
 import { Executor, Interaction, Success } from "../definitions";
-import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../../core/announcement/repos";
+import { IAnnouncementRepo, IGuildSettingsRepo } from "../../core/announcement/repos";
 import { ICronService } from "../../core/announcement/services/cron";
 import { IDiscordService } from "../../core/announcement/services/discord";
 import { ILoggerService } from "../../core/announcement/services/logger";
@@ -16,7 +16,7 @@ interface ExecuteBaseProps {
 
 interface ExecuteBaseDependencies {
   announcementRepo: IAnnouncementRepo;
-  announcementSettingsRepo: IAnnouncementSettingsRepo;
+  guildSettingsRepo: IGuildSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
   loggerService: ILoggerService;

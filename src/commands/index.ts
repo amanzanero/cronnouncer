@@ -1,4 +1,4 @@
-import { AnnouncementRepo, AnnouncementSettingsRepo } from "../core/announcement/repos";
+import { AnnouncementRepo, GuildSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
 import { Command, CommandMap, CMD } from "./definitions";
@@ -24,7 +24,7 @@ export const UNKNOWN_COMMAND_RESPONSE = `Sorry I didn't understand that command.
 
 export interface CMDProps {
   announcementRepo: AnnouncementRepo;
-  announcementSettingsRepo: AnnouncementSettingsRepo;
+  guildSettingsRepo: GuildSettingsRepo;
   cronService: CronService;
   discordService: DiscordService;
   loggerService: LoggerService;

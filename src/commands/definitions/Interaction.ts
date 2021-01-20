@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import {
   AnnouncementOutput,
-  AnnouncementSettingsOutput,
+  GuildSettingsOutput,
   InteractionDependencies,
 } from "../../core/announcement/interactions/common";
 import { Response } from "../../lib";
@@ -12,13 +12,9 @@ export type Interaction =
   | ((
       props: InteractionDependencies,
       message: Message,
-    ) => Promise<
-      Response<ValidationError | void | AnnouncementOutput | AnnouncementSettingsOutput>
-    >)
+    ) => Promise<Response<ValidationError | void | AnnouncementOutput | GuildSettingsOutput>>)
   | ((
       props: InteractionDependencies,
       message: Message,
       args: Args,
-    ) => Promise<
-      Response<ValidationError | void | AnnouncementOutput | AnnouncementSettingsOutput>
-    >);
+    ) => Promise<Response<ValidationError | void | AnnouncementOutput | GuildSettingsOutput>>);

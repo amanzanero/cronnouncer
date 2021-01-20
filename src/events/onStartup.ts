@@ -1,6 +1,6 @@
 import { initDB } from "../infra/typeorm";
 import Discord from "discord.js";
-import { AnnouncementRepo, AnnouncementSettingsRepo } from "../core/announcement/repos";
+import { AnnouncementRepo, GuildSettingsRepo } from "../core/announcement/repos";
 import { CronService } from "../core/announcement/services/cron";
 import { DiscordService } from "../core/announcement/services/discord";
 import { LoggerService } from "../core/announcement/services/logger";
@@ -11,7 +11,7 @@ export async function onStartup() {
   const discordClient = new Discord.Client();
 
   const announcementRepo = new AnnouncementRepo(stores.announcementStore);
-  const announcementSettingsRepo = new AnnouncementSettingsRepo(stores.announcementSettingsStore);
+  const guildSettingsRepo = new GuildSettingsRepo(stores.guildSettingsStore);
   const cronService = new CronService(discordClient);
   const discordService = new DiscordService(discordClient);
   const loggerService = new LoggerService();
@@ -23,7 +23,7 @@ export async function onStartup() {
     storesDisconnect,
 
     announcementRepo,
-    announcementSettingsRepo,
+    guildSettingsRepo,
     cronService,
     discordService,
     loggerService,

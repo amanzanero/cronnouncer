@@ -2,8 +2,8 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { GuildID, ScheduledTime } from "../domain/announcement";
-import { Response } from "../../../lib";
+import { ScheduledTime } from "../domain/announcement";
+import { Guard, Response } from "../../../lib";
 import {
   AnnouncementIncompleteError,
   AnnouncementNotFoundError,
@@ -27,19 +27,19 @@ export async function scheduleAnnouncement(
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "scheduleAnnouncement", async () => {
-    const { announcementRepo, announcementSettingsRepo, cronService, timeService } = deps;
+    const { announcementRepo, guildSettingsRepo, cronService, timeService } = deps;
 
-    if (!announcementID) {
-      return Response.fail<ValidationError>(
-        new ValidationError("No announcement id was provided."),
-      );
+    const guardResult = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: announcementID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    if (!guardResult.succeeded) {
+      return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
-
-    const gIDOrError = GuildID.create(guildID);
 
     // get in progress announcement
     const [settings, inProgressAnnouncement] = await Promise.all([
-      announcementSettingsRepo.findByGuildID(gIDOrError.getValue()),
+      guildSettingsRepo.findByGuildID(guildID),
       announcementRepo.findByID(announcementID),
     ]);
 

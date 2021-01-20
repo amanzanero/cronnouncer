@@ -10,18 +10,13 @@ import {
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
+import { Timezone } from "../domain/guildSettings";
 
 export async function rescheduleAnnouncements(deps: InteractionDependencies) {
   return await interactionLogWrapper(deps, "rescheduleAnnouncements", async () => {
-    const {
-      announcementRepo,
-      announcementSettingsRepo,
-      cronService,
-      loggerService,
-      timeService,
-    } = deps;
+    const { announcementRepo, guildSettingsRepo, cronService, loggerService, timeService } = deps;
     const scheduledAnnouncements = await announcementRepo.findScheduled();
-    const announcementSettings = await announcementSettingsRepo.findByGuildIDs(
+    const guildSettings = await guildSettingsRepo.findByGuildIDs(
       scheduledAnnouncements.map((ancmt) => ancmt.guildID),
     );
 
@@ -30,7 +25,7 @@ export async function rescheduleAnnouncements(deps: InteractionDependencies) {
     const scheduledPromises = scheduledAnnouncements.reduce((acc, scheduledAncmt) => {
       const scheduledTimeUTC = timeService.scheduleTimeToUTC(
         scheduledAncmt.scheduledTime as ScheduledTime,
-        announcementSettings[scheduledAncmt.guildID.value].timezone,
+        guildSettings[scheduledAncmt.guildID].timezone as Timezone, // has to exist if it was scheduled once already
       );
 
       const scheduleAndLog = async () => {

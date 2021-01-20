@@ -2,8 +2,8 @@
  * This file contains the interaction for editing announcement info
  */
 
-import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
-import { Response } from "../../../lib";
+import { Message, ScheduledTime } from "../domain/announcement";
+import { Guard, Response } from "../../../lib";
 import {
   AnnouncementNotFoundError,
   InvalidTimeError,
@@ -22,29 +22,29 @@ import {
 export interface InputData {
   announcementID: string;
   guildID: string;
-  channel?: string;
+  channelID?: string;
   message?: string;
   scheduledTime?: string;
 }
 
 export async function editAnnouncementInfo(
-  { announcementID, guildID, channel, message, scheduledTime }: InputData,
+  { announcementID, guildID, channelID, message, scheduledTime }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
-    const { announcementRepo, announcementSettingsRepo, discordService, timeService } = deps;
+    const { announcementRepo, guildSettingsRepo, discordService, timeService } = deps;
 
-    if (!announcementID) {
-      return Response.fail<ValidationError>(
-        new ValidationError("No announcement id was provided."),
-      );
+    const guardResult = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: announcementID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    if (!guardResult.succeeded) {
+      return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
-    const guildIDOrError = GuildID.create(guildID);
-
-    const [activeAnnouncement, announcementSettings] = await Promise.all([
+    const [activeAnnouncement, guildSettings] = await Promise.all([
       announcementRepo.findByID(announcementID),
-      announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
+      guildSettingsRepo.findByGuildID(guildID),
     ]);
 
     if (!activeAnnouncement) {
@@ -53,7 +53,7 @@ export async function editAnnouncementInfo(
       );
     }
 
-    if (!announcementSettings || !announcementSettings.timezone) {
+    if (!guildSettings || !guildSettings.timezone) {
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
     }
 
@@ -71,7 +71,7 @@ export async function editAnnouncementInfo(
       if (scheduledTimeOrError.isSuccess) {
         const isValidTimeInFuture = !timeService.isValidFutureTime(
           scheduledTimeOrError.getValue(),
-          announcementSettings.timezone,
+          guildSettings.timezone,
         );
 
         if (isValidTimeInFuture) {
@@ -84,19 +84,15 @@ export async function editAnnouncementInfo(
       }
     }
 
-    if (channel !== undefined) {
-      const channelOrError = Channel.create(channel);
-      const promiseTextChannelExists = await discordService.textChannelExists(
-        guildIDOrError.getValue(),
-        channelOrError.getValue(),
-      );
+    if (channelID !== undefined) {
+      const promiseTextChannelExists = await discordService.textChannelExists(guildID, channelID);
       if (!promiseTextChannelExists) {
         return Response.fail<TextChannelDoesNotExistError>(
-          new TextChannelDoesNotExistError(channel),
+          new TextChannelDoesNotExistError(channelID),
         );
       }
 
-      activeAnnouncement.updateChannel(channelOrError.getValue());
+      activeAnnouncement.updateChannelID(channelID);
     }
 
     await announcementRepo.save(activeAnnouncement);

@@ -2,8 +2,6 @@ import { Moment } from "moment";
 import { v4 } from "uuid";
 import {
   Announcement,
-  Channel,
-  GuildID,
   Message,
   ScheduledTime,
 } from "../../../src/core/announcement/domain/announcement";
@@ -20,23 +18,21 @@ interface OptionalMockAnnouncementProps {
   scheduledTime?: Moment;
   message?: string;
   status?: AnnouncementStatus;
-  channel?: string;
+  channelID?: string;
 }
 
 export function createMockAnnouncement(props: OptionalMockAnnouncementProps): Announcement {
-  const guildID = GuildID.create(props.guildID || v4()).getValue();
   const status = Status.create(props.status || AnnouncementStatus.unscheduled).getValue();
 
   const scheduledTime = props.scheduledTime
     ? ScheduledTime.create(props.scheduledTime.format(DATE_FORMAT)).getValue()
     : undefined;
   const message = props.message ? Message.create(props.message).getValue() : undefined;
-  const channel = props.channel ? Channel.create(props.channel).getValue() : undefined;
 
   return Announcement.create(
     {
-      guildID,
-      channel,
+      guildID: props.guildID || v4(),
+      channelID: props.channelID,
       scheduledTime,
       message,
       status,

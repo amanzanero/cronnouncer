@@ -1,6 +1,6 @@
 import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
-import { Announcement, Channel, Message } from "../domain/announcement";
+import { Announcement, Message } from "../domain/announcement";
 import { ILoggerService } from "./logger";
 import { IAnnouncementRepo } from "../repos";
 
@@ -41,8 +41,8 @@ export class CronService implements ICronService {
     let channel: TextChannel;
 
     try {
-      guild = await this.discordClient.guilds.fetch(announcement.guildID.value);
-      channel = guild.channels.cache.get((announcement.channel as Channel).value) as TextChannel;
+      guild = await this.discordClient.guilds.fetch(announcement.guildID);
+      channel = guild.channels.cache.get(announcement.channelID as string) as TextChannel;
     } catch (e) {
       loggerService.error("CronService.scheduleAnnouncement", e);
       return;
@@ -84,8 +84,8 @@ export class CronService implements ICronService {
       `unscheduled announcement: ${announcement.id}`,
       {
         requestID,
-        guildID: announcement.guildID.value,
-        channelID: announcement.channel?.value,
+        guildID: announcement.guildID,
+        channelID: announcement.channelID,
         announcementID: announcement.id.value,
       },
     );

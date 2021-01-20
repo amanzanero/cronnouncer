@@ -1,2 +1,2 @@
 export * from "./announcement";
-export * from "./announcementSettings";
+export * from "./guildSettings";

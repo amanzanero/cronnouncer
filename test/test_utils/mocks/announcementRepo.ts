@@ -30,7 +30,7 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
     const existing = this.datastore[announcement.id.value];
     if (existing) {
       this.datastore[announcement.id.value] = existing.copy({
-        channel: announcement.channel,
+        channelID: announcement.channelID,
         message: announcement.message,
         scheduledTime: announcement.scheduledTime,
         status: announcement.status,

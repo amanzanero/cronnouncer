@@ -1,25 +1,25 @@
 import test from "ava";
 import sinon from "sinon";
 
-import {
-  makeCommandMap,
-  UNKNOWN_COMMAND_RESPONSE,
-  makeMessageHandler,
-} from "../../../src/commands";
+import { makeMessageHandler } from "../../../src/events";
+import * as cmd from "../../../src/commands";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import * as parser from "../../../src/commands/util/parser";
 import { logger } from "../../../src/infra/logger";
 import { PREFIX } from "../../../src/constants";
 
 test.before((t) => {
-  const commands = makeCommandMap({ stores: {}, discordClient: {} } as any);
+  const deps: any = { stores: {}, discordClient: {} };
+  const commands = cmd.makeCommandMap(deps);
   // stub our executions
   Object.entries(commands).forEach((keyValue) => {
     if (!keyValue[1]) return;
     sinon.stub(keyValue[1], "execute");
   });
+
+  sinon.stub(cmd, "makeCommandMap").returns(commands);
   const errorLogSpy = sinon.spy(logger, "error");
-  const messageHandler = makeMessageHandler({} as any, commands);
+  const messageHandler = makeMessageHandler(deps);
   Object.assign(t.context, { commands, messageHandler, errorLogSpy });
 });
 
@@ -47,7 +47,7 @@ test("handles unknown command with reply", async (t) => {
   const message = genTestMessage({ message: `${PREFIX}unknown` });
   const sendStub = sinon.stub(message.channel, "send");
   await messageHandler(message);
-  t.true(sendStub.calledOnceWith(UNKNOWN_COMMAND_RESPONSE));
+  t.true(sendStub.calledOnceWith(cmd.UNKNOWN_COMMAND_RESPONSE));
 });
 
 test("handles unknown command with reply - throws gracefully", async (t) => {

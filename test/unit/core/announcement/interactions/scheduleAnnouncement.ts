@@ -15,16 +15,16 @@ import {
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 import { scheduleAnnouncement } from "../../../../../src/core/announcement/interactions/scheduleAnnouncement";
 import { MockCronService } from "../../../../test_utils/mocks/cronService";
-import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
+import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSettingsRepo";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
-import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
+import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
 import { v4 } from "uuid";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
-    announcementSettingsRepo: MockAnnouncementSettingsRepo;
+    guildSettingsRepo: MockGuildSettingsRepo;
     cronService: MockCronService;
     timeService: TimeService;
     loggerService: MockLoggerService;
@@ -33,21 +33,21 @@ interface TestContext {
 
 test.before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
-  const announcementSettingsRepo = new MockAnnouncementSettingsRepo();
+  const guildSettingsRepo = new MockGuildSettingsRepo();
   const cronService = new MockCronService();
   const timeService = new TimeService();
   const loggerService = new MockLoggerService();
   Object.assign(t.context, {
     deps: {
       announcementRepo,
-      announcementSettingsRepo,
+      guildSettingsRepo,
       cronService,
       timeService,
       loggerService,
     },
   });
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID: "guildWithSettings",
     }),
@@ -60,7 +60,7 @@ test("should fail with undefined input", async (t) => {
   const input: any = {};
   const response = await scheduleAnnouncement(input, deps as any);
 
-  const expectedErr = new ValidationError("No announcement id was provided.");
+  const expectedErr = new ValidationError("No announcementID was provided");
   t.deepEqual(response.value, expectedErr);
 });
 
@@ -93,8 +93,8 @@ test("should fail if announcement in progress is not complete", async (t) => {
   const { announcementRepo } = deps;
 
   const guildID = v4();
-  await deps.announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await deps.guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID,
     }),
@@ -117,15 +117,15 @@ test("should pass if announcement in progress is completed", async (t) => {
   const { announcementRepo } = deps;
 
   const guildID = v4();
-  await deps.announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await deps.guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID,
     }),
   );
 
   const announcement = createMockAnnouncement({
-    channel: "some-channel",
+    channelID: "some-channel",
     guildID,
     message: "A message!",
     scheduledTime: moment().add(1, "day"),

@@ -4,9 +4,9 @@ import sinon from "sinon";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 import { MockCronService } from "../../../../test_utils/mocks/cronService";
-import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
+import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSettingsRepo";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
-import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
+import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
 import { rescheduleAnnouncements } from "../../../../../src/core/announcement/interactions/rescheduleAnnoucements";
 import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
@@ -14,7 +14,7 @@ import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
-    announcementSettingsRepo: MockAnnouncementSettingsRepo;
+    guildSettingsRepo: MockGuildSettingsRepo;
     cronService: MockCronService;
     timeService: TimeService;
   };
@@ -22,26 +22,26 @@ interface TestContext {
 
 test.before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
-  const announcementSettingsRepo = new MockAnnouncementSettingsRepo();
+  const guildSettingsRepo = new MockGuildSettingsRepo();
   const cronService = new MockCronService();
   const timeService = new TimeService();
 
   Object.assign(t.context, {
     deps: {
       announcementRepo,
-      announcementSettingsRepo,
+      guildSettingsRepo,
       cronService,
       timeService,
     },
   });
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID: "guildWithSettings0",
     }),
   );
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID: "guildWithSettings1",
     }),

@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { createConnection, Repository } from "typeorm";
-import { Announcement, AnnouncementSettings } from "./models";
+import { Announcement, GuildSettings } from "./models";
 import { logger } from "../logger";
 import ormconfig from "./ormconfig";
 import { DATABASE_URL } from "../../constants";
 
 export interface DbStores {
   announcementStore: Repository<Announcement>;
-  announcementSettingsStore: Repository<AnnouncementSettings>;
+  guildSettingsStore: Repository<GuildSettings>;
 }
 
 export async function initDB(): Promise<{
@@ -26,16 +26,16 @@ export async function initDB(): Promise<{
   }
 
   const connection = await createConnection(config as any);
-  const [announcementStore, announcementSettingsStore] = await Promise.all([
+  const [announcementStore, guildSettingsStore] = await Promise.all([
     connection.getRepository(Announcement),
-    connection.getRepository(AnnouncementSettings),
+    connection.getRepository(GuildSettings),
   ]);
 
   logger.info("connected to database successfully");
   return {
     stores: {
       announcementStore,
-      announcementSettingsStore,
+      guildSettingsStore,
     },
     storesDisconnect: () => connection.close(),
   };

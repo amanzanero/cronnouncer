@@ -24,10 +24,10 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const [announcementID, rawChannel] = args.argArray;
-  const channel = parseDiscordChannelID(rawChannel);
+  const channelID = parseDiscordChannelID(rawChannel);
   const guildID = message.guild?.id as string;
 
-  return await editAnnouncementInfo({ announcementID, guildID, channel }, props);
+  return await editAnnouncementInfo({ announcementID, guildID, channelID }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

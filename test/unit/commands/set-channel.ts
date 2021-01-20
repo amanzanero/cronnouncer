@@ -6,15 +6,15 @@ import { Command } from "../../../src/commands/definitions";
 import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
 import { makeExecuteBase } from "../../../src/commands/base/executeBase";
-import { MockAnnouncementSettingsRepo } from "../../test_utils/mocks/announcementSettingsRepo";
-import { createMockAnnouncementSettings } from "../../test_utils/mocks/announcementSettings";
+import { MockGuildSettingsRepo } from "../../test_utils/mocks/guildSettingsRepo";
+import { createMockGuildSettings } from "../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../test_utils/mocks/loggerService";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
     discordService: MockDiscordService;
-    announcementSettingsRepo: MockAnnouncementSettingsRepo;
+    guildSettingsRepo: MockGuildSettingsRepo;
     loggerService: MockLoggerService;
   };
   execute: Command["execute"];
@@ -23,16 +23,14 @@ interface TestContext {
 test.before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const discordService = new MockDiscordService();
-  const announcementSettingsRepo = new MockAnnouncementSettingsRepo();
+  const guildSettingsRepo = new MockGuildSettingsRepo();
   const loggerService = new MockLoggerService();
-  const deps = { announcementRepo, discordService, announcementSettingsRepo, loggerService };
+  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
   const execute = makeExecuteBase(deps as any, setChannelCMD);
 
   const newAnnouncement = createMockAnnouncement({ guildID: "1", id: "testID" });
   await announcementRepo.save(newAnnouncement);
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({ guildID: "1", timezone: "US/Pacific" }),
-  );
+  await guildSettingsRepo.save(createMockGuildSettings({ guildID: "1", timezone: "US/Pacific" }));
   await Object.assign(t.context, { deps, execute });
 });
 
@@ -47,5 +45,5 @@ test("channel gets set", async (t) => {
   await execute({ requestID: "1", message: mockMessage as any, args });
 
   const announcement = await deps.announcementRepo.findByID("testID");
-  t.is(announcement?.channel?.value, "1234");
+  t.is(announcement?.channelID, "1234");
 });
