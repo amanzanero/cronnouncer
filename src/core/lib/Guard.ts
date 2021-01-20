@@ -20,7 +20,7 @@ export class Guard {
   }
 
   public static againstNullOrUndefined(argument: any, argumentName: string): IGuardResult {
-    if (argument === null || argument === undefined) {
+    if (argument === null || argument === undefined || argument === "") {
       return { succeeded: false, message: `No ${argumentName} was provided` };
     } else {
       return { succeeded: true };
@@ -36,11 +36,11 @@ export class Guard {
     return { succeeded: true };
   }
 
-  public static againsNaN(argument: any): IGuardResult {
+  public static againstNaN(argument: any, argumentName: string): IGuardResult {
     const isNumber = !isNaN(parseInt(argument));
 
     if (!isNumber) {
-      return { succeeded: isNumber, message: `${argument} is not a number` };
+      return { succeeded: isNumber, message: `${argumentName} is not a number` };
     }
 
     return { succeeded: isNumber };

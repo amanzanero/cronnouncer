@@ -25,7 +25,7 @@ export async function unScheduleAnnouncement(
       { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
-    const guardNaN = Guard.againsNaN(shortID);
+    const guardNaN = Guard.againstNaN(shortID, "shortID");
     const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));

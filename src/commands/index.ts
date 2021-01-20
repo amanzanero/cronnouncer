@@ -19,6 +19,7 @@ import * as scheduleAnnouncementCMD from "./schedule";
 import * as timezoneCMD from "./timezone";
 import * as deleteCMD from "./delete";
 import { makeListExecute } from "./list";
+import { makeViewExecute } from "./view";
 
 export const UNKNOWN_COMMAND_RESPONSE = `Sorry I didn't understand that command.\nFor a list of commands, run \`${PREFIX}help\`.`;
 
@@ -45,6 +46,7 @@ export function makeCommandMap(cmdProps: CMDProps): CommandMap {
     schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
     unschedule: makeCMD(cmdProps, cancelAnnouncementCMD),
     list: makeListExecute(),
+    view: makeViewExecute(),
     delete: makeCMD(cmdProps, deleteCMD),
   };
 }

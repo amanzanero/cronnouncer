@@ -1,6 +1,6 @@
 import { PREFIX } from "../constants";
 import { logger } from "../infra/logger";
-import { baseEmbed } from "../core/lib";
+import { baseEmbed } from "./util/baseEmbed";
 import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";

@@ -1,5 +1,5 @@
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
-import { baseEmbed } from "../../core/lib";
+import { baseEmbed } from "./baseEmbed";
 
 export function announcementStringEmbed(announcementOutput: AnnouncementOutput) {
   // inside a command, event listener, etc.
@@ -8,7 +8,7 @@ export function announcementStringEmbed(announcementOutput: AnnouncementOutput) 
     { name: "id", value: announcementOutput.id || "EMPTY" },
     {
       name: "Channel",
-      value: announcementOutput.channel ? `<#${announcementOutput.channel}>` : "EMPTY",
+      value: announcementOutput.channelID ? `<#${announcementOutput.channelID}>` : "EMPTY",
       inline: true,
     },
     { name: "Time", value: announcementOutput.scheduledTime || "EMPTY", inline: true },

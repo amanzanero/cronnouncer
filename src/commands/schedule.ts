@@ -30,6 +30,6 @@ export async function interaction(props: InteractionDependencies, message: Messa
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
   const value = response.value as AnnouncementOutput;
   await message.channel.send(
-    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channel}>`,
+    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channelID}>`,
   );
 }

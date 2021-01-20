@@ -40,7 +40,7 @@ export async function editAnnouncementInfo(
       { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
-    const guardNaN = Guard.againsNaN(shortID);
+    const guardNaN = Guard.againstNaN(shortID, "shortID");
     const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));
@@ -52,7 +52,7 @@ export async function editAnnouncementInfo(
     ]);
 
     if (!activeAnnouncement) {
-      deps.loggerService.info("deleteAnnouncement", `announcement with id: ${shortID} DNE`, meta);
+      deps.loggerService.info("editAnnouncementInfo", `announcement with id: ${shortID} DNE`, meta);
       return Response.fail<AnnouncementNotFoundError>(
         new AnnouncementNotFoundError(shortID.toString()),
       );
@@ -60,7 +60,7 @@ export async function editAnnouncementInfo(
 
     if (!guildSettings || !guildSettings.timezone) {
       deps.loggerService.info(
-        "deleteAnnouncement",
+        "editAnnouncementInfo",
         "validation: no guild settings or timezone",
         meta,
       );
@@ -73,7 +73,7 @@ export async function editAnnouncementInfo(
       const messageOrError = Message.create(message);
       if (messageOrError.isFailure) {
         deps.loggerService.info(
-          "deleteAnnouncement",
+          "editAnnouncementInfo",
           `validation: ${messageOrError.errorValue()}`,
           updatedMeta,
         );
@@ -93,14 +93,14 @@ export async function editAnnouncementInfo(
 
         if (isValidTimeInFuture) {
           const e = new TimeInPastError();
-          deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+          deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
           return Response.fail<TimeInPastError>(e);
         }
 
         activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
       } else {
         const e = new InvalidTimeError(scheduledTime);
-        deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+        deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
         return Response.fail<InvalidTimeError>(e);
       }
     }
@@ -109,7 +109,7 @@ export async function editAnnouncementInfo(
       const promiseTextChannelExists = await discordService.textChannelExists(guildID, channelID);
       if (!promiseTextChannelExists) {
         const e = new TextChannelDoesNotExistError(channelID);
-        deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+        deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
         return Response.fail<TextChannelDoesNotExistError>(e);
       }
 
@@ -118,7 +118,7 @@ export async function editAnnouncementInfo(
 
     await announcementRepo.save(activeAnnouncement);
     deps.loggerService.info(
-      "deleteAnnouncement",
+      "editAnnouncementInfo",
       `announcement: ${activeAnnouncement.id.value} successfully edited`,
       { ...updatedMeta, announcement: AnnouncementToOutput(activeAnnouncement) },
     );

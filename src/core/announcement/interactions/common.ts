@@ -23,7 +23,7 @@ export interface AnnouncementOutput {
   id: number;
   guildID: string;
   status: string;
-  channel?: string;
+  channelID?: string;
   message?: string;
   scheduledTime?: string;
 }
