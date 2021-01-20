@@ -26,16 +26,23 @@ test.before((t) => {
 
 test("should not delete with no announcementID", async (t) => {
   const { deps } = t.context as TestContext;
+  const ann = createMockAnnouncement({});
+  await deps.announcementRepo.save(ann);
 
   const input = { announcementID: "" };
   const response = await deleteAnnouncement(input, deps as any);
 
   const expectedErr = new ValidationError("No announcement id was provided.");
   t.deepEqual(response.value, expectedErr);
+
+  // should still be persisted
+  t.deepEqual(await deps.announcementRepo.findByID(ann.id.value), ann);
 });
 
 test("should not delete if no announcement", async (t) => {
   const { deps } = t.context as TestContext;
+  const ann = createMockAnnouncement({});
+  await deps.announcementRepo.save(ann);
 
   const guildID = "1";
   const input = { guildID, announcementID: "dne" };
@@ -43,6 +50,9 @@ test("should not delete if no announcement", async (t) => {
 
   const expectedErr = new AnnouncementNotFoundError("dne");
   t.deepEqual(response.value, expectedErr);
+
+  // should still be persisted
+  t.deepEqual(await deps.announcementRepo.findByID(ann.id.value), ann);
 });
 
 test("should delete", async (t) => {

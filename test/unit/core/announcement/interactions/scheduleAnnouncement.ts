@@ -1,5 +1,6 @@
 import test from "ava";
 import moment from "moment";
+import { v4 } from "uuid";
 import { Response } from "../../../../../src/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
@@ -19,7 +20,7 @@ import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSetting
 import { TimeService } from "../../../../../src/core/announcement/services/time";
 import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
-import { v4 } from "uuid";
+import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 
 interface TestContext {
   deps: {
@@ -80,12 +81,17 @@ test("should fail if there is no timezone", async (t) => {
 
   const guildID = "no timezone";
   const announcement = createMockAnnouncement({ guildID });
+  await deps.announcementRepo.save(announcement);
 
   const input = { announcementID: announcement.id.value, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new TimezoneNotSetError();
   t.deepEqual(response.value, expectedErr);
+
+  // should be the same
+  const copy = announcement.copy();
+  t.deepEqual(await deps.announcementRepo.findByID(announcement.id.value), copy);
 });
 
 test("should fail if announcement in progress is not complete", async (t) => {
@@ -110,9 +116,13 @@ test("should fail if announcement in progress is not complete", async (t) => {
     "An announcement must have a message, scheduledTime, and channel set before publishing.",
   );
   t.deepEqual(response.value, expectedErr);
+
+  // should be the same
+  const copy = announcement.copy();
+  t.deepEqual(await deps.announcementRepo.findByID(announcement.id.value), copy);
 });
 
-test("should pass if announcement in progress is completed", async (t) => {
+test("should schedule the announcement", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
@@ -135,6 +145,9 @@ test("should pass if announcement in progress is completed", async (t) => {
   const input = { announcementID: announcement.id.value, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
-  const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
+  const copy = announcement.copy();
+  const expectedAnnouncement = AnnouncementToOutput(copy);
+  Object.assign(expectedAnnouncement, { status: AnnouncementStatus.scheduled });
+  const expected = Response.success<AnnouncementOutput>(expectedAnnouncement);
   t.deepEqual(response, expected);
 });

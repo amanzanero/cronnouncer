@@ -36,22 +36,27 @@ test.before(async (t) => {
   await guildSettingsRepo.save(settings);
 });
 
-test("should fail with undefined DTO field", async (t) => {
+test("should fail with undefined guildID", async (t) => {
   const { deps } = t.context as TestContext;
+  const input: any = { guildID: undefined };
+  const response = await createAnnouncement(input, deps as any);
 
-  const response = await createAnnouncement({} as any, deps as any);
-
-  const expectedErr = new ValidationError("No guildID was provided");
-  t.deepEqual(response.value, expectedErr);
+  const expectedErr = Response.fail<ValidationError>(
+    new ValidationError("No guildID was provided"),
+  );
+  t.deepEqual(response, expectedErr);
 });
 
 test("should not start an announcement when there is no timezone set", async (t) => {
   const { deps } = t.context as TestContext;
 
-  const response = await createAnnouncement({ guildID: "2" }, deps as any);
+  const response = await createAnnouncement({ guildID: "no-timezone" }, deps as any);
 
   const expected = Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
   t.deepEqual(response, expected);
+  Object.entries(deps.announcementRepo.datastore).forEach((kv) => {
+    t.true(kv[1]?.guildID !== "no-timezone");
+  });
 });
 
 test("should successfully create", async (t) => {
@@ -68,4 +73,9 @@ test("should successfully create", async (t) => {
     }),
     response,
   );
+
+  const shouldBeTrue = Object.entries(deps.announcementRepo.datastore).reduce((acc, kv) => {
+    return acc || kv[1]?.guildID === "guild-with-timezone";
+  }, false);
+  t.true(shouldBeTrue);
 });

@@ -103,6 +103,9 @@ test("should return validation error with bad input", async (t) => {
     new ValidationError("No announcementID was provided"),
   );
   t.deepEqual(responseNoID, expectedErrNoID);
+
+  // should be the same
+  t.deepEqual(await announcementRepo.findByID(announcement.id.value), announcement);
 });
 
 test("should return AnnouncementNotFoundError", async (t) => {
@@ -130,16 +133,24 @@ test("should return TextChannelDoesNotExistError", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID, channelID };
+  const input = {
+    announcementID: announcement.id.value,
+    guildID,
+    channelID,
+    message: "this message should not be added",
+  };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<TextChannelDoesNotExistError>(
     new TextChannelDoesNotExistError(channelID),
   );
   t.deepEqual(response, expectedErr);
+
+  // should be the same
+  t.deepEqual(await announcementRepo.findByID(announcement.id.value), announcement);
 });
 
-test("should return success response", async (t) => {
+test("should return success if channel exists", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
@@ -205,6 +216,9 @@ test("should not set time if there is no timezone", async (t) => {
 
   const expectedErr = Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
   t.deepEqual(response, expectedErr);
+
+  // should be the same
+  t.deepEqual(await announcementRepo.findByID(announcement.id.value), announcement);
 });
 
 test("should not set improperly formatted time", async (t) => {
@@ -229,9 +243,12 @@ test("should not set improperly formatted time", async (t) => {
     new InvalidTimeError(mScheduledTime.toISOString()),
   );
   t.deepEqual(response, expectedErr);
+
+  // should be the same
+  t.deepEqual(await announcementRepo.findByID(announcement.id.value), announcement);
 });
 
-test("should not set past time", async (t) => {
+test("should not set scheduledTime in the past", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
@@ -251,9 +268,11 @@ test("should not set past time", async (t) => {
 
   const expectedErr = Response.fail<TimeInPastError>(new TimeInPastError());
   t.deepEqual(response, expectedErr);
+  // should be the same
+  t.deepEqual(await announcementRepo.findByID(announcement.id.value), announcement);
 });
 
-test("should set time if announcement in progress", async (t) => {
+test("should set scheduledTime", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo, guildSettingsRepo } = deps;
 
@@ -262,20 +281,22 @@ test("should set time if announcement in progress", async (t) => {
 
   const announcement = createMockAnnouncement({
     guildID,
-    scheduledTime: mScheduledTime,
   });
   await announcementRepo.save(announcement);
 
   const settings = createMockGuildSettings({ timezone: "US/Pacific", guildID });
   await guildSettingsRepo.save(settings);
 
+  const scheduledTime = mScheduledTime.format(DATE_FORMAT);
   const input = {
     announcementID: announcement.id.value,
     guildID,
-    scheduledTime: mScheduledTime.format(DATE_FORMAT),
+    scheduledTime,
   };
   const response = await editAnnouncementInfo(input, deps as any);
 
-  const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
+  const expectedAnnouncement = AnnouncementToOutput(announcement);
+  Object.assign(expectedAnnouncement, { scheduledTime });
+  const expected = Response.success<AnnouncementOutput>(expectedAnnouncement);
   t.deepEqual(response, expected);
 });
