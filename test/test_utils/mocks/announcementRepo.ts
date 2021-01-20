@@ -10,7 +10,7 @@ interface Datastore {
 }
 
 export class MockAnnouncementRepo implements IAnnouncementRepo {
-  private readonly datastore: Datastore;
+  datastore: Datastore;
 
   constructor() {
     this.datastore = {};
@@ -26,11 +26,19 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
       .map(([_, value]) => value) as Announcement[];
   }
 
+  async findByShortID(shortID: number, guildID: string) {
+    const kv = Object.entries(this.datastore).filter(
+      (kv) => kv[1]?.shortID === shortID && kv[1]?.guildID === guildID,
+    );
+    const a = kv.shift();
+    return a ? a[1] : undefined;
+  }
+
   public async save(announcement: Announcement) {
     const existing = this.datastore[announcement.id.value];
     if (existing) {
       this.datastore[announcement.id.value] = existing.copy({
-        channel: announcement.channel,
+        channelID: announcement.channelID,
         message: announcement.message,
         scheduledTime: announcement.scheduledTime,
         status: announcement.status,

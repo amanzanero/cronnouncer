@@ -1,36 +1,65 @@
 /**
  * This file contains the use case for starting a new announcement
  */
-import { Response } from "../../../lib";
+import { Guard, Response } from "../../lib";
 import { AnnouncementNotFoundError, ValidationError } from "../errors";
-import { InteractionDependencies, interactionLogWrapper } from "./common";
+import {
+  AnnouncementOutput,
+  AnnouncementToOutput,
+  InteractionDependencies,
+  interactionLogWrapper,
+} from "./common";
 
 export interface InputData {
-  announcementID: string;
+  announcementID: number;
+  guildID: string;
 }
 
 export async function deleteAnnouncement(
-  { announcementID }: InputData,
+  { announcementID: shortID, guildID }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "cancelAnnouncement", async () => {
     const { announcementRepo } = deps;
+    const meta = {
+      requestID: deps.requestID,
+      guildID,
+    };
 
-    if (!announcementID) {
-      return Response.fail<ValidationError>(
-        new ValidationError("No announcement id was provided."),
-      );
+    const guardUndefined = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: shortID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    const guardNaN = Guard.againstNaN(shortID, "announcementID");
+    const guard = Guard.combine([guardUndefined, guardNaN]);
+
+    if (!guard.succeeded) {
+      deps.loggerService.info("deleteAnnouncement", `incorrect params: ${guard.message}`, meta);
+      return Response.fail<ValidationError>(new ValidationError(guard.message));
     }
 
-    const inProgressAnnouncement = await announcementRepo.findByID(announcementID);
+    const inProgressAnnouncement = await announcementRepo.findByShortID(shortID, guildID);
     if (!inProgressAnnouncement) {
+      deps.loggerService.info("deleteAnnouncement", `announcement with id: ${shortID} DNE`, {
+        ...meta,
+        shortID,
+      });
+
       return Response.fail<AnnouncementNotFoundError>(
-        new AnnouncementNotFoundError(announcementID),
+        new AnnouncementNotFoundError(shortID.toString()),
       );
     }
 
     await announcementRepo.delete(inProgressAnnouncement);
-
-    return Response.success<void>();
+    deps.loggerService.info(
+      "deleteAnnouncement",
+      `announcement ${inProgressAnnouncement.id} deleted on guild ${guildID}`,
+      {
+        ...meta,
+        shortID,
+        announcement: AnnouncementToOutput(inProgressAnnouncement),
+      },
+    );
+    return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
   });
 }

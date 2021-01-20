@@ -5,7 +5,7 @@ import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { Args } from "./definitions/Args";
 
 export const help = {
@@ -13,6 +13,7 @@ export const help = {
   category: "Scheduling",
   description: "Schedules the announcement to be sent.",
   usage: `${PREFIX}schedule`,
+  example: `${PREFIX}schedule 8fc3d953-f46c-4432-ae85-09e82a3fd81a`,
 };
 
 export const conf = {
@@ -22,13 +23,13 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const guildID = message.guild?.id as string;
-  const announcementID = args.firstArg;
+  const announcementID = parseInt(args.firstArg);
   return await scheduleAnnouncement({ announcementID, guildID }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {
   const value = response.value as AnnouncementOutput;
   await message.channel.send(
-    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channel}>`,
+    `Announcement scheduled for ${value.scheduledTime} on channel <#${value.channelID}>`,
   );
 }

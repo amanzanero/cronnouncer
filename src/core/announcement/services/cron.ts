@@ -1,8 +1,8 @@
 import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
-import { Announcement, Channel, Message } from "../domain/announcement";
-import { ILoggerService } from "./logger";
+import { Announcement, Message } from "../domain/announcement";
 import { IAnnouncementRepo } from "../repos";
+import { ILoggerService } from "./logger";
 
 export interface ScheduleAnnouncementProps {
   announcement: Announcement;
@@ -13,7 +13,7 @@ export interface ScheduleAnnouncementProps {
   requestID?: string;
 }
 
-export interface UnScheduleAnnouncemntProps {
+export interface UnScheduleAnnouncementProps {
   announcement: Announcement;
   loggerService: ILoggerService;
   requestID?: string;
@@ -24,7 +24,7 @@ export const DATE_FORMAT = "M/D/YYYY h:mm a";
 export interface ICronService {
   scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void>;
 
-  unScheduleAnnouncement(props: UnScheduleAnnouncemntProps): Promise<void>;
+  unScheduleAnnouncement(props: UnScheduleAnnouncementProps): void;
 }
 
 export class CronService implements ICronService {
@@ -41,14 +41,14 @@ export class CronService implements ICronService {
     let channel: TextChannel;
 
     try {
-      guild = await this.discordClient.guilds.fetch(announcement.guildID.value);
-      channel = guild.channels.cache.get((announcement.channel as Channel).value) as TextChannel;
+      guild = await this.discordClient.guilds.fetch(announcement.guildID);
+      channel = guild.channels.cache.get(announcement.channelID as string) as TextChannel;
     } catch (e) {
       loggerService.error("CronService.scheduleAnnouncement", e);
       return;
     }
 
-    schedule.scheduleJob(`${announcement.id}`, scheduledTimeUTC, async () => {
+    schedule.scheduleJob(announcement.id.value, scheduledTimeUTC, async () => {
       try {
         await channel.send((announcement.message as Message).value);
         announcement.sent();
@@ -75,17 +75,17 @@ export class CronService implements ICronService {
     });
   }
 
-  async unScheduleAnnouncement(props: UnScheduleAnnouncemntProps): Promise<void> {
+  unScheduleAnnouncement(props: UnScheduleAnnouncementProps) {
     const { announcement, loggerService, requestID } = props;
 
-    schedule.cancelJob(`${announcement.id}`);
+    schedule.cancelJob(announcement.id.value);
     loggerService.info(
       "CronService.unScheduleAnnouncement",
-      `unscheduled announcement: ${announcement.id}`,
+      `unscheduled announcement: ${announcement.id.value}`,
       {
         requestID,
-        guildID: announcement.guildID.value,
-        channelID: announcement.channel?.value,
+        guildID: announcement.guildID,
+        channelID: announcement.channelID,
         announcementID: announcement.id.value,
       },
     );

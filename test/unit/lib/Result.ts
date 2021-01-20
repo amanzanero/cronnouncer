@@ -1,5 +1,5 @@
 import test from "ava";
-import { Result } from "../../../src/lib";
+import { Result } from "../../../src/core/lib";
 
 test("shouldn't be able to create a success result with an error", (t) => {
   t.throws(() => new Result<string>(true, "error!"));

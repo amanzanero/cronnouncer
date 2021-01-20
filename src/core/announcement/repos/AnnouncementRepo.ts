@@ -2,14 +2,16 @@
  * his file contains a repository composer for announcements
  */
 
+import { Repository } from "typeorm";
 import { Announcement } from "../domain/announcement";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
-import { Repository } from "typeorm";
-import { AnnouncementMap } from "./AnnouncementMap";
 import { AnnouncementStatus } from "../domain/announcement/Status";
+import { AnnouncementMap } from "./AnnouncementMap";
 
 export interface IAnnouncementRepo {
   findByID(announcementID: string): Promise<Announcement | undefined>;
+
+  findByShortID(shortID: number, guildID: string): Promise<Announcement | undefined>;
 
   findScheduled(): Promise<Announcement[]>;
 
@@ -28,6 +30,14 @@ export class AnnouncementRepo implements IAnnouncementRepo {
   async findByID(announcementID: string): Promise<Announcement | undefined> {
     const announcement = await this.typeormAnnouncementRepo.findOne({
       announcement_id: announcementID,
+    });
+    return announcement && AnnouncementMap.toDomain(announcement);
+  }
+
+  async findByShortID(shortID: number, guildID: string) {
+    const announcement = await this.typeormAnnouncementRepo.findOne({
+      short_id: shortID,
+      guild_id: guildID,
     });
     return announcement && AnnouncementMap.toDomain(announcement);
   }

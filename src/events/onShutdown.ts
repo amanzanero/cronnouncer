@@ -1,14 +1,21 @@
-import { logger } from "../util";
 import { Client } from "discord.js";
+import { logger } from "../infra/logger";
 
 export interface OnShutdownProps {
   discordClient: Client;
-  closeDatabase: () => Promise<void>;
+  storesDisconnect: () => Promise<void>;
 }
 
-export async function onShutdown({ discordClient, closeDatabase }: OnShutdownProps) {
-  logger.info("shutting down cronnouncer...");
-  discordClient.destroy();
-  await closeDatabase();
-  logger.info("cronnouncer shutdown");
+export function makeOnShutdown({ discordClient, storesDisconnect }: OnShutdownProps) {
+  return async function onShutdown() {
+    logger.info("shutting down cronnouncer...");
+    try {
+      discordClient.destroy();
+      await storesDisconnect();
+    } catch (e) {
+      logger.error(e);
+      process.exit(-1);
+    }
+    process.exit(0);
+  };
 }

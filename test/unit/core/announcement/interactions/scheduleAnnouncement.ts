@@ -1,6 +1,7 @@
-import test from "ava";
+import test, { before } from "ava";
 import moment from "moment";
-import { Response } from "../../../../../src/lib";
+import { v4 } from "uuid";
+import { Response } from "../../../../../src/core/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementIncompleteError,
@@ -15,39 +16,39 @@ import {
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 import { scheduleAnnouncement } from "../../../../../src/core/announcement/interactions/scheduleAnnouncement";
 import { MockCronService } from "../../../../test_utils/mocks/cronService";
-import { MockAnnouncementSettingsRepo } from "../../../../test_utils/mocks/announcementSettingsRepo";
+import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSettingsRepo";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
-import { createMockAnnouncementSettings } from "../../../../test_utils/mocks/announcementSettings";
+import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
-import { v4 } from "uuid";
+import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
-    announcementSettingsRepo: MockAnnouncementSettingsRepo;
+    guildSettingsRepo: MockGuildSettingsRepo;
     cronService: MockCronService;
     timeService: TimeService;
     loggerService: MockLoggerService;
   };
 }
 
-test.before(async (t) => {
+before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
-  const announcementSettingsRepo = new MockAnnouncementSettingsRepo();
+  const guildSettingsRepo = new MockGuildSettingsRepo();
   const cronService = new MockCronService();
   const timeService = new TimeService();
   const loggerService = new MockLoggerService();
   Object.assign(t.context, {
     deps: {
       announcementRepo,
-      announcementSettingsRepo,
+      guildSettingsRepo,
       cronService,
       timeService,
       loggerService,
     },
   });
-  await announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID: "guildWithSettings",
     }),
@@ -60,7 +61,7 @@ test("should fail with undefined input", async (t) => {
   const input: any = {};
   const response = await scheduleAnnouncement(input, deps as any);
 
-  const expectedErr = new ValidationError("No announcement id was provided.");
+  const expectedErr = new ValidationError("No announcementID was provided");
   t.deepEqual(response.value, expectedErr);
 });
 
@@ -68,7 +69,7 @@ test("should fail if there is no announcement found", async (t) => {
   const { deps } = t.context as TestContext;
 
   const guildID = "guildWithSettings";
-  const input = { announcementID: "1", guildID };
+  const input = { announcementID: 1, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementNotFoundError("1");
@@ -80,12 +81,17 @@ test("should fail if there is no timezone", async (t) => {
 
   const guildID = "no timezone";
   const announcement = createMockAnnouncement({ guildID });
+  await deps.announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new TimezoneNotSetError();
   t.deepEqual(response.value, expectedErr);
+
+  // should be the same
+  const copy = announcement.copy();
+  t.deepEqual(await deps.announcementRepo.findByID(announcement.id.value), copy);
 });
 
 test("should fail if announcement in progress is not complete", async (t) => {
@@ -93,8 +99,8 @@ test("should fail if announcement in progress is not complete", async (t) => {
   const { announcementRepo } = deps;
 
   const guildID = v4();
-  await deps.announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await deps.guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID,
     }),
@@ -103,38 +109,45 @@ test("should fail if announcement in progress is not complete", async (t) => {
   const announcement = createMockAnnouncement({ guildID });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementIncompleteError(
     "An announcement must have a message, scheduledTime, and channel set before publishing.",
   );
   t.deepEqual(response.value, expectedErr);
+
+  // should be the same
+  const copy = announcement.copy();
+  t.deepEqual(await deps.announcementRepo.findByID(announcement.id.value), copy);
 });
 
-test("should pass if announcement in progress is completed", async (t) => {
+test("should schedule the announcement", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
 
   const guildID = v4();
-  await deps.announcementSettingsRepo.save(
-    createMockAnnouncementSettings({
+  await deps.guildSettingsRepo.save(
+    createMockGuildSettings({
       timezone: "US/Pacific",
       guildID,
     }),
   );
 
   const announcement = createMockAnnouncement({
-    channel: "some-channel",
+    channelID: "some-channel",
     guildID,
     message: "A message!",
     scheduledTime: moment().add(1, "day"),
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
-  const expected = Response.success<AnnouncementOutput>(AnnouncementToOutput(announcement));
+  const copy = announcement.copy();
+  const expectedAnnouncement = AnnouncementToOutput(copy);
+  Object.assign(expectedAnnouncement, { status: AnnouncementStatus.scheduled });
+  const expected = Response.success<AnnouncementOutput>(expectedAnnouncement);
   t.deepEqual(response, expected);
 });

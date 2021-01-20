@@ -1,6 +1,6 @@
+import path from "path";
 import { createLogger, format, transports } from "winston";
 import { LoggingWinston } from "@google-cloud/logging-winston";
-import path from "path";
 import { GCLOUD_PROJECT_ID } from "../constants";
 
 const { combine, errors, timestamp, json } = format;

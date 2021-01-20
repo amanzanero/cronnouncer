@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import { Args } from "./Args";
 
-interface ExecutorProps {
+export interface ExecutorProps {
   requestID: string;
   message: Discord.Message;
   args: Args;

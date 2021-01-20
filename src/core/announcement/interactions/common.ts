@@ -1,38 +1,40 @@
 import { Announcement } from "../domain/announcement";
-import { IAnnouncementRepo, IAnnouncementSettingsRepo } from "../repos";
+import { IAnnouncementRepo, IGuildSettingsRepo } from "../repos";
 import { IDiscordService } from "../services/discord";
 import { ICronService } from "../services/cron";
-import { AnnouncementSettings } from "../domain/announcementSettings";
+import { GuildSettings } from "../domain/guildSettings";
 import { ILoggerService } from "../services/logger";
 import { ITimeService } from "../services/time";
-import { Response } from "../../../lib";
+import { Response } from "../../lib";
+import { IIdentifierService } from "../services/identifierService";
 
 export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
-  announcementSettingsRepo: IAnnouncementSettingsRepo;
+  guildSettingsRepo: IGuildSettingsRepo;
   discordService: IDiscordService;
   cronService: ICronService;
   loggerService: ILoggerService;
   timeService: ITimeService;
+  identifierService: IIdentifierService;
   requestID?: string;
 }
 
 export interface AnnouncementOutput {
-  id: string;
+  id: number;
   guildID: string;
   status: string;
-  channel?: string;
+  channelID?: string;
   message?: string;
   scheduledTime?: string;
 }
 
 export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   const output = {
-    id: a.id.value,
-    guildID: a.guildID.value,
+    id: a.shortID,
+    guildID: a.guildID,
     status: a.status.value,
   };
-  if (a.channel) Object.assign(output, { channel: a.channel.value });
+  if (a.channelID) Object.assign(output, { channelID: a.channelID });
   if (a.message) Object.assign(output, { message: a.message.value });
   if (a.scheduledTime) {
     Object.assign(output, { scheduledTime: a.scheduledTime.value });
@@ -40,15 +42,15 @@ export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   return output;
 }
 
-export interface AnnouncementSettingsOutput {
+export interface GuildSettingsOutput {
   guildID: string;
   timezone?: string;
 }
 
-export function AnnouncementSettingsToOutput(a: AnnouncementSettings): AnnouncementSettingsOutput {
+export function GuildSettingsToOutput(gs: GuildSettings): GuildSettingsOutput {
   return {
-    guildID: a.guildID.value,
-    timezone: a.timezone.value,
+    guildID: gs.guildID,
+    timezone: gs.timezone?.value,
   };
 }
 

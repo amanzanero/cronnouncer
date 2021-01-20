@@ -2,9 +2,10 @@
  * This file contains the interaction for editing announcement info
  */
 
-import { Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
-import { Response } from "../../../lib";
+import { Message, ScheduledTime } from "../domain/announcement";
+import { Guard, Response } from "../../lib";
 import {
+  AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
@@ -12,54 +13,83 @@ import {
   TimezoneNotSetError,
   ValidationError,
 } from "../errors";
+import { AnnouncementStatus } from "../domain/announcement/Status";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
+  GuildSettingsToOutput,
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
 
 export interface InputData {
-  announcementID: string;
+  announcementID: number;
   guildID: string;
-  channel?: string;
+  channelID?: string;
   message?: string;
   scheduledTime?: string;
 }
 
 export async function editAnnouncementInfo(
-  { announcementID, guildID, channel, message, scheduledTime }: InputData,
+  { announcementID: shortID, guildID, channelID, message, scheduledTime }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
-    const { announcementRepo, announcementSettingsRepo, discordService, timeService } = deps;
+    const { announcementRepo, guildSettingsRepo, discordService, timeService } = deps;
+    const meta = { requestID: deps.requestID, shortID, guildID };
 
-    if (!announcementID) {
-      return Response.fail<ValidationError>(
-        new ValidationError("No announcement id was provided."),
-      );
+    const guardUndefined = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: shortID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    const guardNaN = Guard.againstNaN(shortID, "shortID");
+    const guardResult = Guard.combine([guardUndefined, guardNaN]);
+    if (!guardResult.succeeded) {
+      return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
-    const guildIDOrError = GuildID.create(guildID);
-
-    const [activeAnnouncement, announcementSettings] = await Promise.all([
-      announcementRepo.findByID(announcementID),
-      announcementSettingsRepo.findByGuildID(guildIDOrError.getValue()),
+    const [activeAnnouncement, guildSettings] = await Promise.all([
+      announcementRepo.findByShortID(shortID, guildID),
+      guildSettingsRepo.findByGuildID(guildID),
     ]);
 
     if (!activeAnnouncement) {
+      deps.loggerService.info("editAnnouncementInfo", `announcement with id: ${shortID} DNE`, meta);
       return Response.fail<AnnouncementNotFoundError>(
-        new AnnouncementNotFoundError(announcementID),
+        new AnnouncementNotFoundError(shortID.toString()),
       );
     }
 
-    if (!announcementSettings || !announcementSettings.timezone) {
+    if (!guildSettings || !guildSettings.timezone) {
+      deps.loggerService.info(
+        "editAnnouncementInfo",
+        "validation: no guild settings or timezone",
+        meta,
+      );
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
+    }
+
+    const updatedMeta = {
+      ...meta,
+      guildSettings: GuildSettingsToOutput(guildSettings),
+      announcementID: activeAnnouncement.id.value,
+    };
+
+    if (activeAnnouncement.status.value === AnnouncementStatus.sent) {
+      deps.loggerService.info("editAnnouncementInfo", "cannot edit sent announcement", updatedMeta);
+      return Response.fail<AnnouncementLockedStatusError>(
+        new AnnouncementLockedStatusError(shortID.toString()),
+      );
     }
 
     if (message !== undefined) {
       const messageOrError = Message.create(message);
       if (messageOrError.isFailure) {
+        deps.loggerService.info(
+          "editAnnouncementInfo",
+          `validation: ${messageOrError.errorValue()}`,
+          updatedMeta,
+        );
         return Response.fail<ValidationError>(new ValidationError(messageOrError.errorValue()));
       }
 
@@ -71,35 +101,40 @@ export async function editAnnouncementInfo(
       if (scheduledTimeOrError.isSuccess) {
         const isValidTimeInFuture = !timeService.isValidFutureTime(
           scheduledTimeOrError.getValue(),
-          announcementSettings.timezone,
+          guildSettings.timezone,
         );
 
         if (isValidTimeInFuture) {
-          return Response.fail<TimeInPastError>(new TimeInPastError());
+          const e = new TimeInPastError();
+          deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
+          return Response.fail<TimeInPastError>(e);
         }
 
         activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
       } else {
-        return Response.fail<InvalidTimeError>(new InvalidTimeError(scheduledTime));
+        const e = new InvalidTimeError(scheduledTime);
+        deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
+        return Response.fail<InvalidTimeError>(e);
       }
     }
 
-    if (channel !== undefined) {
-      const channelOrError = Channel.create(channel);
-      const promiseTextChannelExists = await discordService.textChannelExists(
-        guildIDOrError.getValue(),
-        channelOrError.getValue(),
-      );
+    if (channelID !== undefined) {
+      const promiseTextChannelExists = await discordService.textChannelExists(guildID, channelID);
       if (!promiseTextChannelExists) {
-        return Response.fail<TextChannelDoesNotExistError>(
-          new TextChannelDoesNotExistError(channel),
-        );
+        const e = new TextChannelDoesNotExistError(channelID);
+        deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
+        return Response.fail<TextChannelDoesNotExistError>(e);
       }
 
-      activeAnnouncement.updateChannel(channelOrError.getValue());
+      activeAnnouncement.updateChannelID(channelID);
     }
 
     await announcementRepo.save(activeAnnouncement);
+    deps.loggerService.info(
+      "editAnnouncementInfo",
+      `announcement: ${activeAnnouncement.id.value} successfully edited`,
+      { ...updatedMeta, announcement: AnnouncementToOutput(activeAnnouncement) },
+    );
 
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(activeAnnouncement));
   });

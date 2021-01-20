@@ -2,28 +2,27 @@
 Contains definition for an announcement
  */
 
-import { ScheduledTime } from "./ScheduledTime";
-import { GuildID } from "./GuildID";
-import { Message } from "./Message";
-import { Guard, Result, UniqueEntityID } from "../../../../lib";
-import { Channel } from "./Channel";
+import { Guard, Result, UniqueEntityID } from "../../../lib";
 import { ITimeService } from "../../services/time";
-import { Timezone } from "../announcementSettings";
+import { Timezone } from "../guildSettings";
 import { TimeInPastError } from "../../errors";
+import { Message } from "./Message";
+import { ScheduledTime } from "./ScheduledTime";
 import { AnnouncementStatus, Status } from "./Status";
 
 interface AnnouncementProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
-  channel?: Channel;
-  guildID: GuildID;
+  channelID?: string;
+  guildID: string;
   status: Status;
+  shortID: number;
 }
 
 interface AnnouncementCopyProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
-  channel?: Channel;
+  channelID?: string;
   status?: Status;
 }
 
@@ -53,8 +52,8 @@ export class Announcement {
     return this.props.scheduledTime;
   }
 
-  get channel() {
-    return this.props.channel;
+  get channelID() {
+    return this.props.channelID;
   }
 
   get guildID() {
@@ -65,10 +64,15 @@ export class Announcement {
     return this.props.status;
   }
 
+  get shortID() {
+    return this.props.shortID;
+  }
+
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
       { argument: props.status, argumentName: "status" },
       { argument: props.guildID, argumentName: "guildID" },
+      { argument: props.shortID, argumentName: "shortID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
 
@@ -83,9 +87,10 @@ export class Announcement {
       {
         message: props?.message || this.message,
         scheduledTime: props?.scheduledTime || this.scheduledTime,
-        channel: props?.channel || this.channel,
+        channelID: props?.channelID || this.channelID,
         guildID: this.guildID,
         status: this.status,
+        shortID: this.shortID,
       },
       this.id,
     ).getValue();
@@ -99,12 +104,12 @@ export class Announcement {
     Object.assign(this.props, { scheduledTime });
   }
 
-  updateChannel(channel: Channel) {
-    Object.assign(this.props, { channel });
+  updateChannelID(channelID: string) {
+    Object.assign(this.props, { channelID });
   }
 
   schedule({ timeService, timezone }: PublishProps) {
-    const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
+    const hasNecessaryProps = [this.message, this.channelID, this.scheduledTime].reduce(
       (acc, curr) => {
         return acc && !!curr;
       },

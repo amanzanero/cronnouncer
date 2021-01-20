@@ -1,7 +1,9 @@
+import { Message } from "discord.js";
 import {
   AnnouncementError,
   AnnouncementIncompleteError,
   AnnouncementInProgressError,
+  AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
   AnnouncementNotInProgressError,
   InvalidTimeError,
@@ -10,11 +12,11 @@ import {
   TimezoneNotSetError,
   ValidationError,
 } from "../../core/announcement/errors";
-import { Message } from "discord.js";
-import { logger } from "../../util";
+import { logger } from "../../infra/logger";
 
 import * as setTimeCMD from "../set-time";
 import * as timezoneCMD from "../timezone";
+import { PREFIX } from "../../constants";
 
 interface ErrorActionProps {
   responseError: AnnouncementError;
@@ -28,7 +30,11 @@ export function getActionFromError({ message, responseError }: ErrorActionProps)
     case TextChannelDoesNotExistError:
     case TimeInPastError:
     case AnnouncementNotFoundError:
-      return () => message.channel.send(responseError.message);
+    case AnnouncementLockedStatusError:
+      return () =>
+        message.channel.send(
+          `${responseError.message}\n> Type \`${PREFIX}help\` for proper usage.`,
+        );
     case AnnouncementInProgressError:
       return () =>
         message.channel.send("There is already an announcement in progress for this server.");

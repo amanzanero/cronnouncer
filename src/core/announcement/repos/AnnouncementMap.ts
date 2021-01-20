@@ -1,6 +1,6 @@
-import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
-import { Result, UniqueEntityID } from "../../../lib";
-import { logger } from "../../../util";
+import { Announcement, Channel, Message, ScheduledTime } from "../domain/announcement";
+import { Result, UniqueEntityID } from "../../lib";
+import { logger } from "../../../infra/logger";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Status } from "../domain/announcement/Status";
 
@@ -11,9 +11,10 @@ export class AnnouncementMap {
       announcement_id: announcement.id.value,
       scheduled_time: announcement.scheduledTime?.value,
       message: announcement.message?.value,
-      channel: announcement.channel?.value,
-      guild_id: announcement.guildID.value,
+      channel_id: announcement.channelID,
+      guild_id: announcement.guildID,
       status: announcement.status.value,
+      short_id: announcement.shortID,
     });
     return persist;
   }
@@ -23,13 +24,12 @@ export class AnnouncementMap {
    * @param raw
    */
   public static toDomain(raw: AnnouncementModel): Announcement | undefined {
-    const guildIDOrError = GuildID.create(raw.guild_id);
     const statusOrError = Status.create(raw.status);
-    const createResults: Result<any>[] = [guildIDOrError, statusOrError];
+    const createResults: Result<any>[] = [statusOrError];
 
     let channelOrError;
-    if (!!raw.channel) {
-      channelOrError = Channel.create(raw.channel);
+    if (!!raw.channel_id) {
+      channelOrError = Channel.create(raw.channel_id);
       createResults.push(channelOrError);
     }
 
@@ -54,11 +54,12 @@ export class AnnouncementMap {
 
     const announcementOrError = Announcement.create(
       {
-        guildID: guildIDOrError.getValue(),
+        guildID: raw.guild_id,
         message: messageOrError?.getValue(),
         scheduledTime: scheduledTimeOrError?.getValue(),
-        channel: channelOrError?.getValue(),
+        channelID: raw.channel_id,
         status: statusOrError.getValue(),
+        shortID: raw.short_id,
       },
       new UniqueEntityID(raw.announcement_id),
     );

@@ -1,4 +1,4 @@
-import { Guard, Result } from "../../../../lib";
+import { Guard, Result } from "../../../lib";
 
 interface ChannelProps {
   value: string;

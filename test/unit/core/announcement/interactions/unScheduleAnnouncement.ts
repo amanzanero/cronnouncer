@@ -1,7 +1,8 @@
-import test from "ava";
+import test, { before } from "ava";
 import moment from "moment";
+import sinon from "sinon";
 import { unScheduleAnnouncement } from "../../../../../src/core/announcement/interactions/unScheduleAnnouncement";
-import { Response } from "../../../../../src/lib";
+import { Response } from "../../../../../src/core/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementLockedStatusError,
@@ -14,6 +15,7 @@ import {
   AnnouncementStatus,
   Status,
 } from "../../../../../src/core/announcement/domain/announcement/Status";
+import { MockCronService } from "../../../../test_utils/mocks/cronService";
 
 interface TestContext {
   deps: {
@@ -22,7 +24,7 @@ interface TestContext {
   };
 }
 
-test.before((t) => {
+before((t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const loggerService = new MockLoggerService();
   Object.assign(t.context, { deps: { announcementRepo, loggerService } });
@@ -30,32 +32,40 @@ test.before((t) => {
 
 test("should not unschedule with undefined inputs", async (t) => {
   const { deps } = t.context as TestContext;
+  const cronService = new MockCronService();
+  const cronStub = sinon.stub(cronService, "unScheduleAnnouncement");
 
   const input: any = { guildID: "A guild" };
-  const response = await unScheduleAnnouncement(input, deps as any);
+  const response = await unScheduleAnnouncement(input, { ...deps, cronService } as any);
 
-  const expectedErr = new ValidationError("No announcement id was provided.");
+  const expectedErr = new ValidationError("No announcementID was provided");
   t.deepEqual(response.value, expectedErr);
+  t.true(cronStub.notCalled);
 });
 
 test("should not unschedule if no announcement in progress", async (t) => {
   const { deps } = t.context as TestContext;
+  const cronService = new MockCronService();
+  const cronStub = sinon.stub(cronService, "unScheduleAnnouncement");
 
   const guildID = "1";
-  const input = { guildID, announcementID: "dne" };
-  const response = await unScheduleAnnouncement(input, deps as any);
+  const input = { guildID, announcementID: -1 };
+  const response = await unScheduleAnnouncement(input, { ...deps, cronService } as any);
 
-  const expectedErr = new AnnouncementNotFoundError("dne");
+  const expectedErr = new AnnouncementNotFoundError("-1");
   t.deepEqual(response.value, expectedErr);
+  t.true(cronStub.notCalled);
 });
 
 test("should not unschedule if an announcement is sent", async (t) => {
   const { deps } = t.context as TestContext;
+  const cronService = new MockCronService();
+  const cronStub = sinon.stub(cronService, "unScheduleAnnouncement");
 
   const guildID = "3";
 
   const announcement = createMockAnnouncement({
-    channel: "some-channel",
+    channelID: "some-channel",
     guildID,
     message: "A message!",
     scheduledTime: moment(),
@@ -63,21 +73,24 @@ test("should not unschedule if an announcement is sent", async (t) => {
   });
   await deps.announcementRepo.save(announcement);
 
-  const input = { guildID, announcementID: announcement.id.value };
-  const response = await unScheduleAnnouncement(input, deps as any);
+  const input = { guildID, announcementID: announcement.shortID };
+  const response = await unScheduleAnnouncement(input, { ...deps, cronService } as any);
 
-  const expectedErr = new AnnouncementLockedStatusError(announcement.id.value);
+  const expectedErr = new AnnouncementLockedStatusError(announcement.shortID.toString());
   t.deepEqual(response.value, expectedErr);
+  t.true(cronStub.notCalled);
 });
 
 test("should unschedule", async (t) => {
   const { deps } = t.context as TestContext;
   const { announcementRepo } = deps;
+  const cronService = new MockCronService();
+  const cronStub = sinon.stub(cronService, "unScheduleAnnouncement");
 
   const guildID = "2";
 
   const announcement = createMockAnnouncement({
-    channel: "some-channel",
+    channelID: "some-channel",
     guildID,
     message: "A message!",
     scheduledTime: moment().add(1, "day"),
@@ -85,8 +98,8 @@ test("should unschedule", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
-  const response = await unScheduleAnnouncement(input, deps as any);
+  const input = { announcementID: announcement.shortID, guildID };
+  const response = await unScheduleAnnouncement(input, { ...deps, cronService } as any);
 
   const expected = Response.success<void>();
   const deleted = await announcementRepo.findByID(announcement.id.value);
@@ -94,4 +107,11 @@ test("should unschedule", async (t) => {
 
   const status = Status.create(AnnouncementStatus.unscheduled).getValue();
   t.deepEqual(deleted, announcement.copy({ status }));
+  t.true(
+    cronStub.calledWith({
+      announcement,
+      requestID: sinon.match.any,
+      loggerService: deps.loggerService,
+    }),
+  );
 });

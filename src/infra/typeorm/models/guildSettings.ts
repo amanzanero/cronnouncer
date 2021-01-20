@@ -1,13 +1,19 @@
 import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity()
-export class AnnouncementSettings {
+export class GuildSettings {
   @PrimaryColumn()
-  announcement_settings_id: string;
+  guild_settings_id: string;
 
   @Column()
   guild_id: string;
 
   @Column({ nullable: true })
   timezone: string;
+
+  @Column({ default: 1 })
+  next_short_id: number;
+
+  @Column({ default: true })
+  active: boolean;
 }
