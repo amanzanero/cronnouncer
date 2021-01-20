@@ -16,6 +16,7 @@ export function makeOnShutdown({ discordClient, storesDisconnect }: OnShutdownPr
       logger.error(e);
       process.exit(-1);
     }
+    logger.info("cronnouncer shutdown quietly");
     process.exit(0);
   };
 }

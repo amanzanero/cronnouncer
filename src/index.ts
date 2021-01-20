@@ -21,7 +21,7 @@ export async function main(): Promise<string> {
 
   const onReady = makeOnReady(deps);
   const messageHandler = makeMessageHandler(deps);
-  const onGuildCreate = makeOnGuildCreate(deps);
+  const onGuildCreate = makeOnGuildCreate();
   const onGuildDelete = makeOnGuildDelete();
 
   discordClient.on("ready", onReady);

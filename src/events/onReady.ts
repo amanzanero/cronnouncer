@@ -12,6 +12,6 @@ export function makeOnReady(deps: InteractionDependencies) {
     } catch (e) {
       logger.error(e);
     }
-    logger.info(`[onReady<<<<] - ${start - Date.now()}ms`);
+    logger.info(`[onReady<<<<] - ${Date.now() - start}ms`);
   };
 }

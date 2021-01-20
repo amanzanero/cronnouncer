@@ -4,6 +4,7 @@ require("dotenv").config();
 export const IS_PROD = process.env.NODE_ENV === "production";
 export const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 export const PREFIX = process.env.PREFIX as string;
+export const MAX_MESSAGE_SIZE = 1000;
 
 export const PG_HOST = process.env.PG_HOST;
 export const PG_PORT = process.env.PG_PORT;
