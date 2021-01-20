@@ -1,4 +1,4 @@
-import { logger } from "../../../util";
+import { logger } from "../../../infra/logger";
 
 export interface ILoggerService {
   error(error: Error | string, meta?: any): void;

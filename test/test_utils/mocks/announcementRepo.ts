@@ -10,7 +10,7 @@ interface Datastore {
 }
 
 export class MockAnnouncementRepo implements IAnnouncementRepo {
-  private readonly datastore: Datastore;
+  datastore: Datastore;
 
   constructor() {
     this.datastore = {};

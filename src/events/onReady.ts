@@ -1,4 +1,4 @@
-import { logger } from "../util";
+import { logger } from "../infra/logger";
 import { rescheduleAnnouncements } from "../core/announcement/interactions/rescheduleAnnoucements";
 import { InteractionDependencies } from "../core/announcement/interactions/common";
 

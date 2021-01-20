@@ -13,6 +13,7 @@ export const help = {
   category: "Scheduling",
   description: "Creates a new announcement",
   usage: `${PREFIX}create`,
+  example: `${PREFIX}create`,
 };
 
 export const conf = {

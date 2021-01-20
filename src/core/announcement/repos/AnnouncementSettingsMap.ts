@@ -1,7 +1,7 @@
 import { GuildID } from "../domain/announcement";
 import { AnnouncementSettings, Timezone } from "../domain/announcementSettings";
 import { Result, UniqueEntityID } from "../../../lib";
-import { logger } from "../../../util";
+import { logger } from "../../../infra/logger";
 import { AnnouncementSettings as AnnouncementSettingsModel } from "../../../infra/typeorm/models";
 
 export class AnnouncementSettingsMap {

@@ -6,8 +6,10 @@ import { help as scheduleHelp } from "./schedule";
 import { help as createHelp } from "./create";
 import { help as unschdeuleHelp } from "./unschedule";
 import { help as timezoneHelp } from "./timezone";
+import { help as listHelp } from "./list";
+import { help as deleteHelp } from "./delete";
 import { PREFIX } from "../constants";
-import { logger } from "../util";
+import { logger } from "../infra/logger";
 import { baseEmbed } from "../lib";
 
 const help = {
@@ -15,6 +17,7 @@ const help = {
   category: "Miscellaneous",
   description: "Get list of available commands",
   usage: `${PREFIX}help`,
+  example: `${PREFIX}help`,
 };
 
 const conf = {
@@ -30,6 +33,8 @@ const HELP_ARRAY = [
   setTimeHelp,
   scheduleHelp,
   unschdeuleHelp,
+  listHelp,
+  deleteHelp,
   help,
 ];
 
@@ -39,11 +44,11 @@ export function helpEmbed() {
 
   HELP_ARRAY.forEach((help) => {
     embed.addFields(
-      { name: `${PREFIX}${help.name}`, value: help.description, inline: true },
-      { name: "Usage", value: `\`${help.usage}\``, inline: true },
+      { name: `${PREFIX}${help.name}`, value: help.description },
+      { name: "Usage", value: `\`\`\`${help.usage}\`\`\``, inline: true },
       {
-        name: "\u200B",
-        value: "\u200B",
+        name: "Example",
+        value: `\`\`\`${help.example}\`\`\``,
         inline: true,
       },
     );

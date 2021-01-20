@@ -14,6 +14,7 @@ export const help = {
   category: "Scheduling",
   description: "Sets the time for the in progress announcement",
   usage: `${PREFIX}set-time {announcement id} {MM/DD/YYYY hh:mm am/pm}`,
+  example: `${PREFIX}set-time 8fc3d953-f46c-4432-ae85-09e82a3fd81a 4/20/2021 4:20 pm`,
 };
 
 export const conf = {

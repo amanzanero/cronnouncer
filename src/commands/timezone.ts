@@ -15,6 +15,7 @@ export const help = {
     (zone) => `\`${zone}\``,
   ).join(", ")}`,
   usage: `${PREFIX}timezone {timezone}`,
+  example: `${PREFIX}timezone US/Pacific`,
 };
 
 export const conf = {

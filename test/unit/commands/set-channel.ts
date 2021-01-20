@@ -5,7 +5,7 @@ import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
 import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
-import { makeExecuteBase } from "../../../src/commands/executeBase";
+import { makeExecuteBase } from "../../../src/commands/base/executeBase";
 import { MockAnnouncementSettingsRepo } from "../../test_utils/mocks/announcementSettingsRepo";
 import { createMockAnnouncementSettings } from "../../test_utils/mocks/announcementSettings";
 import { MockLoggerService } from "../../test_utils/mocks/loggerService";

@@ -48,6 +48,13 @@ test.before(async (t) => {
   );
 });
 
+test.afterEach((t) => {
+  const {
+    deps: { announcementRepo },
+  } = t.context as TestContext;
+  announcementRepo.datastore = {};
+});
+
 test.serial("should log none were rescheduled", async (t) => {
   const { deps } = t.context as TestContext;
 

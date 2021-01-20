@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { createConnection, Repository } from "typeorm";
 import { Announcement, AnnouncementSettings } from "./models";
-import { logger } from "../../util";
+import { logger } from "../logger";
 import ormconfig from "./ormconfig";
 import { DATABASE_URL } from "../../constants";
 

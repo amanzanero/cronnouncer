@@ -19,6 +19,7 @@ export async function onStartup() {
 
   return {
     discordClient,
+    stores, // for straight up crud
     storesDisconnect,
 
     announcementRepo,

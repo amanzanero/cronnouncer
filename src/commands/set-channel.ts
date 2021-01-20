@@ -14,6 +14,7 @@ export const help = {
   category: "Scheduling",
   description: "Sets the channel for the in-progress announcement",
   usage: `${PREFIX}set-channel {announcement id} {discord channel name}`,
+  example: `${PREFIX}set-channel 8fc3d953-f46c-4432-ae85-09e82a3fd81a #general`,
 };
 
 export const conf = {

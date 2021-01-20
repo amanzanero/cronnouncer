@@ -1,10 +1,10 @@
-import { Client, Message } from "discord.js";
+import { Message } from "discord.js";
 import { v4 as uuid } from "uuid";
 
-import { CommandMap } from "./definitions";
-import { isCommand, parseCommand } from "./util/parser";
-import { logger } from "../util";
-import { UNKNOWN_COMMAND_RESPONSE } from "./index";
+import { CommandMap } from "../commands/definitions";
+import { isCommand, parseCommand } from "../commands/util/parser";
+import { logger } from "../infra/logger";
+import { UNKNOWN_COMMAND_RESPONSE } from "../commands";
 import { PREFIX } from "../constants";
 
 function commandRunLogStart(cmd: string) {
@@ -15,7 +15,7 @@ function commandRunLogStop(cmd: string, time: number) {
   return `${PREFIX}${cmd}<<< - ${time}ms`;
 }
 
-export function makeMessageHandler(client: Client, commands: CommandMap) {
+export function makeMessageHandler(commands: CommandMap) {
   return async function handleMessage(message: Message) {
     if (message.author.bot) return; // we dont fuk w bots
     if (!isCommand(message.content)) return;

@@ -1,7 +1,7 @@
 import { DISCORD_TOKEN, IS_PROD } from "./constants";
-import { logger } from "./util";
-import { makeCommandMap, makeMessageHandler } from "./commands";
-import { onStartup, onShutdown, onReady } from "./events";
+import { logger } from "./infra/logger";
+import { makeCommandMap } from "./commands";
+import { onStartup, onShutdown, onReady, makeMessageHandler } from "./events";
 
 export async function main(): Promise<string> {
   /* istanbul ignore next */
@@ -14,7 +14,7 @@ export async function main(): Promise<string> {
   const { discordClient } = deps;
 
   const commands = makeCommandMap(deps);
-  const messageHandler = makeMessageHandler(discordClient, commands);
+  const messageHandler = makeMessageHandler(commands);
 
   discordClient.on("ready", async () => {
     logger.info("logged into discord");

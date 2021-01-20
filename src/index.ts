@@ -1,5 +1,5 @@
 import { main } from "./bot";
-import { logger } from "./util";
+import { logger } from "./infra/logger";
 
 main().catch((e) => {
   logger.error(e);

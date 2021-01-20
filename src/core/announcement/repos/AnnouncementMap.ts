@@ -1,6 +1,6 @@
 import { Announcement, Channel, GuildID, Message, ScheduledTime } from "../domain/announcement";
 import { Result, UniqueEntityID } from "../../../lib";
-import { logger } from "../../../util";
+import { logger } from "../../../infra/logger";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Status } from "../domain/announcement/Status";
 

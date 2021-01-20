@@ -8,7 +8,7 @@ import {
 } from "../../../src/commands";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import * as parser from "../../../src/commands/util/parser";
-import { logger } from "../../../src/util";
+import { logger } from "../../../src/infra/logger";
 import { PREFIX } from "../../../src/constants";
 
 test.before((t) => {
