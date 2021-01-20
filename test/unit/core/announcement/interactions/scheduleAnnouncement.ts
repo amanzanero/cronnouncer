@@ -1,7 +1,7 @@
-import test from "ava";
+import test, { before } from "ava";
 import moment from "moment";
 import { v4 } from "uuid";
-import { Response } from "../../../../../src/lib";
+import { Response } from "../../../../../src/core/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementIncompleteError,
@@ -32,7 +32,7 @@ interface TestContext {
   };
 }
 
-test.before(async (t) => {
+before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const guildSettingsRepo = new MockGuildSettingsRepo();
   const cronService = new MockCronService();
@@ -69,7 +69,7 @@ test("should fail if there is no announcement found", async (t) => {
   const { deps } = t.context as TestContext;
 
   const guildID = "guildWithSettings";
-  const input = { announcementID: "1", guildID };
+  const input = { announcementID: 1, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementNotFoundError("1");
@@ -83,7 +83,7 @@ test("should fail if there is no timezone", async (t) => {
   const announcement = createMockAnnouncement({ guildID });
   await deps.announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new TimezoneNotSetError();
@@ -109,7 +109,7 @@ test("should fail if announcement in progress is not complete", async (t) => {
   const announcement = createMockAnnouncement({ guildID });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const expectedErr = new AnnouncementIncompleteError(
@@ -142,7 +142,7 @@ test("should schedule the announcement", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID };
+  const input = { announcementID: announcement.shortID, guildID };
   const response = await scheduleAnnouncement(input, deps as any);
 
   const copy = announcement.copy();

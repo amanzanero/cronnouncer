@@ -1,5 +1,5 @@
-import { logger } from "../infra/logger";
 import { Client } from "discord.js";
+import { logger } from "../infra/logger";
 
 export interface OnShutdownProps {
   discordClient: Client;

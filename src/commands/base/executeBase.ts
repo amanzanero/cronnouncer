@@ -1,6 +1,6 @@
 import { AnnouncementError } from "../../core/announcement/errors";
 import { getActionFromError } from "../util/errors";
-import { Response } from "../../lib";
+import { Response } from "../../core/lib";
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
 import { Executor, Interaction, Success } from "../definitions";
 import { IAnnouncementRepo, IGuildSettingsRepo } from "../../core/announcement/repos";
@@ -8,6 +8,7 @@ import { ICronService } from "../../core/announcement/services/cron";
 import { IDiscordService } from "../../core/announcement/services/discord";
 import { ILoggerService } from "../../core/announcement/services/logger";
 import { ITimeService } from "../../core/announcement/services/time";
+import { IIdentifierService } from "../../core/announcement/services/identifierService";
 
 interface ExecuteBaseProps {
   interaction: Interaction;
@@ -21,6 +22,7 @@ interface ExecuteBaseDependencies {
   cronService: ICronService;
   loggerService: ILoggerService;
   timeService: ITimeService;
+  identifierService: IIdentifierService;
 }
 
 export function makeExecuteBase(

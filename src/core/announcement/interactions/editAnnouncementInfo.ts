@@ -3,7 +3,7 @@
  */
 
 import { Message, ScheduledTime } from "../domain/announcement";
-import { Guard, Response } from "../../../lib";
+import { Guard, Response } from "../../lib";
 import {
   AnnouncementNotFoundError,
   InvalidTimeError,
@@ -15,12 +15,13 @@ import {
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
+  GuildSettingsToOutput,
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
 
 export interface InputData {
-  announcementID: string;
+  announcementID: number;
   guildID: string;
   channelID?: string;
   message?: string;
@@ -28,38 +29,54 @@ export interface InputData {
 }
 
 export async function editAnnouncementInfo(
-  { announcementID, guildID, channelID, message, scheduledTime }: InputData,
+  { announcementID: shortID, guildID, channelID, message, scheduledTime }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
     const { announcementRepo, guildSettingsRepo, discordService, timeService } = deps;
+    const meta = { requestID: deps.requestID, shortID, guildID };
 
-    const guardResult = Guard.againstNullOrUndefinedBulk([
-      { argumentName: "announcementID", argument: announcementID },
+    const guardUndefined = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
+    const guardNaN = Guard.againsNaN(shortID);
+    const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
     const [activeAnnouncement, guildSettings] = await Promise.all([
-      announcementRepo.findByID(announcementID),
+      announcementRepo.findByShortID(shortID, guildID),
       guildSettingsRepo.findByGuildID(guildID),
     ]);
 
     if (!activeAnnouncement) {
+      deps.loggerService.info("deleteAnnouncement", `announcement with id: ${shortID} DNE`, meta);
       return Response.fail<AnnouncementNotFoundError>(
-        new AnnouncementNotFoundError(announcementID),
+        new AnnouncementNotFoundError(shortID.toString()),
       );
     }
 
     if (!guildSettings || !guildSettings.timezone) {
+      deps.loggerService.info(
+        "deleteAnnouncement",
+        "validation: no guild settings or timezone",
+        meta,
+      );
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
     }
+
+    const updatedMeta = { ...meta, guildSettings: GuildSettingsToOutput(guildSettings) };
 
     if (message !== undefined) {
       const messageOrError = Message.create(message);
       if (messageOrError.isFailure) {
+        deps.loggerService.info(
+          "deleteAnnouncement",
+          `validation: ${messageOrError.errorValue()}`,
+          updatedMeta,
+        );
         return Response.fail<ValidationError>(new ValidationError(messageOrError.errorValue()));
       }
 
@@ -75,27 +92,36 @@ export async function editAnnouncementInfo(
         );
 
         if (isValidTimeInFuture) {
-          return Response.fail<TimeInPastError>(new TimeInPastError());
+          const e = new TimeInPastError();
+          deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+          return Response.fail<TimeInPastError>(e);
         }
 
         activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
       } else {
-        return Response.fail<InvalidTimeError>(new InvalidTimeError(scheduledTime));
+        const e = new InvalidTimeError(scheduledTime);
+        deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+        return Response.fail<InvalidTimeError>(e);
       }
     }
 
     if (channelID !== undefined) {
       const promiseTextChannelExists = await discordService.textChannelExists(guildID, channelID);
       if (!promiseTextChannelExists) {
-        return Response.fail<TextChannelDoesNotExistError>(
-          new TextChannelDoesNotExistError(channelID),
-        );
+        const e = new TextChannelDoesNotExistError(channelID);
+        deps.loggerService.info("deleteAnnouncement", `validation: ${e.message}`, updatedMeta);
+        return Response.fail<TextChannelDoesNotExistError>(e);
       }
 
       activeAnnouncement.updateChannelID(channelID);
     }
 
     await announcementRepo.save(activeAnnouncement);
+    deps.loggerService.info(
+      "deleteAnnouncement",
+      `announcement: ${activeAnnouncement.id.value} successfully edited`,
+      { ...updatedMeta, announcement: AnnouncementToOutput(activeAnnouncement) },
+    );
 
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(activeAnnouncement));
   });

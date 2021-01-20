@@ -1,9 +1,9 @@
-import test from "ava";
+import test, { before } from "ava";
 import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSettingsRepo";
 import { setGuildTimezone } from "../../../../../src/core/announcement/interactions/setGuildTimezone";
 import { ValidationError } from "../../../../../src/core/announcement/errors";
 import { Timezone } from "../../../../../src/core/announcement/domain/guildSettings";
-import { Response } from "../../../../../src/lib";
+import { Response } from "../../../../../src/core/lib";
 import { GuildSettingsOutput } from "../../../../../src/core/announcement/interactions/common";
 import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
@@ -15,7 +15,7 @@ interface TestContext {
   };
 }
 
-test.before((t) => {
+before((t) => {
   const guildSettingsRepo = new MockGuildSettingsRepo();
   const loggerService = new MockLoggerService();
   Object.assign(t.context, {

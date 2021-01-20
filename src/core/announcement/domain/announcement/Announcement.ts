@@ -2,12 +2,12 @@
 Contains definition for an announcement
  */
 
-import { ScheduledTime } from "./ScheduledTime";
-import { Message } from "./Message";
-import { Guard, Result, UniqueEntityID } from "../../../../lib";
+import { Guard, Result, UniqueEntityID } from "../../../lib";
 import { ITimeService } from "../../services/time";
 import { Timezone } from "../guildSettings";
 import { TimeInPastError } from "../../errors";
+import { Message } from "./Message";
+import { ScheduledTime } from "./ScheduledTime";
 import { AnnouncementStatus, Status } from "./Status";
 
 interface AnnouncementProps {
@@ -16,6 +16,7 @@ interface AnnouncementProps {
   channelID?: string;
   guildID: string;
   status: Status;
+  shortID: number;
 }
 
 interface AnnouncementCopyProps {
@@ -63,10 +64,15 @@ export class Announcement {
     return this.props.status;
   }
 
+  get shortID() {
+    return this.props.shortID;
+  }
+
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
       { argument: props.status, argumentName: "status" },
       { argument: props.guildID, argumentName: "guildID" },
+      { argument: props.shortID, argumentName: "shortID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
 
@@ -84,6 +90,7 @@ export class Announcement {
         channelID: props?.channelID || this.channelID,
         guildID: this.guildID,
         status: this.status,
+        shortID: this.shortID,
       },
       this.id,
     ).getValue();

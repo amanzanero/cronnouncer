@@ -8,9 +8,6 @@ export class GuildSettings {
   @Column()
   guild_id: string;
 
-  @Column()
-  guild_name: string;
-
   @Column({ nullable: true })
   timezone: string;
 

@@ -1,12 +1,12 @@
 import { Message } from "discord.js";
-import { Args } from "./definitions/Args";
 import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { PREFIX } from "../constants";
 import { editAnnouncementInfo } from "../core/announcement/interactions/editAnnouncementInfo";
+import { Args } from "./definitions/Args";
 import { announcementStringEmbed } from "./util/announcementString";
 
 export const help = {
@@ -26,7 +26,10 @@ export async function interaction(props: InteractionDependencies, message: Messa
   const guildID = message.guild?.id as string;
   const announcementID = args.firstArg;
   const rawTime = args.raw.substring(announcementID.length).trim();
-  return await editAnnouncementInfo({ announcementID, guildID, scheduledTime: rawTime }, props);
+  return await editAnnouncementInfo(
+    { announcementID: parseInt(announcementID), guildID, scheduledTime: rawTime },
+    props,
+  );
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

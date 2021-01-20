@@ -2,15 +2,15 @@
  * This file contains the interaction for setting the announcement time
  */
 
-import { Guard, Response } from "../../../lib";
+import { Guard, Response } from "../../lib";
 import { ValidationError } from "../errors";
+import { GuildSettings, Timezone } from "../domain/guildSettings";
 import {
   GuildSettingsOutput,
   GuildSettingsToOutput,
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
-import { GuildSettings, Timezone } from "../domain/guildSettings";
 
 export interface InputData {
   guildID: string;
@@ -28,9 +28,13 @@ export async function setGuildTimezone(
     const timezoneOrError = Timezone.create(timezone);
 
     if (timezoneOrError.isFailure || !guard.succeeded) {
-      return Response.fail<ValidationError>(
-        new ValidationError(timezoneOrError.error || guard.message),
-      );
+      const message = timezoneOrError.isFailure ? timezoneOrError.errorValue() : guard.message;
+
+      deps.loggerService.info("setGuildTimezone", `validation: ${message}`, {
+        requestID: deps.requestID,
+        guildID,
+      });
+      return Response.fail<ValidationError>(new ValidationError(message));
     }
 
     let guildSettings = await guildSettingsRepo.findByGuildID(guildID);
@@ -47,7 +51,10 @@ export async function setGuildTimezone(
     }
 
     await guildSettingsRepo.save(guildSettings);
-
+    deps.loggerService.info("setGuildTimezone", `set "${timezone}" for server: ${guildID}`, {
+      requestID: deps.requestID,
+      guildID,
+    });
     return Response.success<GuildSettingsOutput>(GuildSettingsToOutput(guildSettings));
   });
 }

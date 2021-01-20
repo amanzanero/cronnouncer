@@ -1,3 +1,4 @@
+import { Message } from "discord.js";
 import {
   AnnouncementError,
   AnnouncementIncompleteError,
@@ -10,7 +11,6 @@ import {
   TimezoneNotSetError,
   ValidationError,
 } from "../../core/announcement/errors";
-import { Message } from "discord.js";
 import { logger } from "../../infra/logger";
 
 import * as setTimeCMD from "../set-time";

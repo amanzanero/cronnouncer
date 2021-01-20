@@ -5,7 +5,8 @@ import { ICronService } from "../services/cron";
 import { GuildSettings } from "../domain/guildSettings";
 import { ILoggerService } from "../services/logger";
 import { ITimeService } from "../services/time";
-import { Response } from "../../../lib";
+import { Response } from "../../lib";
+import { IIdentifierService } from "../services/identifierService";
 
 export interface InteractionDependencies {
   announcementRepo: IAnnouncementRepo;
@@ -14,11 +15,12 @@ export interface InteractionDependencies {
   cronService: ICronService;
   loggerService: ILoggerService;
   timeService: ITimeService;
+  identifierService: IIdentifierService;
   requestID?: string;
 }
 
 export interface AnnouncementOutput {
-  id: string;
+  id: number;
   guildID: string;
   status: string;
   channel?: string;
@@ -28,7 +30,7 @@ export interface AnnouncementOutput {
 
 export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
   const output = {
-    id: a.id.value,
+    id: a.shortID,
     guildID: a.guildID,
     status: a.status.value,
   };

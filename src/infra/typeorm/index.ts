@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { createConnection, Repository } from "typeorm";
-import { Announcement, GuildSettings } from "./models";
 import { logger } from "../logger";
-import ormconfig from "./ormconfig";
 import { DATABASE_URL } from "../../constants";
+import { Announcement, GuildSettings } from "./models";
+import ormconfig from "./ormconfig";
 
 export interface DbStores {
   announcementStore: Repository<Announcement>;

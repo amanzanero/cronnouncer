@@ -2,8 +2,8 @@
 Contains definition for an announcement
  */
 
+import { Result, UniqueEntityID } from "../../../lib";
 import { Timezone } from "./Timezone";
-import { Result, UniqueEntityID } from "../../../../lib";
 
 interface GuildSettingsProps {
   guildID: string;
@@ -35,6 +35,10 @@ export class GuildSettings {
 
   get nextShortID() {
     return this.props.nextShortID;
+  }
+
+  incShortID() {
+    this.props.nextShortID += 1;
   }
 
   get timezone() {

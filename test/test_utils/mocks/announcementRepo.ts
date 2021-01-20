@@ -26,6 +26,14 @@ export class MockAnnouncementRepo implements IAnnouncementRepo {
       .map(([_, value]) => value) as Announcement[];
   }
 
+  async findByShortID(shortID: number, guildID: string) {
+    const kv = Object.entries(this.datastore).filter(
+      (kv) => kv[1]?.shortID === shortID && kv[1]?.guildID === guildID,
+    );
+    const a = kv.shift();
+    return a ? a[1] : undefined;
+  }
+
   public async save(announcement: Announcement) {
     const existing = this.datastore[announcement.id.value];
     if (existing) {

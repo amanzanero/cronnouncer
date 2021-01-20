@@ -1,5 +1,5 @@
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
-import { baseEmbed } from "../../lib";
+import { baseEmbed } from "../../core/lib";
 
 export function announcementStringEmbed(announcementOutput: AnnouncementOutput) {
   // inside a command, event listener, etc.

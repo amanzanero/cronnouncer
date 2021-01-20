@@ -18,8 +18,9 @@ export const conf = {
 };
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
-  const announcementID = args.firstArg;
-  return await unScheduleAnnouncement({ announcementID }, props);
+  const announcementID = parseInt(args.firstArg);
+  const guildID = message.guild?.id as string;
+  return await unScheduleAnnouncement({ announcementID, guildID }, props);
 }
 
 export async function onSuccess(message: Message) {

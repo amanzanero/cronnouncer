@@ -3,14 +3,14 @@
  */
 
 import { ScheduledTime } from "../domain/announcement";
-import { Response } from "../../../lib";
+import { Response } from "../../lib";
+import { Timezone } from "../domain/guildSettings";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
-import { Timezone } from "../domain/guildSettings";
 
 export async function rescheduleAnnouncements(deps: InteractionDependencies) {
   return await interactionLogWrapper(deps, "rescheduleAnnouncements", async () => {

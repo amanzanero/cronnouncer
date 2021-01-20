@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { UniqueEntityID } from "../../../src/lib";
+import { UniqueEntityID } from "../../../src/core/lib";
 import { GuildSettings, Timezone } from "../../../src/core/announcement/domain/guildSettings";
 
 interface OptionalMockGuildSettingsProps {

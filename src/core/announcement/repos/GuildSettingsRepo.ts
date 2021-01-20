@@ -2,8 +2,8 @@
  * his file contains a repository composer for announcements
  */
 
-import { GuildSettings as GuildSettingsModel } from "../../../infra/typeorm/models";
 import { In, Repository } from "typeorm";
+import { GuildSettings as GuildSettingsModel } from "../../../infra/typeorm/models";
 import { GuildSettings } from "../domain/guildSettings";
 import { GuildSettingsMap } from "./GuildSettingsMap";
 

@@ -1,8 +1,8 @@
 import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
 import { Announcement, Message } from "../domain/announcement";
-import { ILoggerService } from "./logger";
 import { IAnnouncementRepo } from "../repos";
+import { ILoggerService } from "./logger";
 
 export interface ScheduleAnnouncementProps {
   announcement: Announcement;

@@ -5,7 +5,7 @@ import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { Args } from "./definitions/Args";
 
 export const help = {
@@ -23,7 +23,7 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const guildID = message.guild?.id as string;
-  const announcementID = args.firstArg;
+  const announcementID = parseInt(args.firstArg);
   return await scheduleAnnouncement({ announcementID, guildID }, props);
 }
 

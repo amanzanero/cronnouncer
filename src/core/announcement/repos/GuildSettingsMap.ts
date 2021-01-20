@@ -1,16 +1,15 @@
 import { GuildSettings, Timezone } from "../domain/guildSettings";
-import { UniqueEntityID } from "../../../lib";
+import { UniqueEntityID } from "../../lib";
 import { logger } from "../../../infra/logger";
 import { GuildSettings as GuildSettingsModel } from "../../../infra/typeorm/models";
 
 export class GuildSettingsMap {
   public static toPersistence(guildSettings: GuildSettings): any {
     const persist = new GuildSettingsModel();
-    Object.assign(persist, {
-      guild_id: guildSettings.guildID,
-      announcement_settings_id: guildSettings.id.value,
-      timezone: guildSettings.timezone?.value,
-    });
+    persist.guild_id = guildSettings.guildID;
+    persist.guild_settings_id = guildSettings.id.value;
+    persist.timezone = guildSettings.timezone?.value as string;
+    persist.next_short_id = guildSettings.nextShortID;
     return persist;
   }
 

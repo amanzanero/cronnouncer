@@ -1,5 +1,5 @@
-import { logger } from "../infra/logger";
 import { Guild } from "discord.js";
+import { logger } from "../infra/logger";
 
 export function makeOnGuildDelete() {
   return function onGuildDelete(guild: Guild) {

@@ -1,7 +1,7 @@
 /**
  * This file contains the use case for starting a new announcement
  */
-import { Response } from "../../../lib";
+import { Guard, Response } from "../../lib";
 import {
   AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
@@ -10,33 +10,38 @@ import {
 import { InteractionDependencies, interactionLogWrapper } from "./common";
 
 export interface InputData {
-  announcementID: string;
+  announcementID: number;
+  guildID: string;
 }
 
 export async function unScheduleAnnouncement(
-  { announcementID }: InputData,
+  { announcementID: shortID, guildID }: InputData,
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "cancelAnnouncement", async () => {
     const { announcementRepo } = deps;
 
-    if (!announcementID) {
-      return Response.fail<ValidationError>(
-        new ValidationError("No announcement id was provided."),
-      );
+    const guardUndefined = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: shortID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    const guardNaN = Guard.againsNaN(shortID);
+    const guardResult = Guard.combine([guardUndefined, guardNaN]);
+    if (!guardResult.succeeded) {
+      return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
-    const inProgressAnnouncement = await announcementRepo.findByID(announcementID);
+    const inProgressAnnouncement = await announcementRepo.findByShortID(shortID, guildID);
     if (!inProgressAnnouncement) {
       return Response.fail<AnnouncementNotFoundError>(
-        new AnnouncementNotFoundError(announcementID),
+        new AnnouncementNotFoundError(shortID.toString()),
       );
     }
 
     const unScheduleResult = inProgressAnnouncement.unSchedule();
     if (unScheduleResult.isFailure) {
       return Response.fail<AnnouncementLockedStatusError>(
-        new AnnouncementLockedStatusError(announcementID),
+        new AnnouncementLockedStatusError(shortID.toString()),
       );
     }
 

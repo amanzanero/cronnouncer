@@ -36,6 +36,16 @@ export class Guard {
     return { succeeded: true };
   }
 
+  public static againsNaN(argument: any): IGuardResult {
+    const isNumber = !isNaN(parseInt(argument));
+
+    if (!isNumber) {
+      return { succeeded: isNumber, message: `${argument} is not a number` };
+    }
+
+    return { succeeded: isNumber };
+  }
+
   public static isOneOf(value: any, validValues: any[], argumentName: string): IGuardResult {
     let isValid = false;
     for (const validValue of validValues) {

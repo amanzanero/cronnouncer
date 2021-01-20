@@ -1,6 +1,12 @@
 import { AnnouncementRepo, GuildSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
+import { CronService } from "../core/announcement/services/cron";
+import { TimeService } from "../core/announcement/services/time";
+import { LoggerService } from "../core/announcement/services/logger";
+import { PREFIX } from "../constants";
+import { DbStores } from "../infra/typeorm";
+import { IdentifierService } from "../core/announcement/services/identifierService";
 import { Command, CommandMap, CMD } from "./definitions";
 import { makeExecuteBase } from "./base/executeBase";
 import { makeHelpCMD } from "./help";
@@ -13,12 +19,6 @@ import * as scheduleAnnouncementCMD from "./schedule";
 import * as timezoneCMD from "./timezone";
 import * as deleteCMD from "./delete";
 import { makeListExecute } from "./list";
-import { CronService } from "../core/announcement/services/cron";
-import { TimeService } from "../core/announcement/services/time";
-import { LoggerService } from "../core/announcement/services/logger";
-
-import { PREFIX } from "../constants";
-import { DbStores } from "../infra/typeorm";
 
 export const UNKNOWN_COMMAND_RESPONSE = `Sorry I didn't understand that command.\nFor a list of commands, run \`${PREFIX}help\`.`;
 
@@ -29,6 +29,7 @@ export interface CMDProps {
   discordService: DiscordService;
   loggerService: LoggerService;
   timeService: TimeService;
+  identifierService: IdentifierService;
 
   stores: DbStores; // for crud
 }
@@ -43,7 +44,7 @@ export function makeCommandMap(cmdProps: CMDProps): CommandMap {
     "set-time": makeCMD(cmdProps, setTimeCMD),
     schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
     unschedule: makeCMD(cmdProps, cancelAnnouncementCMD),
-    list: makeListExecute({ announcementTORepo: cmdProps.stores.announcementStore }),
+    list: makeListExecute(),
     delete: makeCMD(cmdProps, deleteCMD),
   };
 }

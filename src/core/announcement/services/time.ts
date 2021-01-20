@@ -1,7 +1,7 @@
 import moment from "moment-timezone";
-import { DATE_FORMAT } from "./cron";
 import { ScheduledTime } from "../domain/announcement";
 import { Timezone } from "../domain/guildSettings";
+import { DATE_FORMAT } from "./cron";
 
 export interface ITimeService {
   isValidFutureTime(scheduledTime: ScheduledTime, timezone: Timezone): boolean;

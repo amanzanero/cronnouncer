@@ -1,8 +1,13 @@
-import { PREFIX } from "../constants";
-import { ExecutorProps } from "./definitions";
-import { Repository } from "typeorm";
-import { Announcement as AnnouncementModel } from "../infra/typeorm/models";
+import moment from "moment-timezone";
+import { getConnection } from "typeorm";
+import { CONNECTION_NAME, PREFIX } from "../constants";
+import {
+  Announcement as AnnouncementModel,
+  GuildSettings as GuildSettingsModel,
+} from "../infra/typeorm/models";
 import { logger } from "../infra/logger";
+import { DATE_FORMAT } from "../core/announcement/services/cron";
+import { ExecutorProps } from "./definitions";
 
 export const help = {
   name: "list",
@@ -17,28 +22,32 @@ export const conf = {
   guildOnly: true,
 };
 
-interface ListProps {
-  announcementTORepo: Repository<AnnouncementModel>;
-}
-
-let startString = `Status      ID                                   Created at\n`;
+let startString = `ID        Status       Created at        \n`;
 startString = `${startString}\n${"".padEnd(startString.length, "-")}\n`;
 
-function tableFormatter(acc: string, curr: AnnouncementModel) {
-  return `${acc}${curr.status.padEnd(8)} ${curr.announcement_id} ${curr.created_at}\n`;
-}
-
 // no need to access core for this
-export function makeListExecute({ announcementTORepo }: ListProps) {
+export function makeListExecute() {
+  const connection = getConnection(CONNECTION_NAME);
+  const announcementTORepo = connection.getRepository(AnnouncementModel);
+  const guildSettingsTORepo = connection.getRepository(GuildSettingsModel);
+
   async function execute({ requestID, message }: ExecutorProps) {
     const meta = { requestID, user: message.author.tag };
 
     try {
-      const announcements = await announcementTORepo.find({ guild_id: message.guild?.id });
+      const [announcements, guildSettings] = await Promise.all([
+        announcementTORepo.find({ guild_id: message.guild?.id }),
+        guildSettingsTORepo.findOne({ guild_id: message.guild?.id }),
+      ]);
 
       let response;
-      if (announcements.length) {
-        response = announcements.reduce(tableFormatter, startString);
+      if (announcements.length && !!guildSettings) {
+        response = announcements.reduce((acc, curr) => {
+          const parsedTime = moment.tz(curr.created_at, guildSettings.timezone).format(DATE_FORMAT);
+          const id = curr.short_id.toString().padEnd(9);
+          const status = curr.status.padEnd(8);
+          return `${acc}${id} ${status}  ${parsedTime}\n`;
+        }, startString);
         response = `\`\`\`${response}\`\`\``;
       } else {
         response = "There are no announcements created for this server at this time.";

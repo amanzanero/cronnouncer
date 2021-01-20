@@ -1,46 +1,56 @@
 /**
  * This file contains the use case for starting a new announcement
  */
-
-import { Announcement } from "../domain/announcement";
-import { Guard, Response } from "../../../lib";
+import { Guard, Response } from "../../lib";
 import { TimezoneNotSetError, ValidationError } from "../errors";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
+  GuildSettingsToOutput,
   InteractionDependencies,
   interactionLogWrapper,
 } from "./common";
-import { AnnouncementStatus, Status } from "../domain/announcement/Status";
 
 export interface InputData {
   guildID: string;
 }
 
 export async function createAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
-  return await interactionLogWrapper(deps, "startAnnouncement", async () => {
+  return await interactionLogWrapper(deps, "createAnnouncement", async () => {
     // check data transfer object is valid first
-    const { announcementRepo, guildSettingsRepo } = deps;
-
+    const { identifierService, guildSettingsRepo } = deps;
+    const meta = { guildID, requestID: deps.requestID };
     const guard = Guard.againstNullOrUndefined(guildID, "guildID");
     if (!guard.succeeded) {
-      return Response.fail<ValidationError>(new ValidationError(guard.message));
+      const error = new ValidationError(guard.message);
+      deps.loggerService.info("createAnnouncement", `incorrectParams: ${guard.message}`, {
+        ...meta,
+        error,
+      });
+      return Response.fail<ValidationError>(error);
     }
     // ensure no announcement is already being made
     const guildSettings = await guildSettingsRepo.findByGuildID(guildID);
 
     if (!guildSettings || !guildSettings.timezone) {
-      return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
+      const error = new TimezoneNotSetError();
+      deps.loggerService.info("createAnnouncement", "no timezone or no guild settings", {
+        ...meta,
+        guildSettingsID: guildSettings?.id.value || -1, // -1 means DNE
+      });
+      return Response.fail<TimezoneNotSetError>(error);
     }
 
-    const status = Status.create(AnnouncementStatus.unscheduled).getValue();
-    const newAnnouncement = Announcement.create({
+    const newAnnouncement = await identifierService.addAnnouncementIncrementCounter(
       guildID,
-      status: status,
-    }).getValue();
+      guildSettings,
+    );
 
-    await announcementRepo.save(newAnnouncement);
-
+    deps.loggerService.info(
+      "createAnnouncement",
+      `created announcement: ${newAnnouncement.id.value}`,
+      { ...meta, guildSettings: GuildSettingsToOutput(guildSettings) },
+    );
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(newAnnouncement));
   });
 }

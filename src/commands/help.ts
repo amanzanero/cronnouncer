@@ -1,3 +1,6 @@
+import { PREFIX } from "../constants";
+import { logger } from "../infra/logger";
+import { baseEmbed } from "../core/lib";
 import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";
@@ -8,9 +11,6 @@ import { help as unschdeuleHelp } from "./unschedule";
 import { help as timezoneHelp } from "./timezone";
 import { help as listHelp } from "./list";
 import { help as deleteHelp } from "./delete";
-import { PREFIX } from "../constants";
-import { logger } from "../infra/logger";
-import { baseEmbed } from "../lib";
 
 const help = {
   name: "help",

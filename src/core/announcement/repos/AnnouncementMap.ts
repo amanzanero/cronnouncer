@@ -1,5 +1,5 @@
 import { Announcement, Channel, Message, ScheduledTime } from "../domain/announcement";
-import { Result, UniqueEntityID } from "../../../lib";
+import { Result, UniqueEntityID } from "../../lib";
 import { logger } from "../../../infra/logger";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
 import { Status } from "../domain/announcement/Status";
@@ -14,6 +14,7 @@ export class AnnouncementMap {
       channel_id: announcement.channelID,
       guild_id: announcement.guildID,
       status: announcement.status.value,
+      short_id: announcement.shortID,
     });
     return persist;
   }
@@ -58,6 +59,7 @@ export class AnnouncementMap {
         scheduledTime: scheduledTimeOrError?.getValue(),
         channelID: raw.channel_id,
         status: statusOrError.getValue(),
+        shortID: raw.short_id,
       },
       new UniqueEntityID(raw.announcement_id),
     );

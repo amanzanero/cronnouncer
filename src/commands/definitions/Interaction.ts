@@ -4,7 +4,7 @@ import {
   GuildSettingsOutput,
   InteractionDependencies,
 } from "../../core/announcement/interactions/common";
-import { Response } from "../../lib";
+import { Response } from "../../core/lib";
 import { ValidationError } from "../../core/announcement/errors";
 import { Args } from "./Args";
 

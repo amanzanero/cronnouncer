@@ -1,5 +1,5 @@
-import { logger } from "../infra/logger";
 import { Guild } from "discord.js";
+import { logger } from "../infra/logger";
 import { InteractionDependencies } from "../core/announcement/interactions/common";
 
 export function makeOnGuildCreate(deps: InteractionDependencies) {

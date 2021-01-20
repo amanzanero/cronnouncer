@@ -5,7 +5,7 @@ import {
   AnnouncementOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { announcementStringEmbed } from "./util/announcementString";
 
 export const help = {

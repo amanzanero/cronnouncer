@@ -1,4 +1,4 @@
-import test from "ava";
+import test, { afterEach, before, serial } from "ava";
 import sinon from "sinon";
 
 import { makeMessageHandler } from "../../../src/events";
@@ -8,7 +8,7 @@ import * as parser from "../../../src/commands/util/parser";
 import { logger } from "../../../src/infra/logger";
 import { PREFIX } from "../../../src/constants";
 
-test.before((t) => {
+before((t) => {
   const deps: any = { stores: {}, discordClient: {} };
   const commands = cmd.makeCommandMap(deps);
   // stub our executions
@@ -23,11 +23,11 @@ test.before((t) => {
   Object.assign(t.context, { commands, messageHandler, errorLogSpy });
 });
 
-test.afterEach(() => {
+afterEach(() => {
   sinon.reset();
 });
 
-test.serial("ignores bot", async (t) => {
+serial("ignores bot", async (t) => {
   const { messageHandler, commands } = t.context as any;
   const message = genTestMessage({ bot: true, message: `${PREFIX}help` });
   await messageHandler(message);
@@ -60,7 +60,7 @@ test("handles unknown command with reply - throws gracefully", async (t) => {
   t.true(errorLogSpy.calledOnceWith(err));
 });
 
-test.serial("executes a command", async (t) => {
+serial("executes a command", async (t) => {
   const { messageHandler, commands } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}help` });
 
@@ -68,7 +68,7 @@ test.serial("executes a command", async (t) => {
   t.true(commands.help.execute.called);
 });
 
-test.serial("executes a command unsuccessfully", async (t) => {
+serial("executes a command unsuccessfully", async (t) => {
   const { messageHandler, commands } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}help` });
   const err = new Error("Execute unsuccessful");

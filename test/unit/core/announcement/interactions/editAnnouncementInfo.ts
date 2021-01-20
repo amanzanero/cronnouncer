@@ -1,6 +1,7 @@
-import test from "ava";
+import moment from "moment";
+import test, { before } from "ava";
 import { editAnnouncementInfo } from "../../../../../src/core/announcement/interactions/editAnnouncementInfo";
-import { Response } from "../../../../../src/lib";
+import { Response } from "../../../../../src/core/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
   AnnouncementNotFoundError,
@@ -20,7 +21,6 @@ import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSetting
 import { MockCronService } from "../../../../test_utils/mocks/cronService";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
 import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
-import moment from "moment";
 import { DATE_FORMAT } from "../../../../../src/core/announcement/services/cron";
 import { Message } from "../../../../../src/core/announcement/domain/announcement";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
@@ -36,7 +36,7 @@ interface TestContext {
   };
 }
 
-test.before(async (t) => {
+before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const guildSettingsRepo = new MockGuildSettingsRepo();
   const discordService = new MockDiscordService();
@@ -84,7 +84,7 @@ test("should return validation error with bad input", async (t) => {
   await announcementRepo.save(announcement);
 
   const input = {
-    announcementID: announcement.id.value,
+    announcementID: announcement.shortID,
     guildID: "guildWithSettings",
     message: longMessage + longMessage,
   };
@@ -111,12 +111,12 @@ test("should return validation error with bad input", async (t) => {
 test("should return AnnouncementNotFoundError", async (t) => {
   const { deps } = t.context as TestContext;
 
-  const announcementID = "1";
+  const announcementID = 1;
   const input = { announcementID, guildID: "guildWithSettings", channelID: "some channel" };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<AnnouncementNotFoundError>(
-    new AnnouncementNotFoundError(announcementID),
+    new AnnouncementNotFoundError(announcementID.toString()),
   );
   t.deepEqual(response, expectedErr);
 });
@@ -134,7 +134,7 @@ test("should return TextChannelDoesNotExistError", async (t) => {
   await announcementRepo.save(announcement);
 
   const input = {
-    announcementID: announcement.id.value,
+    announcementID: announcement.shortID,
     guildID,
     channelID,
     message: "this message should not be added",
@@ -162,7 +162,7 @@ test("should return success if channel exists", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID, channelID };
+  const input = { announcementID: announcement.shortID, guildID, channelID };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const announcementCopy = announcement.copy();
@@ -185,7 +185,7 @@ test("should set message if announcement in progress", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const input = { announcementID: announcement.id.value, guildID, message };
+  const input = { announcementID: announcement.shortID, guildID, message };
   const response = await editAnnouncementInfo(input, deps as any);
 
   const announcementCopy = announcement.copy();
@@ -208,7 +208,7 @@ test("should not set time if there is no timezone", async (t) => {
 
   const mScheduledTime = moment().add(2, "minutes");
   const input = {
-    announcementID: announcement.id.value,
+    announcementID: announcement.shortID,
     guildID,
     scheduledTime: mScheduledTime.format(DATE_FORMAT),
   };
@@ -233,7 +233,7 @@ test("should not set improperly formatted time", async (t) => {
 
   const mScheduledTime = moment().add(2, "minutes");
   const input = {
-    announcementID: announcement.id.value,
+    announcementID: announcement.shortID,
     guildID,
     scheduledTime: mScheduledTime.toISOString(),
   };
@@ -259,8 +259,8 @@ test("should not set scheduledTime in the past", async (t) => {
   await announcementRepo.save(announcement);
 
   const mScheduledTime = moment();
-  const input: any = {
-    announcementID: announcement.id.value,
+  const input = {
+    announcementID: announcement.shortID,
     guildID,
     scheduledTime: mScheduledTime.format(DATE_FORMAT),
   };
@@ -289,7 +289,7 @@ test("should set scheduledTime", async (t) => {
 
   const scheduledTime = mScheduledTime.format(DATE_FORMAT);
   const input = {
-    announcementID: announcement.id.value,
+    announcementID: announcement.shortID,
     guildID,
     scheduledTime,
   };

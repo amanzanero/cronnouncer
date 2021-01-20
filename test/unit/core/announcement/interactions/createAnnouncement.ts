@@ -1,6 +1,6 @@
-import test from "ava";
+import test, { before } from "ava";
 import { createAnnouncement } from "../../../../../src/core/announcement/interactions/createAnnouncement";
-import { Response } from "../../../../../src/lib";
+import { Response } from "../../../../../src/core/lib";
 import { TimezoneNotSetError, ValidationError } from "../../../../../src/core/announcement/errors";
 import { MockAnnouncementRepo } from "../../../../test_utils/mocks/announcementRepo";
 import { AnnouncementOutput } from "../../../../../src/core/announcement/interactions/common";
@@ -8,24 +8,28 @@ import { MockGuildSettingsRepo } from "../../../../test_utils/mocks/guildSetting
 import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
+import { MockIdentifierService } from "../../../../test_utils/mocks/identifierService";
 
 interface TestContext {
   deps: {
     announcementRepo: MockAnnouncementRepo;
     guildSettingsRepo: MockGuildSettingsRepo;
     loggerService: MockLoggerService;
+    identifierService: MockIdentifierService;
   };
 }
 
-test.before(async (t) => {
+before(async (t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const guildSettingsRepo = new MockGuildSettingsRepo();
   const loggerService = new MockLoggerService();
+  const identifierService = new MockIdentifierService(announcementRepo);
   Object.assign(t.context, {
     deps: {
       announcementRepo,
       guildSettingsRepo,
       loggerService,
+      identifierService,
     },
   });
 

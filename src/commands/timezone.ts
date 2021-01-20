@@ -1,12 +1,12 @@
 import { Message } from "discord.js";
 import { setGuildTimezone } from "../core/announcement/interactions/setGuildTimezone";
-import { Args } from "./definitions/Args";
 import {
   GuildSettingsOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { PREFIX, SUPPORTED_TIMEZONES } from "../constants";
+import { Args } from "./definitions/Args";
 
 export const help = {
   name: "timezone",

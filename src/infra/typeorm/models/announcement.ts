@@ -5,6 +5,9 @@ export class Announcement {
   @PrimaryColumn()
   announcement_id: string;
 
+  @Column()
+  short_id: number;
+
   @Column({ nullable: true })
   channel_id: string;
 
