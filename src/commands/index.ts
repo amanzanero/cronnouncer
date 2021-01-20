@@ -22,7 +22,7 @@ import { DbStores } from "../infra/typeorm";
 
 export const UNKNOWN_COMMAND_RESPONSE = `Sorry I didn't understand that command.\nFor a list of commands, run \`${PREFIX}help\`.`;
 
-interface CMDProps {
+export interface CMDProps {
   announcementRepo: AnnouncementRepo;
   announcementSettingsRepo: AnnouncementSettingsRepo;
   cronService: CronService;

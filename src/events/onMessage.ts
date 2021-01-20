@@ -1,21 +1,22 @@
 import { Message } from "discord.js";
 import { v4 as uuid } from "uuid";
 
-import { CommandMap } from "../commands/definitions";
 import { isCommand, parseCommand } from "../commands/util/parser";
 import { logger } from "../infra/logger";
-import { UNKNOWN_COMMAND_RESPONSE } from "../commands";
+import { CMDProps, makeCommandMap, UNKNOWN_COMMAND_RESPONSE } from "../commands";
 import { PREFIX } from "../constants";
 
 function commandRunLogStart(cmd: string) {
-  return `${PREFIX}${cmd}>>>`;
+  return `${PREFIX}${cmd}>>>>`;
 }
 
 function commandRunLogStop(cmd: string, time: number) {
-  return `${PREFIX}${cmd}<<< - ${time}ms`;
+  return `${PREFIX}${cmd}<<<< - ${time}ms`;
 }
 
-export function makeMessageHandler(commands: CommandMap) {
+export function makeMessageHandler(commandProps: CMDProps) {
+  const commandMap = makeCommandMap(commandProps);
+
   return async function handleMessage(message: Message) {
     if (message.author.bot) return; // we dont fuk w bots
     if (!isCommand(message.content)) return;
@@ -23,7 +24,7 @@ export function makeMessageHandler(commands: CommandMap) {
     const { command, args } = parseCommand(message.content);
 
     // handle invalid command
-    const cmd = commands[command];
+    const cmd = commandMap[command];
     if (!cmd) {
       try {
         await message.channel.send(UNKNOWN_COMMAND_RESPONSE);
