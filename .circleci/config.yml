@@ -3,7 +3,7 @@ orbs:
   node: circleci/node@3.0.0
 
 jobs:
-  build-lint-and-unit:
+  build-and-lint:
     executor:
       name: node/default
     steps:
@@ -12,9 +12,8 @@ jobs:
       - run: npm audit
       - run: npm run build:dryrun
       - run: npm run lint
-      - run: npm run test:unit
 
-  end2end:
+  coverage:
     docker:
       - image: circleci/node:14
         environment:
@@ -41,14 +40,14 @@ jobs:
 workflows:
   cronnouncer-ci:
     jobs:
-      - build-lint-and-unit
-      - end2end:
+      - build-and-lint
+      - coverage:
           requires:
-            - build-lint-and-unit
+            - build-and-lint
       - deployhold:
           type: approval
           requires:
-            - end2end
+            - coverage
           filters:
             branches:
               only:

@@ -1,5 +1,5 @@
 export default {
   extensions: ["ts"],
-  files: ["test/e2e/**/*.ts", "!test/test_utils", "!test/unit"],
+  files: ["test/unit/**/*.ts", "!test/**/mocks", "!test/test_utils"],
   require: ["ts-node/register"],
 };
