@@ -1,9 +1,11 @@
 import moment from "moment";
 import test, { before } from "ava";
+import { v4 } from "uuid";
 import { editAnnouncementInfo } from "../../../../../src/core/announcement/interactions/editAnnouncementInfo";
 import { Response } from "../../../../../src/core/lib";
 import { createMockAnnouncement } from "../../../../test_utils/mocks/announcement";
 import {
+  AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
@@ -24,6 +26,7 @@ import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSetti
 import { DATE_FORMAT } from "../../../../../src/core/announcement/services/cron";
 import { Message } from "../../../../../src/core/announcement/domain/announcement";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
+import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 
 interface TestContext {
   deps: {
@@ -119,6 +122,34 @@ test("should return AnnouncementNotFoundError", async (t) => {
     new AnnouncementNotFoundError(announcementID.toString()),
   );
   t.deepEqual(response, expectedErr);
+});
+
+test("should not edit announcementInfo for sent announcement", async (t) => {
+  const { deps } = t.context as TestContext;
+  const { announcementRepo, guildSettingsRepo } = deps;
+
+  const guildID = v4();
+  const announcement = createMockAnnouncement({
+    guildID,
+    status: AnnouncementStatus.sent,
+  });
+  await announcementRepo.save(announcement);
+  const copy = announcement.copy();
+  await guildSettingsRepo.save(
+    createMockGuildSettings({
+      timezone: "US/Pacific",
+      guildID,
+    }),
+  );
+
+  const input = { announcementID: announcement.shortID, guildID, channelID: "some channel" };
+  const response = await editAnnouncementInfo(input, deps as any);
+
+  const expectedErr = Response.fail<AnnouncementLockedStatusError>(
+    new AnnouncementLockedStatusError(announcement.shortID.toString()),
+  );
+  t.deepEqual(response, expectedErr);
+  t.deepEqual(copy, await announcementRepo.findByID(announcement.id.value));
 });
 
 test("should return TextChannelDoesNotExistError", async (t) => {

@@ -36,7 +36,7 @@ test("should not delete with no announcementID", async (t) => {
   const input: any = { announcementID: "sh", guildID: "dne" };
   const response = await deleteAnnouncement(input, deps as any);
 
-  const expectedErr = new ValidationError("sh is not a number");
+  const expectedErr = new ValidationError("announcementID is not a number");
   t.deepEqual(response.value, expectedErr);
 
   // should still be persisted

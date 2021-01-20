@@ -3,6 +3,7 @@ import {
   AnnouncementError,
   AnnouncementIncompleteError,
   AnnouncementInProgressError,
+  AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
   AnnouncementNotInProgressError,
   InvalidTimeError,
@@ -29,6 +30,7 @@ export function getActionFromError({ message, responseError }: ErrorActionProps)
     case TextChannelDoesNotExistError:
     case TimeInPastError:
     case AnnouncementNotFoundError:
+    case AnnouncementLockedStatusError:
       return () =>
         message.channel.send(
           `${responseError.message}\n> Type \`${PREFIX}help\` for proper usage.`,

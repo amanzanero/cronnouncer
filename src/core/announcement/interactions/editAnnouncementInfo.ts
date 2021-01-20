@@ -5,6 +5,7 @@
 import { Message, ScheduledTime } from "../domain/announcement";
 import { Guard, Response } from "../../lib";
 import {
+  AnnouncementLockedStatusError,
   AnnouncementNotFoundError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
@@ -12,6 +13,7 @@ import {
   TimezoneNotSetError,
   ValidationError,
 } from "../errors";
+import { AnnouncementStatus } from "../domain/announcement/Status";
 import {
   AnnouncementOutput,
   AnnouncementToOutput,
@@ -67,7 +69,18 @@ export async function editAnnouncementInfo(
       return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
     }
 
-    const updatedMeta = { ...meta, guildSettings: GuildSettingsToOutput(guildSettings) };
+    const updatedMeta = {
+      ...meta,
+      guildSettings: GuildSettingsToOutput(guildSettings),
+      announcementID: activeAnnouncement.id.value,
+    };
+
+    if (activeAnnouncement.status.value === AnnouncementStatus.sent) {
+      deps.loggerService.info("editAnnouncementInfo", "cannot edit sent announcement", updatedMeta);
+      return Response.fail<AnnouncementLockedStatusError>(
+        new AnnouncementLockedStatusError(shortID.toString()),
+      );
+    }
 
     if (message !== undefined) {
       const messageOrError = Message.create(message);

@@ -30,7 +30,7 @@ export async function deleteAnnouncement(
       { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
-    const guardNaN = Guard.againstNaN(shortID, "shortID");
+    const guardNaN = Guard.againstNaN(shortID, "announcementID");
     const guard = Guard.combine([guardUndefined, guardNaN]);
 
     if (!guard.succeeded) {
