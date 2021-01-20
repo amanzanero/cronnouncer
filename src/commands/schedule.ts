@@ -12,8 +12,8 @@ export const help = {
   name: "schedule",
   category: "Scheduling",
   description: "Schedules the announcement to be sent.",
-  usage: `${PREFIX}schedule`,
-  example: `${PREFIX}schedule 8fc3d953-f46c-4432-ae85-09e82a3fd81a`,
+  usage: `${PREFIX}schedule {announcementID}`,
+  example: `${PREFIX}schedule 33`,
 };
 
 export const conf = {

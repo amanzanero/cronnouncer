@@ -10,6 +10,7 @@ import { help as createHelp } from "./create";
 import { help as unschdeuleHelp } from "./unschedule";
 import { help as timezoneHelp } from "./timezone";
 import { help as listHelp } from "./list";
+import { help as viewHelp } from "./view";
 import { help as deleteHelp } from "./delete";
 
 const help = {
@@ -34,6 +35,7 @@ const HELP_ARRAY = [
   scheduleHelp,
   unschdeuleHelp,
   listHelp,
+  viewHelp,
   deleteHelp,
   help,
 ];
@@ -44,12 +46,10 @@ export function helpEmbed() {
 
   HELP_ARRAY.forEach((help) => {
     embed.addFields(
-      { name: `${PREFIX}${help.name}`, value: help.description },
-      { name: "Usage", value: `\`\`\`${help.usage}\`\`\``, inline: true },
+      { name: `__${help.usage}__`, value: help.description },
       {
-        name: "Example",
+        name: "example",
         value: `\`\`\`${help.example}\`\`\``,
-        inline: true,
       },
     );
   });

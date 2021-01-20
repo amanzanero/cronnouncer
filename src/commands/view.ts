@@ -7,11 +7,11 @@ import { ExecutorProps } from "./definitions";
 import { announcementStringEmbed } from "./util/announcementString";
 
 export const help = {
-  name: "list",
+  name: "view",
   category: "Scheduling",
-  description: "lists all unscheduled, scheduled, and sent announcements.",
-  usage: `${PREFIX}list`,
-  example: `${PREFIX}list`,
+  description: "Shows details for the announcement",
+  usage: `${PREFIX}view {announcementID}`,
+  example: `${PREFIX}view 33`,
 };
 
 export const conf = {

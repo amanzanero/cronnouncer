@@ -13,8 +13,8 @@ export const help = {
   name: "set-message",
   category: "Scheduling",
   description: "Sets the message for the in-progress announcement",
-  usage: `${PREFIX}set-message {announcement id} {announcement content}`,
-  example: `${PREFIX}set-message 8fc3d953-f46c-4432-ae85-09e82a3fd81a One super awesome announcement`,
+  usage: `${PREFIX}set-message {announcementID} {announcement content}`,
+  example: `${PREFIX}set-message 33 One super awesome announcement`,
 };
 
 export const conf = {

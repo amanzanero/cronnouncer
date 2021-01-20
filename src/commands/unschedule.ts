@@ -8,8 +8,8 @@ export const help = {
   name: "unschedule",
   category: "Scheduling",
   description: "Un-schedules an announcement that is scheduled to be sent",
-  usage: `${PREFIX}unschedule`,
-  example: `${PREFIX}unschedule 8fc3d953-f46c-4432-ae85-09e82a3fd81a`,
+  usage: `${PREFIX}unschedule {announcementID}`,
+  example: `${PREFIX}unschedule 33`,
 };
 
 export const conf = {

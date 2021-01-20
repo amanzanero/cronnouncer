@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { getConnection } from "typeorm";
-import { CONNECTION_NAME, PREFIX } from "../constants";
+import { CONNECTION_NAME, MAX_MESSAGE_SIZE, PREFIX } from "../constants";
 import {
   Announcement as AnnouncementModel,
   GuildSettings as GuildSettingsModel,
@@ -12,7 +12,7 @@ import { ExecutorProps } from "./definitions";
 export const help = {
   name: "list",
   category: "Scheduling",
-  description: "lists all unscheduled, scheduled, and sent announcements.",
+  description: "Lists all unscheduled, scheduled, and sent announcements.",
   usage: `${PREFIX}list`,
   example: `${PREFIX}list`,
 };
@@ -22,8 +22,8 @@ export const conf = {
   guildOnly: true,
 };
 
-let startString = `ID        Status       Created at        \n`;
-startString = `${startString}\n${"".padEnd(startString.length, "-")}\n`;
+const startString = `announcementID| Status       | Created at        \n`;
+const divider = "".padEnd(startString.length, "-") + "\n";
 
 // no need to access core for this
 export function makeListExecute() {
@@ -40,19 +40,28 @@ export function makeListExecute() {
         guildSettingsTORepo.findOne({ guild_id: message.guild?.id }),
       ]);
 
-      let response;
+      const responses: string[] = [];
+      let response = startString;
       if (announcements.length && !!guildSettings) {
-        response = announcements.reduce((acc, curr) => {
+        announcements.forEach((curr) => {
           const parsedTime = moment.tz(curr.created_at, guildSettings.timezone).format(DATE_FORMAT);
-          const id = curr.short_id.toString().padEnd(9);
-          const status = curr.status.padEnd(8);
-          return `${acc}${id} ${status}  ${parsedTime}\n`;
-        }, startString);
-        response = `\`\`\`${response}\`\`\``;
+          const id = curr.short_id.toString().padEnd(14);
+          const status = curr.status.padEnd(13);
+
+          const nextRow = divider + `${id}| ${status}| ${parsedTime}\n`;
+          if (response.length + nextRow.length > MAX_MESSAGE_SIZE) {
+            responses.push(`\`\`\`${response}\`\`\``);
+            response = startString;
+          }
+          response += nextRow;
+        });
+        responses.push(`\`\`\`${response}\`\`\``);
       } else {
-        response = "There are no announcements created for this server at this time.";
+        responses.push("There are no announcements created for this server.");
       }
-      await message.channel.send(response);
+      for (const response of responses) {
+        await message.channel.send(response);
+      }
       logger.info(`Sent ${announcements.length} announcements`, meta);
     } catch (e) {
       logger.error(e, meta);
