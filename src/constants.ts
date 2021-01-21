@@ -14,7 +14,7 @@ export const PG_DB = process.env.PG_DB;
 export const DATABASE_URL = process.env.DATABASE_URL;
 
 export const GCLOUD_PROJECT_ID = process.env.GCLOUD_PROJECT_ID;
-export const CONNECTION_NAME = IS_PROD ? "default" : "local";
+export const CONNECTION_NAME = !!DATABASE_URL ? "default" : "local";
 
 export const SUPPORTED_TIMEZONES = [
   "US/Alaska",
