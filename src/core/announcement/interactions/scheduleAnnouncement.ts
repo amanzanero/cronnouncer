@@ -64,7 +64,7 @@ export async function scheduleAnnouncement(
 
     const updatedMeta = {
       ...meta,
-      announcement: AnnouncementToOutput(inProgressAnnouncement),
+      announcementID: inProgressAnnouncement.id.value,
       guildSettings: GuildSettingsToOutput(settings),
     };
     const scheduleResult = inProgressAnnouncement.schedule({
@@ -99,10 +99,7 @@ export async function scheduleAnnouncement(
     deps.loggerService.info(
       "scheduleAnnouncement",
       `successfully scheduled announcement: ${inProgressAnnouncement.id.value}`,
-      {
-        ...updatedMeta,
-        announcement: AnnouncementToOutput(inProgressAnnouncement),
-      },
+      meta,
     );
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
   });
