@@ -35,9 +35,11 @@ export async function scheduleAnnouncement(
       { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
-    if (!guardResult.succeeded) {
-      deps.loggerService.info("scheduleAnnouncement", `validation: ${guardResult.message}`, meta);
-      return Response.fail<ValidationError>(new ValidationError(guardResult.message));
+    const guardNaN = Guard.againstNaN(shortID, "announcementID");
+    const guard = Guard.combine([guardResult, guardNaN]);
+    if (!guard.succeeded) {
+      deps.loggerService.info("scheduleAnnouncement", `validation: ${guard.message}`, meta);
+      return Response.fail<ValidationError>(new ValidationError(guard.message));
     }
 
     // get in progress announcement

@@ -42,7 +42,7 @@ export async function editAnnouncementInfo(
       { argumentName: "announcementID", argument: shortID },
       { argumentName: "guildID", argument: guildID },
     ]);
-    const guardNaN = Guard.againstNaN(shortID, "shortID");
+    const guardNaN = Guard.againstNaN(shortID, "announcementID");
     const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));
