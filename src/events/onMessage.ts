@@ -7,11 +7,11 @@ import { CMDProps, makeCommandMap, UNKNOWN_COMMAND_RESPONSE } from "../commands"
 import { PREFIX } from "../constants";
 
 function commandRunLogStart(cmd: string) {
-  return `${PREFIX}${cmd}>>>>`;
+  return `[${PREFIX}${cmd}>>>>]`;
 }
 
 function commandRunLogStop(cmd: string, time: number) {
-  return `${PREFIX}${cmd}<<<< - ${time}ms`;
+  return `[${PREFIX}${cmd}<<<<] - ${time}ms`;
 }
 
 export function makeMessageHandler(commandProps: CMDProps) {
