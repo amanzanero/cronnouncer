@@ -25,16 +25,18 @@ export function makeViewCMD() {
   const connection = getConnection(CONNECTION_NAME);
   const announcementTORepo = connection.getRepository(AnnouncementModel);
 
-  async function execute({ requestID, message, args }: ExecutorProps) {
+  async function execute(props: ExecutorProps) {
+    const { message, args } = props;
+
     const guildID = message.guild?.id as string;
     const shortIDStr = args.firstArg;
     const shortID = parseInt(shortIDStr);
-    const meta = { requestID, user: message.author.tag, guildID, shortID };
+
+    const meta = { ...props.meta, shortID };
 
     const undef = Guard.againstNullOrUndefined(shortIDStr, "announcementID");
     const nan = Guard.againstNaN(shortID, "announcementID");
     const guard = Guard.combine([undef, nan]);
-
     if (!guard.succeeded) {
       logger.info(`validation: ${guard.message}`, meta);
       await message.channel.send(guard.message as string);

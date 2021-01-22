@@ -36,7 +36,7 @@ export async function editAnnouncementInfo(
 ) {
   return await interactionLogWrapper(deps, "editAnnouncementInfo", async () => {
     const { announcementRepo, guildSettingsRepo, discordService, timeService } = deps;
-    const meta = { requestID: deps.requestID, shortID, guildID };
+    const meta = { ...deps.meta, shortID };
 
     const guardUndefined = Guard.againstNullOrUndefinedBulk([
       { argumentName: "announcementID", argument: shortID },
@@ -45,6 +45,7 @@ export async function editAnnouncementInfo(
     const guardNaN = Guard.againstNaN(shortID, "announcementID");
     const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
+      deps.loggerService.info("editAnnouncementInfo", `validation: ${guardResult.message}`, meta);
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
@@ -133,7 +134,7 @@ export async function editAnnouncementInfo(
     deps.loggerService.info(
       "editAnnouncementInfo",
       `announcement: ${activeAnnouncement.id.value} successfully edited`,
-      { ...updatedMeta, announcement: AnnouncementToOutput(activeAnnouncement) },
+      updatedMeta,
     );
 
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(activeAnnouncement));

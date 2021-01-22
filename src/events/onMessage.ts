@@ -44,17 +44,16 @@ export function makeMessageHandler(commandProps: CMDProps) {
 
     const requestID = uuid();
     const user = message.author.tag;
-    logger.info(commandRunLogStart(cmd.help.name), { requestID, user });
+    const guildID = message.guild?.id;
+    const meta = { requestID, user, guildID };
+    logger.info(commandRunLogStart(cmd.help.name), meta);
 
     const timeStart = Date.now();
     try {
-      await cmd.execute({ requestID, message, args });
+      await cmd.execute({ meta, message, args });
     } catch (e) {
-      logger.error(e, { requestID });
+      logger.error(e, meta);
     }
-    logger.info(commandRunLogStop(cmd.help.name, Date.now() - timeStart), {
-      requestID,
-      user,
-    });
+    logger.info(commandRunLogStop(cmd.help.name, Date.now() - timeStart), meta);
   };
 }

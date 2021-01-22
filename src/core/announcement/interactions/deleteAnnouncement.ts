@@ -20,11 +20,7 @@ export async function deleteAnnouncement(
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "cancelAnnouncement", async () => {
-    const { announcementRepo } = deps;
-    const meta = {
-      requestID: deps.requestID,
-      guildID,
-    };
+    const { announcementRepo, meta } = deps;
 
     const guardUndefined = Guard.againstNullOrUndefinedBulk([
       { argumentName: "announcementID", argument: shortID },

@@ -16,7 +16,7 @@ export interface InteractionDependencies {
   loggerService: ILoggerService;
   timeService: ITimeService;
   identifierService: IIdentifierService;
-  requestID?: string;
+  meta?: any;
 }
 
 export interface AnnouncementOutput {
@@ -55,16 +55,14 @@ export function GuildSettingsToOutput(gs: GuildSettings): GuildSettingsOutput {
 }
 
 export async function interactionLogWrapper(
-  deps: { loggerService: ILoggerService; requestID?: string },
+  deps: { loggerService: ILoggerService; meta?: any },
   interactionName: string,
   interaction: () => Promise<Response<any>>,
 ) {
   const start = Date.now();
-  deps.loggerService.info(`${interactionName}>>>>`, undefined, { requestID: deps.requestID });
+  deps.loggerService.info(`${interactionName}>>>>`, undefined, deps.meta);
   const response = await interaction();
-  deps.loggerService.info(`${interactionName}<<<<`, `- ${Date.now() - start}ms`, {
-    requestID: deps.requestID,
-  });
+  deps.loggerService.info(`${interactionName}<<<<`, `- ${Date.now() - start}ms`, deps.meta);
 
   return response;
 }

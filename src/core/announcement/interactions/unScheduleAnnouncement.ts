@@ -19,7 +19,7 @@ export async function unScheduleAnnouncement(
   deps: InteractionDependencies,
 ) {
   return await interactionLogWrapper(deps, "unScheduleAnnouncement", async () => {
-    const { announcementRepo } = deps;
+    const { announcementRepo, meta } = deps;
 
     const guardUndefined = Guard.againstNullOrUndefinedBulk([
       { argumentName: "announcementID", argument: shortID },
@@ -28,11 +28,21 @@ export async function unScheduleAnnouncement(
     const guardNaN = Guard.againstNaN(shortID, "shortID");
     const guardResult = Guard.combine([guardUndefined, guardNaN]);
     if (!guardResult.succeeded) {
+      deps.loggerService.info(
+        "unScheduleAnnouncement",
+        `incorrectParams: ${guardResult.message}`,
+        meta,
+      );
       return Response.fail<ValidationError>(new ValidationError(guardResult.message));
     }
 
     const inProgressAnnouncement = await announcementRepo.findByShortID(shortID, guildID);
     if (!inProgressAnnouncement) {
+      deps.loggerService.info(
+        "unScheduleAnnouncement",
+        `announcement: ${shortID} DNE - no action taken`,
+        meta,
+      );
       return Response.fail<AnnouncementNotFoundError>(
         new AnnouncementNotFoundError(shortID.toString()),
       );
@@ -40,14 +50,14 @@ export async function unScheduleAnnouncement(
 
     const unScheduleResult = inProgressAnnouncement.unSchedule();
     if (unScheduleResult.isFailure) {
-      return Response.fail<AnnouncementLockedStatusError>(
-        new AnnouncementLockedStatusError(shortID.toString()),
-      );
+      const e = new AnnouncementLockedStatusError(shortID.toString());
+      deps.loggerService.info("unScheduleAnnouncement", `${e.message} - no action taken`, meta);
+      return Response.fail<AnnouncementLockedStatusError>(e);
     }
     deps.cronService.unScheduleAnnouncement({
       announcement: inProgressAnnouncement,
       loggerService: deps.loggerService,
-      requestID: deps.requestID,
+      requestID: deps.meta.requestID,
     });
     await announcementRepo.save(inProgressAnnouncement);
 

@@ -29,10 +29,10 @@ export function makeExecuteBase(
   dependencies: ExecuteBaseDependencies,
   execProps: ExecuteBaseProps,
 ): Executor {
-  return async function execute({ requestID, args, message }) {
+  return async function execute({ meta, args, message }) {
     const { interaction, onSuccess } = execProps;
     try {
-      const interactionDeps = { ...dependencies, requestID };
+      const interactionDeps = { ...dependencies, meta };
       const response = await interaction(interactionDeps, message, args);
 
       if (response.failed) {
@@ -43,10 +43,10 @@ export function makeExecuteBase(
       }
       await onSuccess(message, response as Response<AnnouncementOutput>);
     } catch (e) {
-      dependencies.loggerService.error(e, { requestID });
+      dependencies.loggerService.error(e, meta);
 
       message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-        dependencies.loggerService.error(e, { requestID });
+        dependencies.loggerService.error(e, meta);
       });
     }
   };

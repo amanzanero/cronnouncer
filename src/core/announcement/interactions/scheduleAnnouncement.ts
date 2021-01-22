@@ -29,7 +29,7 @@ export async function scheduleAnnouncement(
 ) {
   return await interactionLogWrapper(deps, "scheduleAnnouncement", async () => {
     const { announcementRepo, guildSettingsRepo, cronService, timeService } = deps;
-    const meta = { requestID: deps.requestID, shortID };
+    const meta = { ...deps.meta, shortID };
 
     const guardResult = Guard.againstNullOrUndefinedBulk([
       { argumentName: "announcementID", argument: shortID },
@@ -101,7 +101,7 @@ export async function scheduleAnnouncement(
     deps.loggerService.info(
       "scheduleAnnouncement",
       `successfully scheduled announcement: ${inProgressAnnouncement.id.value}`,
-      meta,
+      updatedMeta,
     );
     return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
   });

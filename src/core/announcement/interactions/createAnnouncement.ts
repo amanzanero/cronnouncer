@@ -18,8 +18,7 @@ export interface InputData {
 export async function createAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
   return await interactionLogWrapper(deps, "createAnnouncement", async () => {
     // check data transfer object is valid first
-    const { identifierService, guildSettingsRepo } = deps;
-    const meta = { guildID, requestID: deps.requestID };
+    const { identifierService, guildSettingsRepo, meta } = deps;
     const guard = Guard.againstNullOrUndefined(guildID, "guildID");
     if (!guard.succeeded) {
       const error = new ValidationError(guard.message);
@@ -36,7 +35,7 @@ export async function createAnnouncement({ guildID }: InputData, deps: Interacti
       const error = new TimezoneNotSetError();
       deps.loggerService.info("createAnnouncement", "no timezone or no guild settings", {
         ...meta,
-        guildSettingsID: guildSettings?.id.value || -1, // -1 means DNE
+        guildSettingsID: guildSettings && GuildSettingsToOutput(guildSettings),
       });
       return Response.fail<TimezoneNotSetError>(error);
     }

@@ -27,7 +27,7 @@ interface TestContext {
 before((t) => {
   const announcementRepo = new MockAnnouncementRepo();
   const loggerService = new MockLoggerService();
-  Object.assign(t.context, { deps: { announcementRepo, loggerService } });
+  Object.assign(t.context, { deps: { announcementRepo, loggerService, meta: {} } });
 });
 
 test("should not unschedule with undefined inputs", async (t) => {

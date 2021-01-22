@@ -32,9 +32,7 @@ export function makeListCMD() {
   const announcementTORepo = connection.getRepository(AnnouncementModel);
   const guildSettingsTORepo = connection.getRepository(GuildSettingsModel);
 
-  async function execute({ requestID, message }: ExecutorProps) {
-    const meta = { requestID, user: message.author.tag };
-
+  async function execute({ meta, message }: ExecutorProps) {
     try {
       const [announcements, guildSettings] = await Promise.all([
         announcementTORepo.find({ guild_id: message.guild?.id }),

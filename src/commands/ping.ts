@@ -18,8 +18,7 @@ export const conf = {
 };
 
 export function makePingCMD({ discordClient }: { discordClient: Client }) {
-  async function execute({ requestID, message }: ExecutorProps) {
-    const meta = { requestID, user: message.author.tag };
+  async function execute({ meta, message }: ExecutorProps) {
     try {
       const latency = Date.now() - message.createdTimestamp;
       const appLatency = latency < 0 ? 0 : latency;

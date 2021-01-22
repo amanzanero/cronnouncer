@@ -13,6 +13,7 @@ import { help as listHelp } from "./list";
 import { help as viewHelp } from "./view";
 import { help as deleteHelp } from "./delete";
 import { help as pingHelp } from "./ping";
+import { INTERNAL_ERROR_RESPONSE } from "./util/errors";
 
 const help = {
   name: "help",
@@ -63,11 +64,14 @@ export function makeHelpCMD(): Command {
   // interaction init
 
   return {
-    execute: async function execute({ requestID, message }) {
+    execute: async function execute({ meta, message }) {
       try {
         await message.channel.send(helpEmbed());
       } catch (e) {
-        logger.error(e, { requestID });
+        logger.error(e, meta);
+        message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
+          logger.error(e, meta);
+        });
       }
     },
     help,
