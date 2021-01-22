@@ -8,11 +8,12 @@ import {
 import { logger } from "../infra/logger";
 import { DATE_FORMAT } from "../core/announcement/services/cron";
 import { ExecutorProps } from "./definitions";
+import { INTERNAL_ERROR_RESPONSE } from "./util/errors";
 
 export const help = {
   name: "list",
   category: "Scheduling",
-  description: "Lists all unscheduled, scheduled, and sent announcements.",
+  description: "Lists all unscheduled, scheduled, and sent announcements",
   usage: `${PREFIX}list`,
   example: `${PREFIX}list`,
 };
@@ -26,7 +27,7 @@ const startString = `announcementID| Status       | Created at        \n`;
 const divider = "".padEnd(startString.length, "-") + "\n";
 
 // no need to access core for this
-export function makeListExecute() {
+export function makeListCMD() {
   const connection = getConnection(CONNECTION_NAME);
   const announcementTORepo = connection.getRepository(AnnouncementModel);
   const guildSettingsTORepo = connection.getRepository(GuildSettingsModel);
@@ -65,6 +66,9 @@ export function makeListExecute() {
       logger.info(`Sent ${announcements.length} announcements`, meta);
     } catch (e) {
       logger.error(e, meta);
+      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
+        logger.error(e, meta);
+      });
     }
   }
 

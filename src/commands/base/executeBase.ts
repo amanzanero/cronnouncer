@@ -1,5 +1,5 @@
 import { AnnouncementError } from "../../core/announcement/errors";
-import { getActionFromError } from "../util/errors";
+import { getActionFromError, INTERNAL_ERROR_RESPONSE } from "../util/errors";
 import { Response } from "../../core/lib";
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
 import { Executor, Interaction, Success } from "../definitions";
@@ -45,7 +45,7 @@ export function makeExecuteBase(
     } catch (e) {
       dependencies.loggerService.error(e, { requestID });
 
-      message.channel.send("Sorry! Something unexpected happened on my end :(").catch((e) => {
+      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
         dependencies.loggerService.error(e, { requestID });
       });
     }

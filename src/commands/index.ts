@@ -1,3 +1,4 @@
+import { Client } from "discord.js";
 import { AnnouncementRepo, GuildSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
@@ -18,8 +19,9 @@ import * as cancelAnnouncementCMD from "./unschedule";
 import * as scheduleAnnouncementCMD from "./schedule";
 import * as timezoneCMD from "./timezone";
 import * as deleteCMD from "./delete";
-import { makeListExecute } from "./list";
-import { makeViewExecute } from "./view";
+import { makeListCMD } from "./list";
+import { makeViewCMD } from "./view";
+import { makePingCMD } from "./ping";
 
 export const UNKNOWN_COMMAND_RESPONSE = `Sorry I didn't understand that command.\nFor a list of commands, run \`${PREFIX}help\`.`;
 
@@ -33,6 +35,7 @@ export interface CMDProps {
   identifierService: IdentifierService;
 
   stores: DbStores; // for crud
+  discordClient: Client;
 }
 
 export function makeCommandMap(cmdProps: CMDProps): CommandMap {
@@ -45,9 +48,10 @@ export function makeCommandMap(cmdProps: CMDProps): CommandMap {
     "set-time": makeCMD(cmdProps, setTimeCMD),
     schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
     unschedule: makeCMD(cmdProps, cancelAnnouncementCMD),
-    list: makeListExecute(),
-    view: makeViewExecute(),
+    list: makeListCMD(),
+    view: makeViewCMD(),
     delete: makeCMD(cmdProps, deleteCMD),
+    ping: makePingCMD(cmdProps),
   };
 }
 

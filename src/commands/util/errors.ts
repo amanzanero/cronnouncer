@@ -52,3 +52,5 @@ export function getActionFromError({ message, responseError }: ErrorActionProps)
       };
   }
 }
+
+export const INTERNAL_ERROR_RESPONSE = "Sorry! Something unexpected happened on my end :(";

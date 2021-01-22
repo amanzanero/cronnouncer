@@ -5,6 +5,7 @@ import { logger } from "../infra/logger";
 import { Guard } from "../core/lib";
 import { ExecutorProps } from "./definitions";
 import { announcementStringEmbed } from "./util/announcementString";
+import { INTERNAL_ERROR_RESPONSE } from "./util/errors";
 
 export const help = {
   name: "view",
@@ -20,7 +21,7 @@ export const conf = {
 };
 
 // no need to access core for this
-export function makeViewExecute() {
+export function makeViewCMD() {
   const connection = getConnection(CONNECTION_NAME);
   const announcementTORepo = connection.getRepository(AnnouncementModel);
 
@@ -68,6 +69,9 @@ export function makeViewExecute() {
       });
     } catch (e) {
       logger.error(e, meta);
+      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
+        logger.error(e, meta);
+      });
     }
   }
 

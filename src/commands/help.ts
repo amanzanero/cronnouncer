@@ -12,6 +12,7 @@ import { help as timezoneHelp } from "./timezone";
 import { help as listHelp } from "./list";
 import { help as viewHelp } from "./view";
 import { help as deleteHelp } from "./delete";
+import { help as pingHelp } from "./ping";
 
 const help = {
   name: "help",
@@ -37,6 +38,7 @@ const HELP_ARRAY = [
   listHelp,
   viewHelp,
   deleteHelp,
+  pingHelp,
   help,
 ];
 
