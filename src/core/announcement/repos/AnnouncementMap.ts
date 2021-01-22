@@ -1,4 +1,4 @@
-import { Announcement, Channel, Message, ScheduledTime } from "../domain/announcement";
+import { Announcement, Message, ScheduledTime } from "../domain/announcement";
 import { Result, UniqueEntityID } from "../../lib";
 import { logger } from "../../../infra/logger";
 import { Announcement as AnnouncementModel } from "../../../infra/typeorm/models";
@@ -26,12 +26,6 @@ export class AnnouncementMap {
   public static toDomain(raw: AnnouncementModel): Announcement | undefined {
     const statusOrError = Status.create(raw.status);
     const createResults: Result<any>[] = [statusOrError];
-
-    let channelOrError;
-    if (!!raw.channel_id) {
-      channelOrError = Channel.create(raw.channel_id);
-      createResults.push(channelOrError);
-    }
 
     let messageOrError;
     if (!!raw.message) {
