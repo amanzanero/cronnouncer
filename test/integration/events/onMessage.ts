@@ -1,4 +1,4 @@
-import test, { afterEach, before, serial } from "ava";
+import test, { after, afterEach, before, serial } from "ava";
 import sinon from "sinon";
 
 import { makeMessageHandler } from "../../../src/events";
@@ -7,31 +7,37 @@ import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import * as parser from "../../../src/commands/util/parser";
 import { logger } from "../../../src/infra/logger";
 import { PREFIX } from "../../../src/constants";
+import { initDB } from "../../../src/infra/typeorm";
 
-before((t) => {
+before(async (t) => {
   const deps: any = { stores: {}, discordClient: {} };
+  const { storesDisconnect: closeConnection } = await initDB();
+
   const commands = cmd.makeCommandMap(deps);
   // stub our executions
-  Object.entries(commands).forEach((keyValue) => {
-    if (!keyValue[1]) return;
-    sinon.stub(keyValue[1], "execute");
+  commands.forEach((command) => {
+    sinon.stub(command, "execute");
   });
 
   sinon.stub(cmd, "makeCommandMap").returns(commands);
   const errorLogSpy = sinon.spy(logger, "error");
   const messageHandler = makeMessageHandler(deps);
-  Object.assign(t.context, { commands, messageHandler, errorLogSpy });
+  Object.assign(t.context, { commands, messageHandler, errorLogSpy, closeConnection });
 });
 
 afterEach(() => {
   sinon.reset();
 });
 
+after(async (t) => {
+  await (t.context as any).closeConnection();
+});
+
 serial("ignores bot", async (t) => {
   const { messageHandler, commands } = t.context as any;
   const message = genTestMessage({ bot: true, message: `${PREFIX}help` });
   await messageHandler(message);
-  t.true(commands.help.execute.notCalled);
+  t.true(commands.get("help").execute.notCalled);
 });
 
 test("ignores non-command message", async (t) => {
@@ -65,15 +71,15 @@ serial("executes a command", async (t) => {
   const message = genTestMessage({ message: `${PREFIX}help` });
 
   await messageHandler(message);
-  t.true(commands.help.execute.called);
+  t.true(commands.get("help").execute.called);
 });
 
 serial("executes a command unsuccessfully", async (t) => {
   const { messageHandler, commands } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}help` });
   const err = new Error("Execute unsuccessful");
-  commands.help.execute.throws(err);
+  commands.get("help").execute.throws(err);
 
   await messageHandler(message);
-  t.true(commands.help.execute.called);
+  t.true(commands.get("help").execute.called);
 });

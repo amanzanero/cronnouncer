@@ -1,5 +1,5 @@
 /*
-Contains definition for an announcement
+Contains properties for guild settings
  */
 
 import { Result, UniqueEntityID } from "../../../lib";

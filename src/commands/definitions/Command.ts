@@ -13,7 +13,3 @@ export interface Command {
     guildOnly: boolean;
   };
 }
-
-export interface CommandMap {
-  [command: string]: Command | undefined;
-}

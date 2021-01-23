@@ -24,7 +24,7 @@ export function makeMessageHandler(commandProps: CMDProps) {
     const { command, args } = parseCommand(message.content);
 
     // handle invalid command
-    const cmd = commandMap[command];
+    const cmd = commandMap.get(command);
     if (!cmd) {
       try {
         await message.channel.send(UNKNOWN_COMMAND_RESPONSE);

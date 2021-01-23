@@ -1,5 +1,5 @@
-export * from "./CMD";
-export * from "./CommandMap";
+export * from "./CoreInteractionCommand";
+export * from "./Command";
 export * from "./Executor";
 export * from "./Interaction";
 export * from "./Success";

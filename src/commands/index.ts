@@ -1,4 +1,5 @@
 import { Client } from "discord.js";
+import { Map } from "immutable";
 import { AnnouncementRepo, GuildSettingsRepo } from "../core/announcement/repos";
 import { DiscordService } from "../core/announcement/services/discord";
 
@@ -8,17 +9,17 @@ import { LoggerService } from "../core/announcement/services/logger";
 import { PREFIX } from "../constants";
 import { DbStores } from "../infra/typeorm";
 import { IdentifierService } from "../core/announcement/services/identifierService";
-import { Command, CommandMap, CMD } from "./definitions";
-import { makeExecuteBase } from "./base/executeBase";
+import { Command, CoreInteractionCommand } from "./definitions";
+import { makeCoreInteractionExecutor } from "./base/executeCoreInteraction";
 import { makeHelpCMD } from "./help";
-import * as startAnnouncementCMD from "./create";
-import * as setTimeCMD from "./set-time";
-import * as setMessageCMD from "./set-message";
-import * as setChannelCMD from "./set-channel";
-import * as cancelAnnouncementCMD from "./unschedule";
+import * as startAnnouncementCoreCMD from "./create";
+import * as setTimeCoreCMD from "./set-time";
+import * as setMessageCoreCMD from "./set-message";
+import * as setChannelCoreCMD from "./set-channel";
+import * as cancelAnnouncementCoreCMD from "./unschedule";
 import * as scheduleAnnouncementCMD from "./schedule";
-import * as timezoneCMD from "./timezone";
-import * as deleteCMD from "./delete";
+import * as timezoneCoreCMD from "./timezone";
+import * as deleteCoreCMD from "./delete";
 import { makeListCMD } from "./list";
 import { makeViewCMD } from "./view";
 import { makePingCMD } from "./ping";
@@ -38,26 +39,36 @@ export interface CMDProps {
   discordClient: Client;
 }
 
-export function makeCommandMap(cmdProps: CMDProps): CommandMap {
-  return {
-    help: makeHelpCMD(),
-    timezone: makeCMD(cmdProps, timezoneCMD),
-    create: makeCMD(cmdProps, startAnnouncementCMD),
-    "set-channel": makeCMD(cmdProps, setChannelCMD),
-    "set-message": makeCMD(cmdProps, setMessageCMD),
-    "set-time": makeCMD(cmdProps, setTimeCMD),
-    schedule: makeCMD(cmdProps, scheduleAnnouncementCMD),
-    unschedule: makeCMD(cmdProps, cancelAnnouncementCMD),
+export function makeCommandMap(cmdProps: CMDProps): Map<string, Command> {
+  return Map({
+    /**
+     * commands that utilize core
+     */
+    timezone: makeCoreInteractionCMD(cmdProps, timezoneCoreCMD),
+    create: makeCoreInteractionCMD(cmdProps, startAnnouncementCoreCMD),
+    "set-channel": makeCoreInteractionCMD(cmdProps, setChannelCoreCMD),
+    "set-message": makeCoreInteractionCMD(cmdProps, setMessageCoreCMD),
+    "set-time": makeCoreInteractionCMD(cmdProps, setTimeCoreCMD),
+    schedule: makeCoreInteractionCMD(cmdProps, scheduleAnnouncementCMD),
+    unschedule: makeCoreInteractionCMD(cmdProps, cancelAnnouncementCoreCMD),
+    delete: makeCoreInteractionCMD(cmdProps, deleteCoreCMD),
+
+    /**
+     * basic CRUD / non-core commands
+     */
     list: makeListCMD(),
     view: makeViewCMD(),
-    delete: makeCMD(cmdProps, deleteCMD),
     ping: makePingCMD(cmdProps),
-  };
+    help: makeHelpCMD(),
+  });
 }
 
-function makeCMD(props: CMDProps, cmd: CMD): Command {
+/**
+ * Assembles an execution function with other cmd props
+ */
+function makeCoreInteractionCMD(props: CMDProps, cmd: CoreInteractionCommand): Command {
   return {
-    execute: makeExecuteBase(props, cmd),
+    execute: makeCoreInteractionExecutor(props, cmd),
     help: cmd.help,
     conf: cmd.conf,
   };

@@ -10,7 +10,7 @@ import { ILoggerService } from "../../core/announcement/services/logger";
 import { ITimeService } from "../../core/announcement/services/time";
 import { IIdentifierService } from "../../core/announcement/services/identifierService";
 
-interface ExecuteBaseProps {
+interface ExecuteCoreInteractionProps {
   interaction: Interaction;
   onSuccess: Success;
 }
@@ -25,9 +25,9 @@ interface ExecuteBaseDependencies {
   identifierService: IIdentifierService;
 }
 
-export function makeExecuteBase(
+export function makeCoreInteractionExecutor(
   dependencies: ExecuteBaseDependencies,
-  execProps: ExecuteBaseProps,
+  execProps: ExecuteCoreInteractionProps,
 ): Executor {
   return async function execute({ meta, args, message }) {
     const { interaction, onSuccess } = execProps;
