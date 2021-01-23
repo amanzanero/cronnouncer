@@ -24,7 +24,7 @@ import { MockCronService } from "../../../../test_utils/mocks/cronService";
 import { TimeService } from "../../../../../src/core/announcement/services/time";
 import { createMockGuildSettings } from "../../../../test_utils/mocks/guildSettings";
 import { DATE_FORMAT } from "../../../../../src/core/announcement/services/cron";
-import { Message } from "../../../../../src/core/announcement/domain/announcement";
+import { Message, ScheduledTime } from "../../../../../src/core/announcement/domain/announcement";
 import { MockLoggerService } from "../../../../test_utils/mocks/loggerService";
 import { AnnouncementStatus } from "../../../../../src/core/announcement/domain/announcement/Status";
 
@@ -271,7 +271,7 @@ test("should not set improperly formatted time", async (t) => {
   const response = await editAnnouncementInfo(input, deps as any);
 
   const expectedErr = Response.fail<InvalidTimeError>(
-    new InvalidTimeError(mScheduledTime.toISOString()),
+    new InvalidTimeError(ScheduledTime.invalidTimeMessage(mScheduledTime.toISOString())),
   );
   t.deepEqual(response, expectedErr);
 

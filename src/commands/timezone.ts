@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, Message } from "discord.js";
 import { setGuildTimezone } from "../core/announcement/interactions/setGuildTimezone";
 import {
   GuildSettingsOutput,
@@ -24,10 +24,12 @@ export const conf = {
 };
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
-  const guildID = message.guild?.id as string;
+  const guildID = (message.guild as Guild).id;
   return await setGuildTimezone({ guildID, timezone: args.argArray[0] }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<GuildSettingsOutput>) {
-  await message.channel.send(`Timezone: \`${response.value?.timezone}\` was set for the server.`);
+  await message.channel.send(
+    `Timezone: \`${(response.value as GuildSettingsOutput).timezone}\` was set for the server.`,
+  );
 }

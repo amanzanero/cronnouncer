@@ -44,10 +44,7 @@ export function makeCoreInteractionExecutor(
       await onSuccess(message, response as Response<AnnouncementOutput>);
     } catch (e) {
       dependencies.loggerService.error(e, meta);
-
-      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-        dependencies.loggerService.error(e, meta);
-      });
+      await message.channel.send(INTERNAL_ERROR_RESPONSE);
     }
   };
 }

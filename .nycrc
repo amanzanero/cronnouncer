@@ -6,7 +6,8 @@
     "src/constants.ts",
     "src/index.ts",
     "src/bot.ts",
-    "src/infra/typeorm"
+    "src/infra/typeorm",
+    "src/commands/ping.ts"
     ],
   "reporter": ["html", "text", "text-summary"],
   "all": true,

@@ -1,5 +1,7 @@
 import moment from "moment-timezone";
 import { getConnection } from "typeorm";
+import { Guild } from "discord.js";
+
 import { CONNECTION_NAME, MAX_MESSAGE_SIZE, PREFIX } from "../constants";
 import {
   Announcement as AnnouncementModel,
@@ -26,6 +28,32 @@ export const conf = {
 const startString = `announcementID| Status       | Created at        \n`;
 const divider = "".padEnd(startString.length, "-") + "\n";
 
+export function announcementsTable(
+  announcements: AnnouncementModel[],
+  timezone?: string,
+): string[] {
+  const responses: string[] = [];
+  let response = startString;
+  if (announcements.length && !!timezone) {
+    announcements.forEach((curr) => {
+      const parsedTime = moment.tz(curr.created_at, timezone).format(DATE_FORMAT);
+      const id = curr.short_id.toString().padEnd(14);
+      const status = curr.status.padEnd(13);
+
+      const nextRow = divider + `${id}| ${status}| ${parsedTime}\n`;
+      if (response.length + nextRow.length > MAX_MESSAGE_SIZE) {
+        responses.push(`\`\`\`${response}\`\`\``);
+        response = startString;
+      }
+      response += nextRow;
+    });
+    responses.push(`\`\`\`${response}\`\`\``);
+  } else {
+    responses.push("There are no announcements created for this server.");
+  }
+  return responses;
+}
+
 // no need to access core for this
 export function makeListCMD() {
   const connection = getConnection(CONNECTION_NAME);
@@ -34,39 +62,20 @@ export function makeListCMD() {
 
   async function execute({ meta, message }: ExecutorProps) {
     try {
+      const guild_id = (message.guild as Guild).id;
       const [announcements, guildSettings] = await Promise.all([
-        announcementTORepo.find({ guild_id: message.guild?.id }),
-        guildSettingsTORepo.findOne({ guild_id: message.guild?.id }),
+        announcementTORepo.find({ guild_id }),
+        guildSettingsTORepo.findOne({ guild_id }),
       ]);
 
-      const responses: string[] = [];
-      let response = startString;
-      if (announcements.length && !!guildSettings) {
-        announcements.forEach((curr) => {
-          const parsedTime = moment.tz(curr.created_at, guildSettings.timezone).format(DATE_FORMAT);
-          const id = curr.short_id.toString().padEnd(14);
-          const status = curr.status.padEnd(13);
-
-          const nextRow = divider + `${id}| ${status}| ${parsedTime}\n`;
-          if (response.length + nextRow.length > MAX_MESSAGE_SIZE) {
-            responses.push(`\`\`\`${response}\`\`\``);
-            response = startString;
-          }
-          response += nextRow;
-        });
-        responses.push(`\`\`\`${response}\`\`\``);
-      } else {
-        responses.push("There are no announcements created for this server.");
-      }
+      const responses = announcementsTable(announcements, guildSettings?.timezone);
       for (const response of responses) {
         await message.channel.send(response);
       }
       logger.info(`Sent ${announcements.length} announcements`, meta);
     } catch (e) {
       logger.error(e, meta);
-      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-        logger.error(e, meta);
-      });
+      await message.channel.send(INTERNAL_ERROR_RESPONSE);
     }
   }
 

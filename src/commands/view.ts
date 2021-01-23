@@ -1,3 +1,4 @@
+import { Guild } from "discord.js";
 import { getConnection } from "typeorm";
 import { CONNECTION_NAME, PREFIX } from "../constants";
 import { Announcement as AnnouncementModel } from "../infra/typeorm/models";
@@ -20,6 +21,17 @@ export const conf = {
   guildOnly: true,
 };
 
+export function announcementModelToOutput(announcement: AnnouncementModel) {
+  return {
+    id: announcement.short_id,
+    scheduledTime: announcement.scheduled_time,
+    guildID: announcement.guild_id,
+    status: announcement.status,
+    channelID: announcement.channel_id,
+    message: announcement.message,
+  };
+}
+
 // no need to access core for this
 export function makeViewCMD() {
   const connection = getConnection(CONNECTION_NAME);
@@ -28,7 +40,7 @@ export function makeViewCMD() {
   async function execute(props: ExecutorProps) {
     const { message, args } = props;
 
-    const guildID = message.guild?.id as string;
+    const guildID = (message.guild as Guild).id;
     const shortIDStr = args.firstArg;
     const shortID = parseInt(shortIDStr);
 
@@ -48,20 +60,14 @@ export function makeViewCMD() {
         short_id: shortID,
         guild_id: guildID,
       });
+
       if (!announcement) {
         logger.info(`announcement with shortID: ${shortID} DNE`, meta);
-        await message.channel.send(`no announcement found with id: \`${shortID}\``);
+        await message.channel.send(`No announcement found with id \`${shortID}\``);
         return;
       }
 
-      const normalizedAnnouncement = {
-        id: announcement.short_id,
-        scheduledTime: announcement.scheduled_time,
-        guildID: announcement.guild_id,
-        status: announcement.status,
-        channelID: announcement.channel_id,
-        message: announcement.message,
-      };
+      const normalizedAnnouncement = announcementModelToOutput(announcement);
 
       const embed = announcementStringEmbed(normalizedAnnouncement);
       await message.channel.send(embed);
@@ -71,9 +77,7 @@ export function makeViewCMD() {
       });
     } catch (e) {
       logger.error(e, meta);
-      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-        logger.error(e, meta);
-      });
+      await message.channel.send(INTERNAL_ERROR_RESPONSE);
     }
   }
 

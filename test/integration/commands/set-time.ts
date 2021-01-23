@@ -1,9 +1,10 @@
 import test, { after, before } from "ava";
 import { Repository } from "typeorm";
 import { stub } from "sinon";
+import moment from "moment-timezone";
 
+import * as setTimeCMD from "../../../src/commands/set-time";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
-import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
 import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
@@ -15,7 +16,9 @@ import { AnnouncementRepo, GuildSettingsRepo } from "../../../src/core/announcem
 import { LoggerService } from "../../../src/core/announcement/services/logger";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
-import { PREFIX } from "../../../src/constants";
+import { TimeService } from "../../../src/core/announcement/services/time";
+import { DATE_FORMAT } from "../../../src/core/announcement/services/cron";
+import { ScheduledTime } from "../../../src/core/announcement/domain/announcement";
 
 interface TestContext {
   deps: {
@@ -31,7 +34,7 @@ interface TestContext {
   closeConnection: () => Promise<any>;
 }
 
-const guildID = "set-channel-test-id";
+const guildID = "set-time-test-id";
 
 before(async (t) => {
   const {
@@ -42,10 +45,9 @@ before(async (t) => {
   const guildSettingsRepo = new GuildSettingsRepo(guildSettingsStore);
   const discordService = new MockDiscordService();
   const loggerService = new LoggerService();
-  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
-  const execute = makeCoreInteractionExecutor(deps as any, setChannelCMD);
-
-  Object.assign(discordService.channels, { "1234": true });
+  const timeService = new TimeService();
+  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService, timeService };
+  const execute = makeCoreInteractionExecutor(deps as any, setTimeCMD);
 
   await guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" }));
   Object.assign(t.context, {
@@ -68,25 +70,28 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("channel gets set", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("time gets set", async (t) => {
+  const { deps, execute, announcementStore } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
   await deps.announcementRepo.save(newAnnouncement);
 
   const mockMessage = genTestMessage({ guildID });
-  const args = new Args(`${newAnnouncement.shortID} <#1234>`);
+  const mTime = moment().add(1, "day");
+  const args = new Args(`${newAnnouncement.shortID} ${mTime.format(DATE_FORMAT)}`);
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, "1234");
+  const announcement = await announcementStore.findOne({
+    announcement_id: newAnnouncement.id.value,
+  });
+  t.is(announcement?.scheduled_time, mTime.format(DATE_FORMAT));
 });
 
-test("no id or channel responds with error message", async (t) => {
+test("No time gives a validation error", async (t) => {
   const { deps, execute } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
@@ -94,7 +99,7 @@ test("no id or channel responds with error message", async (t) => {
 
   const mockMessage = genTestMessage({ guildID });
   const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args("");
+  const args = new Args(newAnnouncement.shortID.toString());
 
   await execute({
     meta: {},
@@ -104,23 +109,23 @@ test("no id or channel responds with error message", async (t) => {
 
   t.true(
     sendStub.calledWith(
-      `announcementID is not a number\n> Type \`${PREFIX}help\` for proper usage.`,
+      `No time was provided\n> Usage: \`#set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
     ),
   );
-
   const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  t.is(announcement?.scheduledTime, undefined);
 });
 
-test("incorrect channel returns a respond", async (t) => {
+test("Invalid time format gives a validation error", async (t) => {
   const { deps, execute } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
+  const mTime = moment().add(1, "day");
   await deps.announcementRepo.save(newAnnouncement);
 
   const mockMessage = genTestMessage({ guildID });
   const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args(`${newAnnouncement.shortID} <#5555>`);
+  const args = new Args(`${newAnnouncement.shortID} ${mTime.toISOString()}`);
 
   await execute({
     meta: {},
@@ -130,10 +135,11 @@ test("incorrect channel returns a respond", async (t) => {
 
   t.true(
     sendStub.calledWith(
-      `Channel \`#5555\` is not the name of a text channel in this server.\n> Type \`${PREFIX}help\` for proper usage.`,
+      `${ScheduledTime.invalidTimeMessage(
+        mTime.toISOString(),
+      )}\n> Usage: \`#set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
     ),
   );
-
   const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  t.is(announcement?.scheduledTime, undefined);
 });

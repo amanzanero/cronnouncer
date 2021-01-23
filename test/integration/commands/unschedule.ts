@@ -1,11 +1,9 @@
 import test, { after, before } from "ava";
 import { Repository } from "typeorm";
-import { stub } from "sinon";
 
+import * as unscheduleCMD from "../../../src/commands/unschedule";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
-import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
-import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
 import { makeCoreInteractionExecutor } from "../../../src/commands/base/executeCoreInteraction";
 import { createMockGuildSettings } from "../../test_utils/mocks/guildSettings";
@@ -15,7 +13,11 @@ import { AnnouncementRepo, GuildSettingsRepo } from "../../../src/core/announcem
 import { LoggerService } from "../../../src/core/announcement/services/logger";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
-import { PREFIX } from "../../../src/constants";
+import { IdentifierService } from "../../../src/core/announcement/services/identifierService";
+import { AnnouncementStatus } from "../../../src/core/announcement/domain/announcement/Status";
+import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
+import { CronService } from "../../../src/core/announcement/services/cron";
+import { makeMockDiscordClient } from "../../test_utils/mocks/discordClient";
 
 interface TestContext {
   deps: {
@@ -23,6 +25,7 @@ interface TestContext {
     discordService: MockDiscordService;
     guildSettingsRepo: GuildSettingsRepo;
     loggerService: MockLoggerService;
+    identifierService: IdentifierService;
   };
   execute: Command["execute"];
 
@@ -31,7 +34,7 @@ interface TestContext {
   closeConnection: () => Promise<any>;
 }
 
-const guildID = "set-channel-test-id";
+const guildID = "unschedule-test-id";
 
 before(async (t) => {
   const {
@@ -42,10 +45,17 @@ before(async (t) => {
   const guildSettingsRepo = new GuildSettingsRepo(guildSettingsStore);
   const discordService = new MockDiscordService();
   const loggerService = new LoggerService();
-  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
-  const execute = makeCoreInteractionExecutor(deps as any, setChannelCMD);
-
-  Object.assign(discordService.channels, { "1234": true });
+  const identifierService = new IdentifierService();
+  const cronService = new CronService(makeMockDiscordClient() as any);
+  const deps = {
+    announcementRepo,
+    discordService,
+    guildSettingsRepo,
+    loggerService,
+    identifierService,
+    cronService,
+  };
+  const execute = makeCoreInteractionExecutor(deps as any, unscheduleCMD);
 
   await guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" }));
   Object.assign(t.context, {
@@ -68,72 +78,52 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("channel gets set", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("should un-schedule announcement", async (t) => {
+  const {
+    announcementStore,
+    execute,
+    deps: { announcementRepo },
+  } = t.context as TestContext;
 
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
+  const announcement = createMockAnnouncement({
+    guildID,
+    status: AnnouncementStatus.scheduled,
+  });
+  await announcementRepo.save(announcement);
 
   const mockMessage = genTestMessage({ guildID });
-  const args = new Args(`${newAnnouncement.shortID} <#1234>`);
+  const args = new Args(announcement.shortID.toString());
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, "1234");
+  const unScheduled = await announcementStore.findOne({ announcement_id: announcement.id.value });
+  t.is(unScheduled?.status, AnnouncementStatus.unscheduled);
 });
 
-test("no id or channel responds with error message", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("should not un-schedule a sent message", async (t) => {
+  const {
+    announcementStore,
+    execute,
+    deps: { announcementRepo },
+  } = t.context as TestContext;
 
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
+  const announcement = createMockAnnouncement({
+    guildID,
+    status: AnnouncementStatus.sent,
+  });
+  await announcementRepo.save(announcement);
 
   const mockMessage = genTestMessage({ guildID });
-  const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args("");
-
+  const args = new Args(announcement.shortID.toString());
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  t.true(
-    sendStub.calledWith(
-      `announcementID is not a number\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
-
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
-});
-
-test("incorrect channel returns a respond", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
-  const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args(`${newAnnouncement.shortID} <#5555>`);
-
-  await execute({
-    meta: {},
-    message: mockMessage as any,
-    args,
-  });
-
-  t.true(
-    sendStub.calledWith(
-      `Channel \`#5555\` is not the name of a text channel in this server.\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
-
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  const ann = await announcementStore.findOne({ announcement_id: announcement.id.value });
+  t.is(ann?.status, AnnouncementStatus.sent);
 });

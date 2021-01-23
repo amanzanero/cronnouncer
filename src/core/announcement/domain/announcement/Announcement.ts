@@ -137,7 +137,7 @@ export class Announcement {
       return Result.fail<Announcement>("An announcement that has been sent cannot be unscheduled.");
     }
 
-    Object.assign(this.props, { status: AnnouncementStatus.unscheduled });
+    Object.assign(this.props, { status: Status.create(AnnouncementStatus.unscheduled).getValue() });
     return Result.ok<Announcement>(this);
   }
 

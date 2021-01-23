@@ -1,13 +1,11 @@
 import test, { after, before } from "ava";
-import { Repository } from "typeorm";
 import { stub } from "sinon";
+import { Repository } from "typeorm";
 
+import { announcementsTable, makeListCMD } from "../../../src/commands/list";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
-import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
-import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
-import { makeCoreInteractionExecutor } from "../../../src/commands/base/executeCoreInteraction";
 import { createMockGuildSettings } from "../../test_utils/mocks/guildSettings";
 import { MockLoggerService } from "../../test_utils/mocks/loggerService";
 import { initDB } from "../../../src/infra/typeorm";
@@ -15,7 +13,9 @@ import { AnnouncementRepo, GuildSettingsRepo } from "../../../src/core/announcem
 import { LoggerService } from "../../../src/core/announcement/services/logger";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
-import { PREFIX } from "../../../src/constants";
+import { IdentifierService } from "../../../src/core/announcement/services/identifierService";
+import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
+import { INTERNAL_ERROR_RESPONSE } from "../../../src/commands/util/errors";
 
 interface TestContext {
   deps: {
@@ -23,6 +23,7 @@ interface TestContext {
     discordService: MockDiscordService;
     guildSettingsRepo: GuildSettingsRepo;
     loggerService: MockLoggerService;
+    identifierService: IdentifierService;
   };
   execute: Command["execute"];
 
@@ -31,7 +32,8 @@ interface TestContext {
   closeConnection: () => Promise<any>;
 }
 
-const guildID = "set-channel-test-id";
+const guildID = "list-test-id";
+const COUNT = 15;
 
 before(async (t) => {
   const {
@@ -42,12 +44,24 @@ before(async (t) => {
   const guildSettingsRepo = new GuildSettingsRepo(guildSettingsStore);
   const discordService = new MockDiscordService();
   const loggerService = new LoggerService();
-  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
-  const execute = makeCoreInteractionExecutor(deps as any, setChannelCMD);
+  const identifierService = new IdentifierService();
+  const deps = {
+    announcementRepo,
+    discordService,
+    guildSettingsRepo,
+    loggerService,
+    identifierService,
+  };
+  const { execute } = makeListCMD();
+  const promises: Promise<any>[] = [];
+  for (let i = 0; i < COUNT; i++) {
+    promises.push(announcementRepo.save(createMockAnnouncement({ guildID })));
+  }
+  await Promise.all([
+    ...promises,
+    guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" })),
+  ]);
 
-  Object.assign(discordService.channels, { "1234": true });
-
-  await guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" }));
   Object.assign(t.context, {
     deps,
     execute,
@@ -60,7 +74,6 @@ before(async (t) => {
 
 after(async (t) => {
   const { announcementStore, guildSettingsStore, closeConnection } = t.context as TestContext;
-
   await Promise.all([
     announcementStore.delete({ guild_id: guildID }),
     guildSettingsStore.delete({ guild_id: guildID }),
@@ -68,72 +81,56 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("channel gets set", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
-  const args = new Args(`${newAnnouncement.shortID} <#1234>`);
-  await execute({
-    meta: {},
-    message: mockMessage as any,
-    args,
-  });
-
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, "1234");
-});
-
-test("no id or channel responds with error message", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
+test("send formatted announcements", async (t) => {
+  const { announcementStore, execute } = t.context as TestContext;
 
   const mockMessage = genTestMessage({ guildID });
   const sendStub = stub(mockMessage.channel, "send");
+
   const args = new Args("");
-
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  t.true(
-    sendStub.calledWith(
-      `announcementID is not a number\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
+  const announcements = await announcementStore.find({ guild_id: guildID });
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  t.deepEqual(
+    sendStub.args.map((a) => a[0]),
+    announcementsTable(announcements, "US/Pacific") as any,
+  );
 });
 
-test("incorrect channel returns a respond", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("send message notifying of no announcements", async (t) => {
+  const { execute } = t.context as TestContext;
 
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
+  const mockMessage = genTestMessage({ guildID: "none" });
   const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args(`${newAnnouncement.shortID} <#5555>`);
 
+  const args = new Args("");
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  t.true(
-    sendStub.calledWith(
-      `Channel \`#5555\` is not the name of a text channel in this server.\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
+  t.deepEqual(sendStub.args, [["There are no announcements created for this server."]]);
+});
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+test("sends internal error", async (t) => {
+  const { execute } = t.context as TestContext;
+
+  const mockMessage = genTestMessage({ guildID: "none" });
+  const sendStub = stub(mockMessage.channel, "send");
+  sendStub.onFirstCall().throws(new Error("Discord error"));
+
+  const args = new Args("");
+  await execute({
+    meta: {},
+    message: mockMessage as any,
+    args,
+  });
+
+  t.deepEqual(sendStub.secondCall.args, [INTERNAL_ERROR_RESPONSE]);
 });

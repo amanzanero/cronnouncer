@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, Message } from "discord.js";
 import { createAnnouncement } from "../core/announcement/interactions/createAnnouncement";
 import { PREFIX } from "../constants";
 import {
@@ -22,7 +22,7 @@ export const conf = {
 };
 
 export async function interaction(props: InteractionDependencies, message: Message) {
-  const guildID = message.guild?.id as string;
+  const guildID = (message.guild as Guild).id as string;
   return await createAnnouncement({ guildID }, props);
 }
 

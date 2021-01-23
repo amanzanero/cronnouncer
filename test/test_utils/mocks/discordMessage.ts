@@ -1,6 +1,7 @@
 // Message
 
 import { v4 } from "uuid";
+import { MessageEmbed } from "discord.js";
 
 interface genMessageProps {
   id?: string;
@@ -9,11 +10,11 @@ interface genMessageProps {
   guildID?: string;
 }
 
-export function genTestMessage(props?: genMessageProps): any {
+export function genTestMessage(props?: genMessageProps) {
   return {
     author: { id: props?.id || v4(), bot: !!props?.bot },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    channel: { send: async (_: string) => undefined },
+    channel: { send: async (_: string | MessageEmbed) => undefined },
     content: props?.message || "",
     guild: { id: props?.guildID || v4() },
   };

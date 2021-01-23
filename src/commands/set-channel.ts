@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, Message } from "discord.js";
 import {
   AnnouncementOutput,
   InteractionDependencies,
@@ -25,7 +25,7 @@ export const conf = {
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
   const [announcementID, rawChannel] = args.argArray;
   const channelID = parseDiscordChannelID(rawChannel);
-  const guildID = message.guild?.id as string;
+  const guildID = (message.guild as Guild).id;
 
   return await editAnnouncementInfo(
     { announcementID: parseInt(announcementID), guildID, channelID },

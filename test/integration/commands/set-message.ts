@@ -2,8 +2,8 @@ import test, { after, before } from "ava";
 import { Repository } from "typeorm";
 import { stub } from "sinon";
 
+import * as setMessageCMD from "../../../src/commands/set-message";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
-import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
 import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
@@ -16,6 +16,7 @@ import { LoggerService } from "../../../src/core/announcement/services/logger";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
 import { PREFIX } from "../../../src/constants";
+import { AnnouncementNotFoundError } from "../../../src/core/announcement/errors";
 
 interface TestContext {
   deps: {
@@ -31,7 +32,7 @@ interface TestContext {
   closeConnection: () => Promise<any>;
 }
 
-const guildID = "set-channel-test-id";
+const guildID = "set-message-test-id";
 
 before(async (t) => {
   const {
@@ -43,9 +44,7 @@ before(async (t) => {
   const discordService = new MockDiscordService();
   const loggerService = new LoggerService();
   const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
-  const execute = makeCoreInteractionExecutor(deps as any, setChannelCMD);
-
-  Object.assign(discordService.channels, { "1234": true });
+  const execute = makeCoreInteractionExecutor(deps as any, setMessageCMD);
 
   await guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" }));
   Object.assign(t.context, {
@@ -68,25 +67,46 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("channel gets set", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("receive no announcement in progress message", async (t) => {
+  const { execute } = t.context as TestContext;
+
+  const mockMessage = genTestMessage({ guildID });
+  const sendStub = stub(mockMessage.channel, "send");
+  const args = new Args("55 message");
+
+  await execute({
+    meta: {},
+    message: mockMessage as any,
+    args,
+  });
+  t.true(
+    sendStub.calledWith(
+      `${new AnnouncementNotFoundError("55").message}\n> Type \`#help\` for proper usage.`,
+    ),
+  );
+});
+
+test("message gets set", async (t) => {
+  const { deps, execute, announcementStore } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
   await deps.announcementRepo.save(newAnnouncement);
 
   const mockMessage = genTestMessage({ guildID });
-  const args = new Args(`${newAnnouncement.shortID} <#1234>`);
+  const args = new Args(`${newAnnouncement.shortID} a brand spanking new message`);
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, "1234");
+  const announcement = await announcementStore.findOne({
+    announcement_id: newAnnouncement.id.value,
+  });
+  t.is(announcement?.message, "a brand spanking new message");
 });
 
-test("no id or channel responds with error message", async (t) => {
+test("No message gives a validation error", async (t) => {
   const { deps, execute } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
@@ -94,7 +114,7 @@ test("no id or channel responds with error message", async (t) => {
 
   const mockMessage = genTestMessage({ guildID });
   const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args("");
+  const args = new Args(newAnnouncement.shortID.toString());
 
   await execute({
     meta: {},
@@ -103,37 +123,8 @@ test("no id or channel responds with error message", async (t) => {
   });
 
   t.true(
-    sendStub.calledWith(
-      `announcementID is not a number\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
+    sendStub.calledWith(`No message was provided\n> Type \`${PREFIX}help\` for proper usage.`),
   );
-
   const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
-});
-
-test("incorrect channel returns a respond", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
-  const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args(`${newAnnouncement.shortID} <#5555>`);
-
-  await execute({
-    meta: {},
-    message: mockMessage as any,
-    args,
-  });
-
-  t.true(
-    sendStub.calledWith(
-      `Channel \`#5555\` is not the name of a text channel in this server.\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
-
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  t.is(announcement?.message, undefined);
 });

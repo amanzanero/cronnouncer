@@ -2,10 +2,9 @@ import test, { after, before } from "ava";
 import { Repository } from "typeorm";
 import { stub } from "sinon";
 
+import * as timezoneCMD from "../../../src/commands/timezone";
 import { MockDiscordService } from "../../test_utils/mocks/discordService";
-import * as setChannelCMD from "../../../src/commands/set-channel";
 import { Command } from "../../../src/commands/definitions";
-import { createMockAnnouncement } from "../../test_utils/mocks/announcement";
 import { Args } from "../../../src/commands/definitions/Args";
 import { makeCoreInteractionExecutor } from "../../../src/commands/base/executeCoreInteraction";
 import { createMockGuildSettings } from "../../test_utils/mocks/guildSettings";
@@ -15,7 +14,8 @@ import { AnnouncementRepo, GuildSettingsRepo } from "../../../src/core/announcem
 import { LoggerService } from "../../../src/core/announcement/services/logger";
 import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
-import { PREFIX } from "../../../src/constants";
+import { IdentifierService } from "../../../src/core/announcement/services/identifierService";
+import { Timezone } from "../../../src/core/announcement/domain/guildSettings";
 
 interface TestContext {
   deps: {
@@ -23,6 +23,7 @@ interface TestContext {
     discordService: MockDiscordService;
     guildSettingsRepo: GuildSettingsRepo;
     loggerService: MockLoggerService;
+    identifierService: IdentifierService;
   };
   execute: Command["execute"];
 
@@ -31,7 +32,8 @@ interface TestContext {
   closeConnection: () => Promise<any>;
 }
 
-const guildID = "set-channel-test-id";
+const guildID = "timezone-test-id";
+const invalidGuildID = "timezone-invalid-id";
 
 before(async (t) => {
   const {
@@ -42,12 +44,17 @@ before(async (t) => {
   const guildSettingsRepo = new GuildSettingsRepo(guildSettingsStore);
   const discordService = new MockDiscordService();
   const loggerService = new LoggerService();
-  const deps = { announcementRepo, discordService, guildSettingsRepo, loggerService };
-  const execute = makeCoreInteractionExecutor(deps as any, setChannelCMD);
+  const identifierService = new IdentifierService();
+  const deps = {
+    announcementRepo,
+    discordService,
+    guildSettingsRepo,
+    loggerService,
+    identifierService,
+  };
+  const execute = makeCoreInteractionExecutor(deps as any, timezoneCMD);
 
-  Object.assign(discordService.channels, { "1234": true });
-
-  await guildSettingsRepo.save(createMockGuildSettings({ guildID, timezone: "US/Pacific" }));
+  await guildSettingsRepo.save(createMockGuildSettings({ guildID }));
   Object.assign(t.context, {
     deps,
     execute,
@@ -68,72 +75,38 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("channel gets set", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
+test("timezone gets set", async (t) => {
+  const { guildSettingsStore, execute } = t.context as TestContext;
 
   const mockMessage = genTestMessage({ guildID });
-  const args = new Args(`${newAnnouncement.shortID} <#1234>`);
+  const args = new Args("US/Pacific");
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, "1234");
+  const gSettings = await guildSettingsStore.findOne({ guild_id: guildID });
+  t.is(gSettings?.timezone, "US/Pacific");
 });
 
-test("no id or channel responds with error message", async (t) => {
-  const { deps, execute } = t.context as TestContext;
+test("responds with timezone validation error", async (t) => {
+  const { execute, guildSettingsStore } = t.context as TestContext;
 
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
+  const mockMessage = genTestMessage({ guildID: invalidGuildID });
   const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args("");
+  const args = new Args("US/dne");
 
   await execute({
     meta: {},
     message: mockMessage as any,
     args,
   });
-
-  t.true(
-    sendStub.calledWith(
-      `announcementID is not a number\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
+  t.is(
+    sendStub.args[0][0],
+    `${Timezone.invalidTimezoneMessage("US/dne")}\n> Type \`#help\` for proper usage.`,
   );
 
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
-});
-
-test("incorrect channel returns a respond", async (t) => {
-  const { deps, execute } = t.context as TestContext;
-
-  const newAnnouncement = createMockAnnouncement({ guildID });
-  await deps.announcementRepo.save(newAnnouncement);
-
-  const mockMessage = genTestMessage({ guildID });
-  const sendStub = stub(mockMessage.channel, "send");
-  const args = new Args(`${newAnnouncement.shortID} <#5555>`);
-
-  await execute({
-    meta: {},
-    message: mockMessage as any,
-    args,
-  });
-
-  t.true(
-    sendStub.calledWith(
-      `Channel \`#5555\` is not the name of a text channel in this server.\n> Type \`${PREFIX}help\` for proper usage.`,
-    ),
-  );
-
-  const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
-  t.is(announcement?.channelID, null);
+  const gSettings = await guildSettingsStore.findOne({ guild_id: invalidGuildID });
+  t.is(gSettings?.timezone, undefined);
 });

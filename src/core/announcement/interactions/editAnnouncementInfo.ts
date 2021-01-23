@@ -113,7 +113,7 @@ export async function editAnnouncementInfo(
 
         activeAnnouncement.updateScheduledTime(scheduledTimeOrError.getValue());
       } else {
-        const e = new InvalidTimeError(scheduledTime);
+        const e = new InvalidTimeError(scheduledTimeOrError.errorValue() as string);
         deps.loggerService.info("editAnnouncementInfo", `validation: ${e.message}`, updatedMeta);
         return Response.fail<InvalidTimeError>(e);
       }

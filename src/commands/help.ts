@@ -66,12 +66,11 @@ export function makeHelpCMD(): Command {
   return {
     execute: async function execute({ meta, message }) {
       try {
+        logger.info("[help] help message sent", meta);
         await message.channel.send(helpEmbed());
       } catch (e) {
         logger.error(e, meta);
-        message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-          logger.error(e, meta);
-        });
+        await message.channel.send(INTERNAL_ERROR_RESPONSE);
       }
     },
     help,

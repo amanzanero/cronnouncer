@@ -1,3 +1,4 @@
+/* istanbul ignore file  */
 import { Client } from "discord.js";
 import { PREFIX } from "../constants";
 import { logger } from "../infra/logger";
@@ -29,9 +30,7 @@ export function makePingCMD({ discordClient }: { discordClient: Client }) {
       logger.info(`[ping] sent stats`, meta);
     } catch (e) {
       logger.error(e, meta);
-      message.channel.send(INTERNAL_ERROR_RESPONSE).catch((e) => {
-        logger.error(e, meta);
-      });
+      await message.channel.send(INTERNAL_ERROR_RESPONSE);
     }
   }
 
