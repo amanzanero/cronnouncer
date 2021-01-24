@@ -65,7 +65,8 @@ jobs:
       - run: docker push amanzanero/cronnouncer-bot:latest
       - add_ssh_keys
       - run: |
-          ssh root@142.93.89.49 './cronnouncer/deploy.sh'
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/know_hosts
+          ssh root@$DEPLOY_HOST '/root/cronnouncer/deploy.sh'
 
 workflows:
   cronnouncer-ci:

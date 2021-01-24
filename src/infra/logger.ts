@@ -1,7 +1,6 @@
-import path from "path";
 import { createLogger, format, transports } from "winston";
 import { LoggingWinston } from "@google-cloud/logging-winston";
-import { GCLOUD_PROJECT_ID } from "../constants";
+import { GCLOUD_PROJECT_ID, SERVICE_KEYFILE } from "../constants";
 
 const { combine, errors, timestamp, json } = format;
 
@@ -10,7 +9,7 @@ const transportsList: any[] = [new transports.Console()];
 if (GCLOUD_PROJECT_ID) {
   const loggingWinston = new LoggingWinston({
     projectId: GCLOUD_PROJECT_ID,
-    keyFilename: path.resolve(__dirname, "../../service-key.json"),
+    keyFilename: SERVICE_KEYFILE,
     logName: "cronnouncer-prod",
   });
   transportsList.push(loggingWinston);

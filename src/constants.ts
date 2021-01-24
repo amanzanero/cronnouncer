@@ -15,6 +15,7 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 
 export const GCLOUD_PROJECT_ID = process.env.GCLOUD_PROJECT_ID;
 export const CONNECTION_NAME = !!DATABASE_URL ? "default" : "local";
+export const SERVICE_KEYFILE = process.env.SERVICE_KEYFILE;
 
 export const SUPPORTED_TIMEZONES = [
   "US/Alaska",
