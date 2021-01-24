@@ -16,6 +16,7 @@ import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
 import { IdentifierService } from "../../../src/core/announcement/services/identifierService";
 import { TimezoneNotSetError } from "../../../src/core/announcement/errors";
+import {PREFIX} from "../../../src/constants";
 
 interface TestContext {
   deps: {
@@ -107,7 +108,7 @@ test("responds with timezone not set error", async (t) => {
 
   t.is(
     sendStub.args[0][0],
-    `${new TimezoneNotSetError().message}\n> Usage: \`#timezone {timezone}\``,
+    `${new TimezoneNotSetError().message}\n> Usage: \`${PREFIX}timezone {timezone}\``,
   );
 
   const shouldntExist = await announcementStore.findOne({ guild_id: "dne" });

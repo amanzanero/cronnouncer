@@ -67,7 +67,7 @@ after(async (t) => {
   await closeConnection();
 });
 
-test("receive no announcement in progress message", async (t) => {
+test("send no announcement in progress message", async (t) => {
   const { execute } = t.context as TestContext;
 
   const mockMessage = genTestMessage({ guildID });
@@ -79,11 +79,9 @@ test("receive no announcement in progress message", async (t) => {
     message: mockMessage as any,
     args,
   });
-  t.true(
-    sendStub.calledWith(
-      `${new AnnouncementNotFoundError("55").message}\n> Type \`#help\` for proper usage.`,
-    ),
-  );
+  t.deepEqual(sendStub.firstCall.args, [
+    `${new AnnouncementNotFoundError("55").message}\n> Type \`${PREFIX}help\` for proper usage.`,
+  ]);
 });
 
 test("message gets set", async (t) => {

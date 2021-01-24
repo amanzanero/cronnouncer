@@ -19,6 +19,7 @@ import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
 import { TimeService } from "../../../src/core/announcement/services/time";
 import { DATE_FORMAT } from "../../../src/core/announcement/services/cron";
 import { ScheduledTime } from "../../../src/core/announcement/domain/announcement";
+import { PREFIX } from "../../../src/constants";
 
 interface TestContext {
   deps: {
@@ -91,7 +92,7 @@ test("time gets set", async (t) => {
   t.is(announcement?.scheduled_time, mTime.format(DATE_FORMAT));
 });
 
-test("No time gives a validation error", async (t) => {
+test("no time gives a validation error", async (t) => {
   const { deps, execute } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
@@ -107,16 +108,14 @@ test("No time gives a validation error", async (t) => {
     args,
   });
 
-  t.true(
-    sendStub.calledWith(
-      `No time was provided\n> Usage: \`#set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
-    ),
-  );
+  t.deepEqual(sendStub.firstCall.args, [
+    `No time was provided\n> Usage: \`${PREFIX}set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
+  ]);
   const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
   t.is(announcement?.scheduledTime, undefined);
 });
 
-test("Invalid time format gives a validation error", async (t) => {
+test("invalid time format gives a validation error", async (t) => {
   const { deps, execute } = t.context as TestContext;
 
   const newAnnouncement = createMockAnnouncement({ guildID });
@@ -133,13 +132,11 @@ test("Invalid time format gives a validation error", async (t) => {
     args,
   });
 
-  t.true(
-    sendStub.calledWith(
-      `${ScheduledTime.invalidTimeMessage(
-        mTime.toISOString(),
-      )}\n> Usage: \`#set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
-    ),
-  );
+  t.deepEqual(sendStub.firstCall.args, [
+    `${ScheduledTime.invalidTimeMessage(
+      mTime.toISOString(),
+    )}\n> Usage: \`${PREFIX}set-time {announcementID} {MM/DD/YYYY hh:mm am/pm}\``,
+  ]);
   const announcement = await deps.announcementRepo.findByID(newAnnouncement.id.value);
   t.is(announcement?.scheduledTime, undefined);
 });

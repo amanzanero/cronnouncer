@@ -16,6 +16,7 @@ import { genTestMessage } from "../../test_utils/mocks/discordMessage";
 import { Announcement, GuildSettings } from "../../../src/infra/typeorm/models";
 import { IdentifierService } from "../../../src/core/announcement/services/identifierService";
 import { Timezone } from "../../../src/core/announcement/domain/guildSettings";
+import {PREFIX} from "../../../src/constants";
 
 interface TestContext {
   deps: {
@@ -102,10 +103,9 @@ test("responds with timezone validation error", async (t) => {
     message: mockMessage as any,
     args,
   });
-  t.is(
-    sendStub.args[0][0],
-    `${Timezone.invalidTimezoneMessage("US/dne")}\n> Type \`#help\` for proper usage.`,
-  );
+  t.deepEqual(sendStub.firstCall.args, [
+    `${Timezone.invalidTimezoneMessage("US/dne")}\n> Type \`${PREFIX}help\` for proper usage.`,
+  ]);
 
   const gSettings = await guildSettingsStore.findOne({ guild_id: invalidGuildID });
   t.is(gSettings?.timezone, undefined);

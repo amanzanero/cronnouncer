@@ -289,7 +289,7 @@ test("should not set scheduledTime in the past", async (t) => {
   });
   await announcementRepo.save(announcement);
 
-  const mScheduledTime = moment();
+  const mScheduledTime = moment().subtract(2, "days");
   const input = {
     announcementID: announcement.shortID,
     guildID,
