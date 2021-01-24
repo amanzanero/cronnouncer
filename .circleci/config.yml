@@ -58,7 +58,7 @@ jobs:
           docker login --username $DOCKER_USER -p $DOCKER_ACCESS_TOKEN
 
       # build the application image
-      - run: docker build -t amanzanero/cronnouncer-bot:latest
+      - run: docker build -t amanzanero/cronnouncer-bot:latest .
       #$CIRCLE_BRANCH .
 
       # deploy the image
