@@ -37,6 +37,9 @@ export async function initDB(): Promise<{
       announcementStore,
       guildSettingsStore,
     },
-    storesDisconnect: () => connection.close(),
+    storesDisconnect: async () => {
+      await connection.close();
+      logger.info("[storesDisconnect] disconnected from database");
+    },
   };
 }

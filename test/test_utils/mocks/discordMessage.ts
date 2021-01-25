@@ -8,6 +8,7 @@ interface genMessageProps {
   message?: string;
   bot?: boolean;
   guildID?: string;
+  announcer?: boolean;
 }
 
 export function genTestMessage(props?: genMessageProps) {
@@ -17,5 +18,8 @@ export function genTestMessage(props?: genMessageProps) {
     channel: { send: async (_: string | MessageEmbed) => undefined },
     content: props?.message || "",
     guild: { id: props?.guildID || v4() },
+    member: {
+      roles: { cache: { some: () => (props?.announcer === undefined ? true : props.announcer) } },
+    },
   };
 }

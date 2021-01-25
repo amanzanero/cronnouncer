@@ -46,7 +46,9 @@ const HELP_ARRAY = [
 export function helpEmbed() {
   const embed = baseEmbed();
   embed.setTitle("Commands");
-
+  embed.setDescription(
+    "To use this bot, you must create a role called `Announcer`. Only those with this role will be able to run any of the following commands.",
+  );
   HELP_ARRAY.forEach((help) => {
     embed.addFields(
       { name: `__${help.usage}__`, value: help.description },

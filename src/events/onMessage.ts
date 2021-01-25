@@ -18,8 +18,13 @@ export function makeMessageHandler(commandProps: CMDProps) {
   const commandMap = makeCommandMap(commandProps);
 
   return async function handleMessage(message: Message) {
-    if (message.author.bot) return; // we dont fuk w bots
-    if (!isCommand(message.content)) return;
+    if (
+      message.author.bot || // we dont fuk w bots
+      !isCommand(message.content) || // only if it's for us
+      !message.member?.roles.cache.some((role) => role.name.toLowerCase() === "announcer") // only if you are a chosen one
+    ) {
+      return;
+    }
 
     const { command, args } = parseCommand(message.content);
 

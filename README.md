@@ -8,6 +8,8 @@ The Discord bot to schedule announcements on your server!
 
 ## Usage:
 
+To use this bot, you must create a role called `Announcer`. Only those with this role will be able to run any of the following commands.
+
 | Command | Description | Usage | Example |
 | ------- | ----------- | ----- | ------- |
 | .timezone | Sets the timezone for the discord server (you only have to do this once). Available timezones (case sensitive): `US/Alaska`, `US/Aleutian`, `US/Arizona`, `US/Central`, `US/East-Indiana`, `US/Eastern`, `US/Hawaii`, `US/Indiana-Starke`, `US/Michigan`, `US/Mountain`, `US/Pacific`, `US/Samoa` | .timezone {timezone} | .timezone US/Pacific |

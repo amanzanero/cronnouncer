@@ -48,6 +48,13 @@ test("ignores non-command message", async (t) => {
   t.true(parseSpy.returned(false));
 });
 
+test("ignores non announcer role message", async (t) => {
+  const { messageHandler, commands } = t.context as any;
+  const message = genTestMessage({ message: "sup dawg", announcer: false });
+  await messageHandler(message);
+  t.true(commands.get("help").execute.notCalled);
+});
+
 test("handles unknown command with reply", async (t) => {
   const { messageHandler } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}unknown` });
