@@ -5,7 +5,7 @@ services:
     image: amanzanero/cronnouncer-bot
     volumes:
       - .env:/usr/src/app/.env
-      - ./logs:/usr/src/app/logs
+      - ./service-key.json:/usr/src/app/service-key.json
   db:
     image: postgres
     restart: always
