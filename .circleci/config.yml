@@ -53,6 +53,7 @@ jobs:
       - image: circleci/node:14
     steps:
       - setup_remote_docker
+      - checkout
       - run:
           name: release
           command: |
