@@ -15,6 +15,7 @@ export class AnnouncementMap {
       guild_id: announcement.guildID,
       status: announcement.status.value,
       short_id: announcement.shortID,
+      user_id: announcement.userID,
     });
     return persist;
   }
@@ -54,6 +55,7 @@ export class AnnouncementMap {
         channelID: raw.channel_id,
         status: statusOrError.getValue(),
         shortID: raw.short_id,
+        userID: raw.user_id,
       },
       new UniqueEntityID(raw.announcement_id),
     );

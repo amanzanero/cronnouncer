@@ -23,7 +23,7 @@ export const conf = {
 
 export async function interaction(props: InteractionDependencies, message: Message) {
   const guildID = (message.guild as Guild).id as string;
-  return await createAnnouncement({ guildID }, props);
+  return await createAnnouncement({ guildID, userID: message.author.id }, props);
 }
 
 export async function onSuccess(message: Message, response: Response<AnnouncementOutput>) {

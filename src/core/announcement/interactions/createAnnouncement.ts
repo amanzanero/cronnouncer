@@ -13,13 +13,23 @@ import {
 
 export interface InputData {
   guildID: string;
+  userID: string;
 }
 
-export async function createAnnouncement({ guildID }: InputData, deps: InteractionDependencies) {
+export async function createAnnouncement(
+  { guildID, userID }: InputData,
+  deps: InteractionDependencies,
+) {
   return await interactionLogWrapper(deps, "createAnnouncement", async () => {
     // check data transfer object is valid first
     const { identifierService, guildSettingsRepo, meta } = deps;
-    const guard = Guard.againstNullOrUndefined(guildID, "guildID");
+    const guard = Guard.againstNullOrUndefinedBulk([
+      { argument: guildID, argumentName: "guildID" },
+      {
+        argument: userID,
+        argumentName: "userID",
+      },
+    ]);
     if (!guard.succeeded) {
       const error = new ValidationError(guard.message);
       deps.loggerService.info("createAnnouncement", `incorrectParams: ${guard.message}`, {
@@ -40,10 +50,11 @@ export async function createAnnouncement({ guildID }: InputData, deps: Interacti
       return Response.fail<TimezoneNotSetError>(error);
     }
 
-    const newAnnouncement = await identifierService.addAnnouncementIncrementCounter(
+    const newAnnouncement = await identifierService.addAnnouncementIncrementCounter({
       guildID,
       guildSettings,
-    );
+      userID,
+    });
 
     deps.loggerService.info(
       "createAnnouncement",

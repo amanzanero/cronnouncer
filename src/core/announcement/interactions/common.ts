@@ -26,6 +26,7 @@ export interface AnnouncementOutput {
   channelID?: string;
   message?: string;
   scheduledTime?: string;
+  userID: string;
 }
 
 export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
@@ -33,6 +34,7 @@ export function AnnouncementToOutput(a: Announcement): AnnouncementOutput {
     id: a.shortID,
     guildID: a.guildID,
     status: a.status.value,
+    userID: a.userID,
   };
   if (a.channelID) Object.assign(output, { channelID: a.channelID });
   if (a.message) Object.assign(output, { message: a.message.value });

@@ -14,6 +14,9 @@ export class Announcement {
   @Column()
   guild_id: string;
 
+  @Column()
+  user_id: string;
+
   @Column({ nullable: true })
   message: string;
 

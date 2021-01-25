@@ -54,7 +54,10 @@ test("should fail with undefined guildID", async (t) => {
 test("should not start an announcement when there is no timezone set", async (t) => {
   const { deps } = t.context as TestContext;
 
-  const response = await createAnnouncement({ guildID: "no-timezone" }, deps as any);
+  const response = await createAnnouncement(
+    { guildID: "no-timezone", userID: "user" },
+    deps as any,
+  );
 
   const expected = Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
   t.deepEqual(response, expected);
@@ -66,7 +69,10 @@ test("should not start an announcement when there is no timezone set", async (t)
 test("should successfully create", async (t) => {
   const { deps } = t.context as TestContext;
 
-  const response = await createAnnouncement({ guildID: "guild-with-timezone" }, deps as any);
+  const response = await createAnnouncement(
+    { guildID: "guild-with-timezone", userID: "user2" },
+    deps as any,
+  );
 
   const id = (response.value as AnnouncementOutput).id;
   t.deepEqual(
@@ -74,6 +80,7 @@ test("should successfully create", async (t) => {
       id,
       guildID: "guild-with-timezone",
       status: AnnouncementStatus.unscheduled,
+      userID: "user2",
     }),
     response,
   );

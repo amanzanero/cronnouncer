@@ -20,6 +20,7 @@ interface OptionalMockAnnouncementProps {
   status?: AnnouncementStatus;
   channelID?: string;
   shortID?: number;
+  userID?: string;
 }
 
 /**
@@ -52,6 +53,7 @@ export function createMockAnnouncement(props: OptionalMockAnnouncementProps): An
       message,
       status,
       shortID: props.shortID || getRandomInt(0, 1000),
+      userID: props.userID || v4(),
     },
     new UniqueEntityID(props.id || v4()),
   ).getValue();
