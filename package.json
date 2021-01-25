@@ -1,6 +1,6 @@
 {
   "name": "cronnouncer",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "Discord bot for scheduled announcements",
   "main": "build/index.js",
   "engines": {
@@ -13,21 +13,40 @@
     "build:dryrun": "tsc -p tsconfig.prod.json --noEmit",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "NODE_ENV=test ava --verbose --config ava.unit.config.js",
-    "test:integration": "NODE_ENV=test ava --verbose --config ava.integration.config.js",
+    "test:integration": "NODE_ENV=test ava --verbose --serial --config ava.integration.config.js",
     "coverage": "nyc npm run test",
     "lint": "eslint 'src/*/**/*.{js,ts,tsx}'",
     "pushcheck": "npm run lint && npm run build:dryrun && npm run coverage",
     "migration:generate": "ts-node ./node_modules/.bin/typeorm migration:generate -f src/infra/typeorm/ormconfig.ts -c local -n",
-    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run -f src/infra/typeorm/ormconfig.ts -c local"
+    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run -f src/infra/typeorm/ormconfig.ts -c local",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amanzanero/cronnouncer.git"
+    "url": "https://github.com/amanzanero/cronnouncer.git"
   },
   "author": "Andrew Manzanero",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/amanzanero/cronnouncer/issues"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github"
+    ],
+    "verifyConditions": {
+      "path": "semantic-release-docker",
+      "registryUrl": "docker.io"
+    },
+    "publish": {
+      "path": "semantic-release-docker",
+      "name": "amanzanero/cronnouncer-bot"
+    }
   },
   "homepage": "https://github.com/amanzanero/cronnouncer#readme",
   "devDependencies": {
@@ -50,7 +69,8 @@
     "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.0.0",
-    "typescript": "^4.1.2"
+    "typescript": "^4.1.2",
+    "semantic-release": "^17.3.7"
   },
   "dependencies": {
     "@google-cloud/logging-winston": "^4.0.2",

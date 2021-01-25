@@ -48,21 +48,21 @@ jobs:
       - run: npm run build && npm run migration:run
       - run: npm run coverage
 
+  release:
+    docker:
+      - image: circleci/node:14
+    steps:
+      - setup_remote_docker
+      - run:
+          name: release
+          command: |
+            docker build -t amanzanero/cronnouncer-bot .
+            npm run semantic-release --dryRun
+
   deploy:
     machine: true
     steps:
       - checkout
-      # start proprietary DB using private Docker image
-      # with credentials stored in the UI
-      - run: |
-          echo "$DOCKER_ACCESS_TOKEN" | docker login --username $DOCKER_USER --password-stdin
-
-      # build the application image
-      - run: docker build -t amanzanero/cronnouncer-bot:latest .
-      #$CIRCLE_BRANCH .
-
-      # deploy the image
-      - run: docker push amanzanero/cronnouncer-bot:latest
       - add_ssh_keys
       - run: |
           ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/know_hosts
@@ -86,9 +86,16 @@ workflows:
             branches:
               only:
                 - main
-      - deploy:
+      - release:
           requires:
             - deployhold
+          filters:
+            branches:
+              only:
+                - main
+      - deploy:
+          requires:
+            - release
           filters:
             branches:
               only:
