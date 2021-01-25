@@ -5,10 +5,15 @@ import { AnnouncementStatus, Status } from "../domain/announcement/Status";
 import { AnnouncementMap, GuildSettingsMap } from "../repos";
 import { CONNECTION_NAME } from "../../../constants";
 
+export interface AddAnnouncementIncrementCounterProps {
+  guildID: string;
+  guildSettings: GuildSettings;
+  userID: string;
+}
+
 export interface IIdentifierService {
   addAnnouncementIncrementCounter(
-    guildID: string,
-    guildSettings: GuildSettings,
+    props: AddAnnouncementIncrementCounterProps,
   ): Promise<Announcement>;
 }
 
@@ -19,11 +24,16 @@ export class IdentifierService implements IIdentifierService {
     this.transactionManager = getManager(CONNECTION_NAME);
   }
 
-  async addAnnouncementIncrementCounter(guildID: string, guildSettings: GuildSettings) {
+  async addAnnouncementIncrementCounter({
+    userID,
+    guildID,
+    guildSettings,
+  }: AddAnnouncementIncrementCounterProps) {
     const announcement = Announcement.create({
       guildID,
       shortID: guildSettings.nextShortID,
       status: Status.create(AnnouncementStatus.unscheduled).getValue(),
+      userID,
     }).getValue();
 
     guildSettings.incShortID();

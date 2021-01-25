@@ -29,6 +29,7 @@ export function announcementModelToOutput(announcement: AnnouncementModel) {
     status: announcement.status,
     channelID: announcement.channel_id,
     message: announcement.message,
+    userID: announcement.user_id,
   };
 }
 

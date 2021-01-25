@@ -23,7 +23,7 @@ jobs:
       - node/install-packages
       - run: npm run test:unit
 
-  coverage:
+  integration:
     docker:
       - image: circleci/node:14
         environment:
@@ -46,7 +46,7 @@ jobs:
           paths:
             - "node_modules"
       - run: npm run build && npm run migration:run
-      - run: npm run coverage
+      - run: npm run test:integration
 
   release:
     docker:
@@ -83,13 +83,14 @@ workflows:
       - unit:
           requires:
             - build-and-lint
-#      - coverage:
-#          requires:
-#            - unit
+      - integration:
+          requires:
+            - build-and-lint
       - deployhold:
           type: approval
           requires:
             - unit
+            - integration
           filters:
             branches:
               only:

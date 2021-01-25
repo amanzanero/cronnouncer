@@ -15,6 +15,7 @@ interface AnnouncementProps {
   scheduledTime?: ScheduledTime;
   channelID?: string;
   guildID: string;
+  userID: string;
   status: Status;
   shortID: number;
 }
@@ -68,16 +69,22 @@ export class Announcement {
     return this.props.shortID;
   }
 
+  get userID() {
+    return this.props.userID;
+  }
+
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
       { argument: props.status, argumentName: "status" },
       { argument: props.guildID, argumentName: "guildID" },
       { argument: props.shortID, argumentName: "shortID" },
+      { argument: props.shortID, argumentName: "userID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
-
-    if (!validProps.succeeded) {
-      return Result.fail<Announcement>(validProps.message);
+    const nanGuard = Guard.againstNaN(props.shortID, "shortID");
+    const guard = Guard.combine([validProps, nanGuard]);
+    if (!guard.succeeded) {
+      return Result.fail<Announcement>(guard.message);
     }
     return Result.ok<Announcement>(new Announcement(props, id));
   }
@@ -91,6 +98,7 @@ export class Announcement {
         guildID: this.guildID,
         status: this.status,
         shortID: this.shortID,
+        userID: this.userID,
       },
       this.id,
     ).getValue();

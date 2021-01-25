@@ -1,7 +1,8 @@
 import schedule from "node-schedule";
 import { Client, Guild, TextChannel } from "discord.js";
-import { Announcement, Message } from "../domain/announcement";
+import { Announcement } from "../domain/announcement";
 import { IAnnouncementRepo } from "../repos";
+import { baseEmbed } from "../../../commands/util/baseEmbed";
 import { ILoggerService } from "./logger";
 
 export interface ScheduleAnnouncementProps {
@@ -27,6 +28,15 @@ export interface ICronService {
   unScheduleAnnouncement(props: UnScheduleAnnouncementProps): void;
 }
 
+export function announcementSendEmbed(announcement: Announcement) {
+  const embed = baseEmbed();
+  embed.setTitle("Announcement").addFields([
+    { name: "Author", value: `<@!${announcement.userID}>` },
+    { name: "Message", value: announcement.message?.value },
+  ]);
+  return embed;
+}
+
 export class CronService implements ICronService {
   private discordClient: Client;
 
@@ -50,7 +60,7 @@ export class CronService implements ICronService {
 
     schedule.scheduleJob(announcement.id.value, scheduledTimeUTC, async () => {
       try {
-        await channel.send((announcement.message as Message).value);
+        await channel.send(announcementSendEmbed(announcement));
         announcement.sent();
         await announcementRepo.save(announcement);
 

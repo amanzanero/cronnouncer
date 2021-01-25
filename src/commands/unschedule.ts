@@ -24,5 +24,5 @@ export async function interaction(props: InteractionDependencies, message: Messa
 }
 
 export async function onSuccess(message: Message) {
-  await message.channel.send("The announcement in progress was canceled and removed.");
+  await message.channel.send("The announcement was unscheduled.");
 }
