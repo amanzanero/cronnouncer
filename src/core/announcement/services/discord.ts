@@ -1,8 +1,7 @@
-import { Channel, GuildID } from "../domain/announcement";
 import { Client } from "discord.js";
 
 export interface IDiscordService {
-  textChannelExists(guildID: GuildID, channel: Channel): Promise<boolean>;
+  textChannelExists(guildID: string, channel: string): Promise<boolean>;
 }
 
 export class DiscordService implements IDiscordService {
@@ -12,9 +11,9 @@ export class DiscordService implements IDiscordService {
     this.client = dClient;
   }
 
-  async textChannelExists(guildID: GuildID, channel: Channel): Promise<boolean> {
-    const guild = await this.client.guilds.fetch(guildID.value);
-    const guildChannel = guild.channels.cache.get(channel.value);
+  async textChannelExists(guildID: string, channel: string): Promise<boolean> {
+    const guild = await this.client.guilds.fetch(guildID);
+    const guildChannel = guild.channels.cache.get(channel);
     return !!guildChannel && guildChannel.isText();
   }
 }

@@ -2,63 +2,107 @@
  * This file contains the use case for starting a new announcement
  */
 
-import { GuildID, ScheduledTime } from "../domain/announcement";
-import { Response } from "../../../lib";
+import { ScheduledTime } from "../domain/announcement";
+import { Guard, Response } from "../../lib";
 import {
   AnnouncementIncompleteError,
-  AnnouncementNotInProgressError,
+  AnnouncementNotFoundError,
   TimezoneNotSetError,
   ValidationError,
 } from "../errors";
-import { AnnouncementOutput, AnnouncementToOutput, InteractionDependencies } from "./common";
+import {
+  AnnouncementOutput,
+  AnnouncementToOutput,
+  GuildSettingsToOutput,
+  InteractionDependencies,
+  interactionLogWrapper,
+} from "./common";
 
 export interface InputData {
+  announcementID: number;
   guildID: string;
 }
 
 export async function scheduleAnnouncement(
-  { guildID }: InputData,
-  { announcementRepo, announcementSettingsRepo, cronService, timeService }: InteractionDependencies,
+  { announcementID: shortID, guildID }: InputData,
+  deps: InteractionDependencies,
 ) {
-  const gIDOrError = GuildID.create(guildID);
-  if (gIDOrError.isFailure) {
-    return Response.fail<ValidationError>(new ValidationError(gIDOrError.errorValue()));
-  }
+  return await interactionLogWrapper(deps, "scheduleAnnouncement", async () => {
+    const { announcementRepo, guildSettingsRepo, cronService, timeService } = deps;
+    const meta = { ...deps.meta, shortID };
 
-  // get in progress announcement
-  const [settings, inProgressAnnouncement] = await Promise.all([
-    announcementSettingsRepo.findByGuildID(gIDOrError.getValue()),
-    announcementRepo.findWorkInProgressByGuildID(gIDOrError.getValue()),
-  ]);
+    const guardResult = Guard.againstNullOrUndefinedBulk([
+      { argumentName: "announcementID", argument: shortID },
+      { argumentName: "guildID", argument: guildID },
+    ]);
+    const guardNaN = Guard.againstNaN(shortID, "announcementID");
+    const guard = Guard.combine([guardResult, guardNaN]);
+    if (!guard.succeeded) {
+      deps.loggerService.info("scheduleAnnouncement", `validation: ${guard.message}`, meta);
+      return Response.fail<ValidationError>(new ValidationError(guard.message));
+    }
 
-  if (!settings || !settings.timezone) {
-    return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
-  }
+    // get in progress announcement
+    const [settings, inProgressAnnouncement] = await Promise.all([
+      guildSettingsRepo.findByGuildID(guildID),
+      announcementRepo.findByShortID(shortID, guildID),
+    ]);
 
-  if (!inProgressAnnouncement) {
-    return Response.fail<AnnouncementNotInProgressError>(
-      new AnnouncementNotInProgressError(guildID),
+    if (!settings || !settings.timezone) {
+      deps.loggerService.info(
+        "scheduleAnnouncement",
+        "validation: no guild settings or timezone",
+        meta,
+      );
+      return Response.fail<TimezoneNotSetError>(new TimezoneNotSetError());
+    }
+
+    if (!inProgressAnnouncement) {
+      deps.loggerService.info("scheduleAnnouncement", `announcement with id: ${shortID} DNE`, meta);
+      return Response.fail<AnnouncementNotFoundError>(
+        new AnnouncementNotFoundError(shortID.toString()),
+      );
+    }
+
+    const updatedMeta = {
+      ...meta,
+      announcementID: inProgressAnnouncement.id.value,
+      guildSettings: GuildSettingsToOutput(settings),
+    };
+    const scheduleResult = inProgressAnnouncement.schedule({
+      timeService,
+      timezone: settings.timezone,
+    });
+    if (scheduleResult.isFailure) {
+      deps.loggerService.info(
+        "scheduleAnnouncement",
+        "did not schedule: announcement was incomplete",
+        updatedMeta,
+      );
+      return Response.fail<AnnouncementIncompleteError>(
+        new AnnouncementIncompleteError(scheduleResult.errorValue()),
+      );
+    }
+
+    const scheduledTimeUTC = timeService.scheduleTimeToUTC(
+      inProgressAnnouncement.scheduledTime as ScheduledTime,
+      settings.timezone,
     );
-  }
+    await Promise.all([
+      announcementRepo.save(inProgressAnnouncement),
+      cronService.scheduleAnnouncement({
+        announcement: inProgressAnnouncement,
+        scheduledTimeUTC,
+        announcementRepo,
+        loggerService: deps.loggerService,
+      }),
+    ]);
 
-  const publishResult = inProgressAnnouncement.schedule({
-    timeService,
-    timezone: settings.timezone,
+    deps.loggerService.info(
+      "scheduleAnnouncement",
+      `successfully scheduled announcement: ${inProgressAnnouncement.id.value}`,
+      updatedMeta,
+    );
+    return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
   });
-  if (publishResult.isFailure) {
-    return Response.fail<AnnouncementIncompleteError>(
-      new AnnouncementIncompleteError(publishResult.errorValue()),
-    );
-  }
-
-  const scheduledTimeUTC = timeService.scheduleTimeToUTC(
-    inProgressAnnouncement.scheduledTime as ScheduledTime,
-    settings.timezone,
-  );
-  await Promise.all([
-    announcementRepo.save(inProgressAnnouncement),
-    cronService.scheduleAnnouncement(inProgressAnnouncement, scheduledTimeUTC),
-  ]);
-
-  return Response.success<AnnouncementOutput>(AnnouncementToOutput(inProgressAnnouncement));
 }

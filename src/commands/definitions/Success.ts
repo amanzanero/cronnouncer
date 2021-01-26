@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Response } from "../../lib";
+import { Response } from "../../core/lib";
 import { AnnouncementOutput } from "../../core/announcement/interactions/common";
 
 export type Success =

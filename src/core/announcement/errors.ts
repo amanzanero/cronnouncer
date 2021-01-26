@@ -16,10 +16,17 @@ export class ValidationError extends AnnouncementError {
   }
 }
 
-export class AnnouncementInProgressError extends AnnouncementError {
-  constructor(guildID: string) {
-    super(`There is already an announcement in progress for server: ${guildID}`);
-    Object.setPrototypeOf(this, AnnouncementInProgressError.prototype); // makes typescript happy
+export class AnnouncementNotFoundError extends AnnouncementError {
+  constructor(announcementID: string) {
+    super(`There was no announcement found with id: \`${announcementID}\``);
+    Object.setPrototypeOf(this, AnnouncementNotFoundError.prototype); // makes typescript happy
+  }
+}
+
+export class AnnouncementLockedStatusError extends AnnouncementError {
+  constructor(announcementID: string) {
+    super(`Announcement: \`${announcementID}\` has already been sent.`);
+    Object.setPrototypeOf(this, AnnouncementLockedStatusError.prototype); // makes typescript happy
   }
 }
 
@@ -27,13 +34,6 @@ export class AnnouncementIncompleteError extends AnnouncementError {
   constructor(message?: string) {
     super(message);
     Object.setPrototypeOf(this, AnnouncementIncompleteError.prototype); // makes typescript happy
-  }
-}
-
-export class AnnouncementNotInProgressError extends AnnouncementError {
-  constructor(guildID: string) {
-    super(`There is no announcement in progress for server: ${guildID}`);
-    Object.setPrototypeOf(this, AnnouncementNotInProgressError.prototype); // makes typescript happy
   }
 }
 
@@ -59,8 +59,8 @@ export class TimeInPastError extends AnnouncementError {
 }
 
 export class InvalidTimeError extends AnnouncementError {
-  constructor(time: string) {
-    super(`Time: \`${time}\` was not in the correct format.`);
+  constructor(message: string) {
+    super(message);
     Object.setPrototypeOf(this, InvalidTimeError.prototype); // makes typescript happy
   }
 }

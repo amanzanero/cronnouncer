@@ -1,5 +1,5 @@
 import test from "ava";
-import { Guard, IGuardResult } from "../../../src/lib";
+import { Guard, IGuardResult } from "../../../src/core/lib";
 
 test("combine - all success guard results should pass", (t) => {
   const succeedArg: IGuardResult = { succeeded: true, message: "succeeded" };

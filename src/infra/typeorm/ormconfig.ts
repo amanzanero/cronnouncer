@@ -1,9 +1,9 @@
 import { DATABASE_URL, PG_DB, PG_HOST, PG_PASSWORD, PG_PORT, PG_USER } from "../../constants";
-import { Announcement, AnnouncementSettings } from "./models";
+import { Announcement, GuildSettings } from "./models";
 
 const baseOptions = {
   type: "postgres",
-  entities: [Announcement, AnnouncementSettings],
+  entities: [Announcement, GuildSettings],
   synchronize: false,
   migrations: ["build/infra/typeorm/migrations/*.js"],
   cli: {

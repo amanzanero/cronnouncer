@@ -1,12 +1,12 @@
-import { Message } from "discord.js";
-import { setAnnouncementTimezone } from "../core/announcement/interactions/setAnnouncementTimezone";
-import { Args } from "./definitions/Args";
+import { Guild, Message } from "discord.js";
+import { setGuildTimezone } from "../core/announcement/interactions/setGuildTimezone";
 import {
-  AnnouncementSettingsOutput,
+  GuildSettingsOutput,
   InteractionDependencies,
 } from "../core/announcement/interactions/common";
-import { Response } from "../lib";
+import { Response } from "../core/lib";
 import { PREFIX, SUPPORTED_TIMEZONES } from "../constants";
+import { Args } from "./definitions/Args";
 
 export const help = {
   name: "timezone",
@@ -15,6 +15,7 @@ export const help = {
     (zone) => `\`${zone}\``,
   ).join(", ")}`,
   usage: `${PREFIX}timezone {timezone}`,
+  example: `${PREFIX}timezone US/Pacific`,
 };
 
 export const conf = {
@@ -23,10 +24,12 @@ export const conf = {
 };
 
 export async function interaction(props: InteractionDependencies, message: Message, args: Args) {
-  const guildID = message.guild?.id as string;
-  return await setAnnouncementTimezone({ guildID, timezone: args.argArray[0] }, props);
+  const guildID = (message.guild as Guild).id;
+  return await setGuildTimezone({ guildID, timezone: args.argArray[0] }, props);
 }
 
-export async function onSuccess(message: Message, response: Response<AnnouncementSettingsOutput>) {
-  await message.channel.send(`Timezone: \`${response.value?.timezone}\` was set for the server.`);
+export async function onSuccess(message: Message, response: Response<GuildSettingsOutput>) {
+  await message.channel.send(
+    `Timezone: \`${(response.value as GuildSettingsOutput).timezone}\` was set for the server.`,
+  );
 }

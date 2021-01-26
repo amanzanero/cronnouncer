@@ -1,15 +1,21 @@
-import { Entity, PrimaryColumn, Column } from "typeorm";
+import { Entity, PrimaryColumn, Column, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class Announcement {
   @PrimaryColumn()
   announcement_id: string;
 
+  @Column()
+  short_id: number;
+
   @Column({ nullable: true })
-  channel: string;
+  channel_id: string;
 
   @Column()
   guild_id: string;
+
+  @Column()
+  user_id: string;
 
   @Column({ nullable: true })
   message: string;
@@ -19,4 +25,7 @@ export class Announcement {
 
   @Column({ nullable: true })
   scheduled_time: string;
+
+  @CreateDateColumn()
+  created_at: Date;
 }

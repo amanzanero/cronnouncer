@@ -1,18 +1,26 @@
+import { PREFIX } from "../constants";
+import { logger } from "../infra/logger";
+import { baseEmbed } from "./util/baseEmbed";
 import { Command } from "./definitions";
 import { help as setChannelHelp } from "./set-channel";
 import { help as setMessageHelp } from "./set-message";
 import { help as setTimeHelp } from "./set-time";
 import { help as scheduleHelp } from "./schedule";
-import { help as startAnnouncementHelp } from "./start-announcement";
+import { help as createHelp } from "./create";
+import { help as unschdeuleHelp } from "./unschedule";
 import { help as timezoneHelp } from "./timezone";
-import { PREFIX } from "../constants";
-import { logger } from "../util";
+import { help as listHelp } from "./list";
+import { help as viewHelp } from "./view";
+import { help as deleteHelp } from "./delete";
+import { help as pingHelp } from "./ping";
+import { INTERNAL_ERROR_RESPONSE } from "./util/errors";
 
 const help = {
   name: "help",
   category: "Miscellaneous",
   description: "Get list of available commands",
   usage: `${PREFIX}help`,
+  example: `${PREFIX}help`,
 };
 
 const conf = {
@@ -22,35 +30,49 @@ const conf = {
 
 const HELP_ARRAY = [
   timezoneHelp,
-  startAnnouncementHelp,
+  createHelp,
   setChannelHelp,
   setMessageHelp,
   setTimeHelp,
   scheduleHelp,
+  unschdeuleHelp,
+  listHelp,
+  viewHelp,
+  deleteHelp,
+  pingHelp,
   help,
 ];
 
-function descriptionLine(help: Command["help"]) {
-  return `**${PREFIX}${help.name}** ${help.description}`;
+export function helpEmbed() {
+  const embed = baseEmbed();
+  embed.setTitle("Commands");
+  embed.setDescription(
+    "To use this bot, you must create a role called `Announcer`. Only those with this role will be able to run any of the following commands.",
+  );
+  HELP_ARRAY.forEach((help) => {
+    embed.addFields(
+      { name: `__${help.usage}__`, value: help.description },
+      {
+        name: "example",
+        value: `\`\`\`${help.example}\`\`\``,
+      },
+    );
+  });
+  embed.setTimestamp();
+  return embed;
 }
-
-function usageLine(help: Command["help"]) {
-  return `    usage: \`${help.usage}`;
-}
-
-export const HELP_MESSAGE = HELP_ARRAY.reduce((acc, curr) => {
-  return `${acc}> ${descriptionLine(curr)}\n> ${usageLine(curr)}\`\n`;
-}, "");
 
 export function makeHelpCMD(): Command {
   // interaction init
 
   return {
-    execute: async function execute({ requestID, message }) {
+    execute: async function execute({ meta, message }) {
       try {
-        await message.channel.send(HELP_MESSAGE);
+        logger.info("[help] help message sent", meta);
+        await message.channel.send(helpEmbed());
       } catch (e) {
-        logger.error(e, { requestID });
+        logger.error(e, meta);
+        await message.channel.send(INTERNAL_ERROR_RESPONSE);
       }
     },
     help,

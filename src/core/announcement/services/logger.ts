@@ -1,17 +1,17 @@
-import { logger } from "../../../util";
+import { logger } from "../../../infra/logger";
 
 export interface ILoggerService {
-  info(functionName: string, message: string): void;
+  error(error: Error | string, meta?: any): void;
 
-  error(functionName: string, error: Error): void;
+  info(functionName: string, message?: string, meta?: any): void;
 }
 
 export class LoggerService implements ILoggerService {
-  info(functionName: string, message: string) {
-    logger.info(`[${functionName}] ${message}`);
+  error(error: Error | string, meta?: any) {
+    logger.error(error as string, meta);
   }
 
-  error(functionName: string, error: Error) {
-    logger.error(`[${functionName}] ${error} \n${error.stack}`);
+  info(functionName: string, message?: string, meta?: any) {
+    logger.info(`[${functionName}]${message ? ` ${message}` : ""}`, meta);
   }
 }

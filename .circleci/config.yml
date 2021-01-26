@@ -1,20 +1,29 @@
 version: 2.1
 orbs:
-  node: circleci/node@3.0.0
+  node: circleci/node@4.1.0
 
 jobs:
-  build-lint-and-unit:
+  build-and-lint:
     executor:
       name: node/default
+      tag: '14.15'
     steps:
       - checkout
       - node/install-packages
       - run: npm audit
       - run: npm run build:dryrun
       - run: npm run lint
+
+  unit:
+    executor:
+      name: node/default
+      tag: '14.15'
+    steps:
+      - checkout
+      - node/install-packages
       - run: npm run test:unit
 
-  end2end:
+  integration:
     docker:
       - image: circleci/node:14
         environment:
@@ -36,19 +45,96 @@ jobs:
           key: v1-{{ checksum "package-lock.json" }}
           paths:
             - "node_modules"
-      - run: npm run coverage
+      - run: npm run build && npm run migration:run
+      - run: npm run test:integration
+
+  release-preview:
+    docker:
+      - image: circleci/node:14
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+          paths:
+            - "node_modules"
+      - setup_remote_docker
+      - run:
+          name: preview
+          command: |
+            docker build -t amanzanero/cronnouncer-bot .
+            npm run release:preview
+
+  release:
+    docker:
+      - image: circleci/node:14
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          key: v1-{{ checksum "package-lock.json" }}
+          paths:
+            - "node_modules"
+      - setup_remote_docker
+      - run:
+          name: release
+          command: |
+            docker build -t amanzanero/cronnouncer-bot .
+            npm run release
+
+  deploy:
+    machine: true
+    steps:
+      - checkout
+      - add_ssh_keys
+      - run:
+          name: deploy to host
+          command: |
+            ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/know_hosts
+            ssh root@$DEPLOY_HOST '/root/cronnouncer/deploy.sh'
 
 workflows:
   cronnouncer-ci:
     jobs:
-      - build-lint-and-unit
-      - end2end:
+      - build-and-lint
+      - unit:
           requires:
-            - build-lint-and-unit
+            - build-and-lint
+      - integration:
+          requires:
+            - build-and-lint
+      - release-preview:
+          requires:
+            - unit
+            - integration
+          filters:
+            branches:
+              only:
+                - main
       - deployhold:
           type: approval
           requires:
-            - end2end
+            - release-preview
+            - unit
+            - integration
+          filters:
+            branches:
+              only:
+                - main
+      - release:
+          requires:
+            - deployhold
+          filters:
+            branches:
+              only:
+                - main
+      - deploy:
+          requires:
+            - release
           filters:
             branches:
               only:

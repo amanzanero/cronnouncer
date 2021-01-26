@@ -2,28 +2,28 @@
 Contains definition for an announcement
  */
 
-import { ScheduledTime } from "./ScheduledTime";
-import { GuildID } from "./GuildID";
-import { Message } from "./Message";
-import { Guard, Result, UniqueEntityID } from "../../../../lib";
-import { Channel } from "./Channel";
+import { Guard, Result, UniqueEntityID } from "../../../lib";
 import { ITimeService } from "../../services/time";
-import { Timezone } from "../announcementSettings";
+import { Timezone } from "../guildSettings";
 import { TimeInPastError } from "../../errors";
+import { Message } from "./Message";
+import { ScheduledTime } from "./ScheduledTime";
 import { AnnouncementStatus, Status } from "./Status";
 
 interface AnnouncementProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
-  channel?: Channel;
-  guildID: GuildID;
+  channelID?: string;
+  guildID: string;
+  userID: string;
   status: Status;
+  shortID: number;
 }
 
 interface AnnouncementCopyProps {
   message?: Message;
   scheduledTime?: ScheduledTime;
-  channel?: Channel;
+  channelID?: string;
   status?: Status;
 }
 
@@ -53,8 +53,8 @@ export class Announcement {
     return this.props.scheduledTime;
   }
 
-  get channel() {
-    return this.props.channel;
+  get channelID() {
+    return this.props.channelID;
   }
 
   get guildID() {
@@ -65,15 +65,26 @@ export class Announcement {
     return this.props.status;
   }
 
+  get shortID() {
+    return this.props.shortID;
+  }
+
+  get userID() {
+    return this.props.userID;
+  }
+
   public static create(props: AnnouncementProps, id?: UniqueEntityID): Result<Announcement> {
     const guardedProps = [
       { argument: props.status, argumentName: "status" },
       { argument: props.guildID, argumentName: "guildID" },
+      { argument: props.shortID, argumentName: "shortID" },
+      { argument: props.shortID, argumentName: "userID" },
     ];
     const validProps = Guard.againstNullOrUndefinedBulk(guardedProps);
-
-    if (!validProps.succeeded) {
-      return Result.fail<Announcement>(validProps.message);
+    const nanGuard = Guard.againstNaN(props.shortID, "shortID");
+    const guard = Guard.combine([validProps, nanGuard]);
+    if (!guard.succeeded) {
+      return Result.fail<Announcement>(guard.message);
     }
     return Result.ok<Announcement>(new Announcement(props, id));
   }
@@ -83,16 +94,30 @@ export class Announcement {
       {
         message: props?.message || this.message,
         scheduledTime: props?.scheduledTime || this.scheduledTime,
-        channel: props?.channel || this.channel,
+        channelID: props?.channelID || this.channelID,
         guildID: this.guildID,
         status: this.status,
+        shortID: this.shortID,
+        userID: this.userID,
       },
       this.id,
     ).getValue();
   }
 
+  updateMessage(message: Message) {
+    Object.assign(this.props, { message });
+  }
+
+  updateScheduledTime(scheduledTime: ScheduledTime) {
+    Object.assign(this.props, { scheduledTime });
+  }
+
+  updateChannelID(channelID: string) {
+    Object.assign(this.props, { channelID });
+  }
+
   schedule({ timeService, timezone }: PublishProps) {
-    const hasNecessaryProps = [this.message, this.channel, this.scheduledTime].reduce(
+    const hasNecessaryProps = [this.message, this.channelID, this.scheduledTime].reduce(
       (acc, curr) => {
         return acc && !!curr;
       },
@@ -112,6 +137,24 @@ export class Announcement {
     const newStatus = Status.create(AnnouncementStatus.scheduled).getValue();
 
     Object.assign(this.props, { status: newStatus });
+    return Result.ok<Announcement>(this);
+  }
+
+  unSchedule() {
+    if (this.status.value === AnnouncementStatus.sent) {
+      return Result.fail<Announcement>("An announcement that has been sent cannot be unscheduled.");
+    }
+
+    Object.assign(this.props, { status: Status.create(AnnouncementStatus.unscheduled).getValue() });
+    return Result.ok<Announcement>(this);
+  }
+
+  sent() {
+    if (this.status.value !== AnnouncementStatus.scheduled) {
+      return Result.fail<Announcement>("An announcement must be scheduled before being sent.");
+    }
+
+    Object.assign(this.props, { status: Status.create(AnnouncementStatus.sent).getValue() });
     return Result.ok<Announcement>(this);
   }
 }

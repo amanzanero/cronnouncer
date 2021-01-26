@@ -10,6 +10,5 @@ RUN npm install
 ADD . /usr/src/app
 # TypeScript
 RUN npm run build
-RUN npm prune --production
 # Start
 CMD [ "npm", "start" ]

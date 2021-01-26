@@ -1,8 +1,8 @@
 import Discord from "discord.js";
 import { Args } from "./Args";
 
-interface ExecutorProps {
-  requestID: string;
+export interface ExecutorProps {
+  meta: any;
   message: Discord.Message;
   args: Args;
 }

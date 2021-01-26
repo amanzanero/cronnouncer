@@ -1,19 +1,20 @@
+import { Message } from "discord.js";
 import {
   AnnouncementError,
   AnnouncementIncompleteError,
-  AnnouncementInProgressError,
-  AnnouncementNotInProgressError,
+  AnnouncementLockedStatusError,
+  AnnouncementNotFoundError,
   InvalidTimeError,
   TextChannelDoesNotExistError,
   TimeInPastError,
   TimezoneNotSetError,
   ValidationError,
 } from "../../core/announcement/errors";
-import { Message } from "discord.js";
-import { logger } from "../../util";
+import { logger } from "../../infra/logger";
 
 import * as setTimeCMD from "../set-time";
 import * as timezoneCMD from "../timezone";
+import { PREFIX } from "../../constants";
 
 interface ErrorActionProps {
   responseError: AnnouncementError;
@@ -26,21 +27,25 @@ export function getActionFromError({ message, responseError }: ErrorActionProps)
     case AnnouncementIncompleteError:
     case TextChannelDoesNotExistError:
     case TimeInPastError:
-      return () => message.channel.send(responseError.message);
-    case AnnouncementInProgressError:
+    case AnnouncementNotFoundError:
+    case AnnouncementLockedStatusError:
       return () =>
-        message.channel.send("There is already an announcement in progress for this server.");
-    case AnnouncementNotInProgressError:
-      return () => message.channel.send("`There is no announcement in progress for this server.`");
+        message.channel.send(
+          `${responseError.message}\n> Type \`${PREFIX}help\` for proper usage.`,
+        );
     case TimezoneNotSetError:
       return () =>
-        message.channel.send(`${responseError.message}\nUsage: ${timezoneCMD.help.usage}`);
+        message.channel.send(`${responseError.message}\n> Usage: \`${timezoneCMD.help.usage}\``);
     case InvalidTimeError:
       return () =>
-        message.channel.send(`${responseError.message}\nUsage: ${setTimeCMD.help.usage}`);
+        message.channel.send(`${responseError.message}\n> Usage: \`${setTimeCMD.help.usage}\``);
+
+    /* istanbul ignore next */
     default:
       return async () => {
         logger.error(`[UNHANDLED ERROR] ${responseError}`);
       };
   }
 }
+
+export const INTERNAL_ERROR_RESPONSE = "Sorry! Something unexpected happened on my end :(";

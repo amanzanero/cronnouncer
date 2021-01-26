@@ -3,6 +3,11 @@ version: "3.9"
 services:
   bot:
     image: amanzanero/cronnouncer-bot
+    volumes:
+      - .env:/usr/src/app/.env
+      - ./service-key.json:/usr/src/app/service-key.json
+    network_mode: "host"
+
   db:
     image: postgres
     restart: always

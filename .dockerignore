@@ -6,3 +6,5 @@ pgdata
 .git
 .nyc_output
 .DS_Store
+.env
+service-key.json
