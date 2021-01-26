@@ -1,10 +1,13 @@
 # cronnouncer
 
 [![amanzanero](https://circleci.com/gh/amanzanero/cronnouncer.svg?style=shield&circle-token=6a151431cce03f815aab981b640852910bc58991)](https://circleci.com/gh/amanzanero/cronnouncer)
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 The Discord bot to schedule announcements on your server!
+
+[Click here to add this bot to your server for free!](https://discord.com/api/oauth2/authorize?client_id=785700078287192096&permissions=248832&scope=bot)
+
+[Click here to join the cronnouncer discord server](https://discord.gg/Y2WkzNS3p4), where you can ask for help, report bugs, suggest features, and give feedback.
 
 ## Usage:
 
@@ -26,7 +29,7 @@ To use this bot, you must create a role called `Announcer`. Only those with this
 | .help | Get list of available commands | .help | .help |
 
 
-## To get this running on your machine:
+## To host this bot yourself, or run locally for development:
 
 #### Prereqs:
 
@@ -60,7 +63,3 @@ To shut down: `docker-compose down`
 ## Contributing:
 
 Run `npm run pushcheck`. If all looks good, go ahead and PR to main.
-
-#### NOTE:
-
-This bot is incomplete and not yet usable
