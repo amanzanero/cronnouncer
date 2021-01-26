@@ -53,7 +53,15 @@
           ]
         }
       ]
-    ]
+    ],
+    "verifyConditions": {
+      "path": "semantic-release-docker",
+      "registryUrl": "docker.io"
+    },
+    "publish": {
+      "path": "semantic-release-docker",
+      "name": "amanzanero/cronnouncer-bot"
+    }
   },
   "homepage": "https://github.com/amanzanero/cronnouncer#readme",
   "devDependencies": {
