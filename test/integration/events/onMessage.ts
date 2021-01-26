@@ -55,22 +55,24 @@ test("ignores non announcer role message", async (t) => {
   t.true(commands.get("help").execute.notCalled);
 });
 
-test("handles unknown command with reply", async (t) => {
+test("handles unknown command with reply and reaction", async (t) => {
   const { messageHandler } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}unknown` });
-  const sendStub = sinon.stub(message.channel, "send");
+  const sendStub = sinon.stub(message.author, "send");
+  const reactStub = sinon.stub(message, "react");
   await messageHandler(message);
-  t.true(sendStub.calledOnceWith(cmd.UNKNOWN_COMMAND_RESPONSE));
+  t.deepEqual(sendStub.firstCall.args, [cmd.UNKNOWN_COMMAND_RESPONSE]);
+  t.deepEqual(reactStub.firstCall.args, ["❌"]);
 });
 
 test("handles unknown command with reply - throws gracefully", async (t) => {
   const { messageHandler, errorLogSpy } = t.context as any;
   const message = genTestMessage({ message: `${PREFIX}unknown` });
   const err = new Error("Send unsuccessful");
-  sinon.stub(message.channel, "send").throws(err);
+  sinon.stub(message.author, "send").throws(err);
 
   await messageHandler(message);
-  t.true(errorLogSpy.calledOnceWith(err));
+  t.deepEqual(errorLogSpy.firstCall.args, [err]);
 });
 
 serial("executes a command", async (t) => {

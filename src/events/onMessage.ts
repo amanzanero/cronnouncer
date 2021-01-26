@@ -20,8 +20,7 @@ export function makeMessageHandler(commandProps: CMDProps) {
   return async function handleMessage(message: Message) {
     if (
       message.author.bot || // we dont fuk w bots
-      !isCommand(message.content) || // only if it's for us
-      !message.member?.roles.cache.some((role) => role.name.toLowerCase() === "announcer") // only if you are a chosen one
+      !isCommand(message.content) // only if it's for us
     ) {
       return;
     }
@@ -32,18 +31,25 @@ export function makeMessageHandler(commandProps: CMDProps) {
     const cmd = commandMap.get(command);
     if (!cmd) {
       try {
-        await message.channel.send(UNKNOWN_COMMAND_RESPONSE);
+        await Promise.all([message.author.send(UNKNOWN_COMMAND_RESPONSE), message.react("❌")]);
       } catch (e) {
         logger.error(e);
       }
       return;
     }
 
-    const invalidGuildCommand = cmd.conf.guildOnly && !message.guild;
-    if (invalidGuildCommand) {
+    const isGuildCommand = cmd.conf.guildOnly;
+    if (isGuildCommand && !message.guild) {
       await message.channel.send(
-        `The command \`${cmd.help.name}\` can only be used from within a server.`,
+        `The command \`${cmd.help.name}\` can only be used by someone with an \`Announcer\` role within a server.`,
       );
+      return;
+    }
+
+    const userHasAccess = !message.member?.roles.cache.some(
+      (role) => role.name.toLowerCase() === "announcer",
+    ); // only if you are a chosen one
+    if (isGuildCommand && !userHasAccess) {
       return;
     }
 
