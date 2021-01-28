@@ -5,9 +5,17 @@
 
 The Discord bot to schedule announcements on your server!
 
+To use the bot you need to add a role called "Announcer" to your server, and only those with that role will be able to schedule announcements. You also need to make sure that the bot has permissions to send messages to the channels where you want to send announcements to.
+
 [Click here to add this bot to your server for free!](https://discord.com/api/oauth2/authorize?client_id=785700078287192096&permissions=248832&scope=bot)
 
-[Click here to join the cronnouncer discord server](https://discord.gg/Y2WkzNS3p4), where you can test out the bot, ask for help, report bugs, suggest features, and give feedback.
+[Click here to join the cronnouncer discord server](https://discord.gg/Y2WkzNS3p4), where you can demo the bot, ask for help, report bugs, suggest features, and give feedback.
+
+Here is an example of what the announcement message looks like:
+
+![Example announcement](https://raw.githubusercontent.com/amanzanero/cronnouncer/main/docs/img/example_announcement.png)
+
+Note: Right now the announcement message does not support file/image attachments or link previews.
 
 ## Usage:
 
@@ -20,7 +28,7 @@ To use this bot, you must create a role called `Announcer`. Only those with this
 | .set-channel | Sets the channel for the in-progress announcement | .set-channel {announcementID} {discord channel name} | .set-channel 33 #general |
 | .set-message | Sets the message for the in-progress announcement | .set-message {announcementID} {announcement content} | .set-message 33 One super awesome announcement |
 | .set-time | Sets the time for the in progress announcement | .set-time {announcementID} {MM/DD/YYYY hh:mm am/pm} | .set-time 33 4/20/2021 4:20 pm |
-| .schedule | Schedules the announcement to be sent. | .schedule {announcementID} | .schedule 33 |
+| .schedule | Schedules the announcement to be sent | .schedule {announcementID} | .schedule 33 |
 | .unschedule | Un-schedules an announcement that is scheduled to be sent | .unschedule {announcementID} | .unschedule 33 |
 | .list | Lists all unscheduled, scheduled, and sent announcements | .list | .list |
 | .view | Shows details for the announcement | .view {announcementID} | .view 33 |
