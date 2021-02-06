@@ -1,5 +1,5 @@
 import schedule from "node-schedule";
-import { Client, Guild, TextChannel } from "discord.js";
+import { Client, Guild, MessageEmbed, TextChannel, User } from "discord.js";
 import { Announcement } from "../domain/announcement";
 import { IAnnouncementRepo } from "../repos";
 import { baseEmbed } from "../../../commands/util/baseEmbed";
@@ -28,15 +28,6 @@ export interface ICronService {
   unScheduleAnnouncement(props: UnScheduleAnnouncementProps): void;
 }
 
-export function announcementSendEmbed(announcement: Announcement) {
-  const embed = baseEmbed();
-  embed.setTitle("Announcement").addFields([
-    { name: "Author", value: `<@!${announcement.userID}>` },
-    { name: "Message", value: announcement.message?.value },
-  ]);
-  return embed;
-}
-
 export class CronService implements ICronService {
   private discordClient: Client;
 
@@ -44,14 +35,28 @@ export class CronService implements ICronService {
     this.discordClient = discordClient;
   }
 
+  makeAnnouncementEmbed(announcement: Announcement) {
+    const user = this.discordClient.users.cache.get(announcement.userID) as User;
+    return baseEmbed()
+      .setAuthor(
+        user.username,
+        user.avatarURL({ format: "png" }) || "https://i.imgur.com/lhFCy5N.png",
+      )
+      .setTitle("Announcement")
+      .addFields([{ name: "Message", value: announcement.message?.value }]);
+  }
+
   async scheduleAnnouncement(props: ScheduleAnnouncementProps): Promise<void> {
     const { announcement, scheduledTimeUTC, announcementRepo, loggerService, requestID } = props;
 
     let guild: Guild;
     let channel: TextChannel;
-
+    let embed: MessageEmbed;
     try {
-      guild = await this.discordClient.guilds.fetch(announcement.guildID);
+      [guild, embed] = await Promise.all([
+        this.discordClient.guilds.fetch(announcement.guildID),
+        this.makeAnnouncementEmbed(announcement),
+      ]);
       channel = guild.channels.cache.get(announcement.channelID as string) as TextChannel;
     } catch (e) {
       loggerService.error("CronService.scheduleAnnouncement", e);
@@ -60,7 +65,7 @@ export class CronService implements ICronService {
 
     schedule.scheduleJob(announcement.id.value, scheduledTimeUTC, async () => {
       try {
-        await channel.send(announcementSendEmbed(announcement));
+        await channel.send(embed);
         announcement.sent();
         await announcementRepo.save(announcement);
 
