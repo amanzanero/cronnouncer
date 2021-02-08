@@ -16,7 +16,7 @@ export class GuildSettingsMap {
   public static toDomain(raw: GuildSettingsModel): GuildSettings | undefined {
     const timezoneOrError = Timezone.create(raw.timezone);
 
-    if (timezoneOrError.isFailure) {
+    if (!!raw.timezone && timezoneOrError.isFailure) {
       logger.error(`[GuildSettingsMap.toDomain] couldn't parse - ${timezoneOrError.errorValue()}`);
       return undefined;
     }
@@ -25,7 +25,7 @@ export class GuildSettingsMap {
       {
         guildID: raw.guild_id,
         nextShortID: raw.next_short_id,
-        timezone: timezoneOrError.getValue(),
+        timezone: !!raw.timezone ? timezoneOrError.getValue() : undefined,
       },
       new UniqueEntityID(raw.guild_settings_id),
     );
