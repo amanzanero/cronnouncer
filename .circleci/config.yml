@@ -119,8 +119,6 @@ workflows:
           type: approval
           requires:
             - release-preview
-            - unit
-            - integration
           filters:
             branches:
               only:
